@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="Spa City Tub Rally: an N64-style bathtub kart racer on the streets and mountain roads of Hot Springs, Arkansas. Open source (MIT).">
+  <title>Spa City Tub Rally</title>
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body data-scene="boot">
+  <canvas id="gl" aria-label="Race view"></canvas>
+  <div id="hud" class="hud"></div>
+  <div id="touch" class="touch" aria-hidden="true">
+    <div id="touch-steer" class="t-steer"><span class="t-steer-knob"></span><em>Steer</em></div>
+    <div class="t-btns">
+      <button type="button" id="t-item" class="tb tb-item" tabindex="-1">Item</button>
+      <button type="button" id="t-hop" class="tb tb-hop" tabindex="-1">Hop</button>
+      <button type="button" id="t-brake" class="tb tb-brake" tabindex="-1">Brake</button>
+      <button type="button" id="t-push" class="tb tb-push" tabindex="-1">Push</button>
+    </div>
+  </div>
+  <div id="screens" class="screens"></div>
+  <p id="boot-error" class="boot-error" role="alert" hidden></p>
+  <noscript><p class="boot-error">Spa City Tub Rally needs JavaScript and WebGL.</p></noscript>
+  <!-- @inline ../data/tracks/graybox.json as TRACK_GRAYBOX -->
+  <!-- @inline ../data/tracks/bathhouse-row.json as TRACK_BATHHOUSE_ROW -->
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

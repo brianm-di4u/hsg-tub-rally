@@ -1,0 +1,4937 @@
+{
+ "generated": "2026-10-30T06:05:08.537Z",
+ "osmBase": "2026-10-30T05:38:34Z",
+ "origin": {
+  "lon": -93.0536,
+  "lat": 34.5139
+ },
+ "roads": {
+  "central": {
+   "label": "Central Avenue",
+   "wayIds": [
+    153790952,
+    695791275,
+    911111871,
+    911111876,
+    911117052,
+    911118163,
+    911123764,
+    1052549591,
+    1126117538,
+    1254974019,
+    1386992264,
+    1422568704,
+    1481563209,
+    1481563210,
+    1481563211
+   ],
+   "names": [
+    "Central Avenue"
+   ],
+   "ways": 15,
+   "lengthFull": 5828.882761,
+   "length": 3635.537677,
+   "vertices": 140,
+   "spacingMean": 29.084301,
+   "spacingMax": 93.32892,
+   "spacingP90": 69.02541,
+   "tag_highway": "primary×15",
+   "tag_oneway": "–×12, yes×3",
+   "tag_lanes": "5×4, 2×3, 3×3, –×3, 4×2",
+   "tag_surface": "asphalt×12, –×3",
+   "tag_maxspeed": "–×15",
+   "tag_bridge": "–×15",
+   "tag_access": "–×15",
+   "elevMin": 172.976108,
+   "elevMax": 191.455988,
+   "maxGrade": 0.04904,
+   "p95Grade": 0.037932,
+   "maxGradeWay": 153790952,
+   "demTiles": {
+    "dem-region.tif": 19,
+    "dem-downtown.tif": 783
+   },
+   "components": 1,
+   "cyclomatic": 1,
+   "componentInfo": [
+    {
+     "ways": [
+      153790952,
+      695791275,
+      911111871,
+      911111876,
+      911117052,
+      911118163,
+      911123764,
+      1052549591,
+      1126117538,
+      1254974019,
+      1386992264,
+      1422568704,
+      1481563209,
+      1481563210,
+      1481563211
+     ],
+     "length": 5828.882761
+    }
+   ],
+   "gaps": [],
+   "joins": {
+    "park": {
+     "label": "Park Avenue",
+     "nodes": 1,
+     "at": [
+      [
+       34.518767,
+       -93.055844
+      ]
+     ],
+     "sharesWays": false
+    },
+    "whittington": {
+     "label": "Whittington Avenue",
+     "nodes": 2,
+     "at": [
+      [
+       34.518606,
+       -93.055771
+      ],
+      [
+       34.518767,
+       -93.055844
+      ]
+     ],
+     "sharesWays": false
+    },
+    "fountain": {
+     "label": "Fountain Street",
+     "nodes": 1,
+     "at": [
+      [
+       34.516248,
+       -93.053389
+      ]
+     ],
+     "sharesWays": false
+    },
+    "reserve": {
+     "label": "Reserve Street",
+     "nodes": 1,
+     "at": [
+      [
+       34.511616,
+       -93.054023
+      ]
+     ],
+     "sharesWays": false
+    },
+    "bridge": {
+     "label": "Bridge Street",
+     "nodes": 1,
+     "at": [
+      [
+       34.509445,
+       -93.054034
+      ]
+     ],
+     "sharesWays": false
+    },
+    "prospect": {
+     "label": "Prospect Avenue",
+     "nodes": 1,
+     "at": [
+      [
+       34.510778,
+       -93.054019
+      ]
+     ],
+     "sharesWays": false
+    },
+    "ouachita": {
+     "label": "Ouachita Avenue",
+     "nodes": 1,
+     "at": [
+      [
+       34.508407,
+       -93.054431
+      ]
+     ],
+     "sharesWays": false
+    }
+   },
+   "otherStreets": [
+    "Alcorn Street",
+    "Archwood Street",
+    "Barker Street",
+    "Bath",
+    "Canyon Court",
+    "Chapel Street",
+    "East St Louis Street",
+    "Garland Avenue",
+    "Greenwood Avenue",
+    "Hagen Street",
+    "Hobson Avenue",
+    "Interior Court",
+    "Laser Street",
+    "Manor Circle",
+    "Market Street",
+    "Morrison Avenue",
+    "Mountain Street",
+    "Olive Street",
+    "Orange Street",
+    "Plateau Street",
+    "Pond Street",
+    "Sanford Street",
+    "Spring Street",
+    "Watt Street",
+    "West Belding Street",
+    "West Grand Avenue",
+    "West Maurice Street",
+    "West St Louis Street",
+    "Winona Street"
+   ],
+   "deadEnds": [
+    {
+     "way": 153790952,
+     "at": [
+      34.470585,
+      -93.059437
+     ]
+    }
+   ]
+  },
+  "park": {
+   "label": "Park Avenue",
+   "wayIds": [
+    12816840,
+    911123309,
+    1302627169,
+    1302627170,
+    1302627171,
+    1422568702,
+    1422568703
+   ],
+   "names": [
+    "Park Avenue"
+   ],
+   "ways": 7,
+   "lengthFull": 9826.32425,
+   "length": 5350.17393,
+   "vertices": 125,
+   "spacingMean": 45.340457,
+   "spacingMax": 463.105575,
+   "spacingP90": 93.941105,
+   "tag_highway": "primary×7",
+   "tag_oneway": "–×7",
+   "tag_lanes": "3×3, –×3, 2×1",
+   "tag_surface": "paved×7",
+   "tag_maxspeed": "–×7",
+   "tag_bridge": "–×7",
+   "tag_access": "–×7",
+   "elevMin": 181.658539,
+   "elevMax": 227.187341,
+   "maxGrade": 0.05978,
+   "p95Grade": 0.041934,
+   "maxGradeWay": 12816840,
+   "demTiles": {
+    "dem-downtown.tif": 513,
+    "dem-east.tif": 564,
+    "dem-region.tif": 60
+   },
+   "components": 1,
+   "cyclomatic": 0,
+   "componentInfo": [
+    {
+     "ways": [
+      12816840,
+      911123309,
+      1302627169,
+      1302627170,
+      1302627171,
+      1422568702,
+      1422568703
+     ],
+     "length": 9826.32425
+    }
+   ],
+   "gaps": [],
+   "joins": {
+    "central": {
+     "label": "Central Avenue",
+     "nodes": 1,
+     "at": [
+      [
+       34.518767,
+       -93.055844
+      ]
+     ],
+     "sharesWays": false
+    },
+    "whittington": {
+     "label": "Whittington Avenue",
+     "nodes": 1,
+     "at": [
+      [
+       34.518767,
+       -93.055844
+      ]
+     ],
+     "sharesWays": false
+    },
+    "gorge": {
+     "label": "Gorge Road / Gulpha Gorge roads",
+     "nodes": 1,
+     "at": [
+      [
+       34.535624,
+       -93.031644
+      ]
+     ],
+     "sharesWays": false
+    }
+   },
+   "otherStreets": [
+    "Amber Street",
+    "Arbor Street",
+    "Bailey Place",
+    "Belvedere Drive",
+    "Bloom Street",
+    "Bower Street",
+    "Circle Drive",
+    "Coolidge Street",
+    "Cove Street",
+    "Crest Street",
+    "Dell Street",
+    "East Street",
+    "Edgewood Street",
+    "Forest Hills Trail",
+    "Fox Pass Cutoff",
+    "Glade Street",
+    "Holly Street",
+    "Lodestone",
+    "Majestic Alley",
+    "Mountain Valley Street",
+    "Oriole Street",
+    "Pullman Avenue",
+    "Ramble Street",
+    "Ravine Street",
+    "Reid Street",
+    "Sleepy Valley Road",
+    "Stonebridge Road",
+    "Sunset Trail",
+    "Tom Ellsworth Drive"
+   ],
+   "deadEnds": [
+    {
+     "way": 12816840,
+     "at": [
+      34.577646,
+      -92.982643
+     ]
+    }
+   ]
+  },
+  "whittington": {
+   "label": "Whittington Avenue",
+   "wayIds": [
+    12809343,
+    12809350,
+    12809360,
+    286815111,
+    286815112,
+    286815113,
+    286815114,
+    911123310,
+    911123316,
+    1254974020,
+    1422561495,
+    1422561498,
+    1422561499,
+    1422568705,
+    1481196983
+   ],
+   "names": [
+    "Whittington Avenue"
+   ],
+   "ways": 15,
+   "lengthFull": 5242.202256,
+   "length": 5242.202256,
+   "vertices": 186,
+   "spacingMean": 30.656154,
+   "spacingMax": 173.669092,
+   "spacingP90": 66.324977,
+   "tag_highway": "tertiary×15",
+   "tag_oneway": "yes×10, –×5",
+   "tag_lanes": "1×9, 2×3, –×3",
+   "tag_surface": "asphalt×10, paved×4, –×1",
+   "tag_maxspeed": "–×13, 25 mph×2",
+   "tag_bridge": "–×15",
+   "tag_access": "–×15",
+   "elevMin": 191.263689,
+   "elevMax": 283.967167,
+   "maxGrade": 0.160313,
+   "p95Grade": 0.097163,
+   "maxGradeWay": 12809343,
+   "demTiles": {
+    "dem-west.tif": 475,
+    "dem-downtown.tif": 676
+   },
+   "components": 1,
+   "cyclomatic": 0,
+   "componentInfo": [
+    {
+     "ways": [
+      12809343,
+      12809350,
+      12809360,
+      286815111,
+      286815112,
+      286815113,
+      286815114,
+      911123310,
+      911123316,
+      1254974020,
+      1422561495,
+      1422561498,
+      1422561499,
+      1422568705,
+      1481196983
+     ],
+     "length": 5242.202256
+    }
+   ],
+   "gaps": [],
+   "joins": {
+    "central": {
+     "label": "Central Avenue",
+     "nodes": 2,
+     "at": [
+      [
+       34.518767,
+       -93.055844
+      ],
+      [
+       34.518606,
+       -93.055771
+      ]
+     ],
+     "sharesWays": false
+    },
+    "park": {
+     "label": "Park Avenue",
+     "nodes": 1,
+     "at": [
+      [
+       34.518767,
+       -93.055844
+      ]
+     ],
+     "sharesWays": false
+    },
+    "westmtn": {
+     "label": "West Mountain Drive",
+     "nodes": 1,
+     "at": [
+      [
+       34.515771,
+       -93.066187
+      ]
+     ],
+     "sharesWays": false
+    },
+    "blacksnake": {
+     "label": "Black Snake Road",
+     "nodes": 1,
+     "at": [
+      [
+       34.513897,
+       -93.093789
+      ]
+     ],
+     "sharesWays": false
+    }
+   },
+   "otherStreets": [
+    "Arcade Lane",
+    "Brook Drive",
+    "Cedar Street",
+    "Clarkson Street",
+    "Downs Terrace",
+    "Hembree Lane",
+    "Jasper Street",
+    "Lemp Street",
+    "Linden Street",
+    "Linn Street",
+    "Maple Terrace",
+    "Mountain Top Trail",
+    "Myrtle Street",
+    "Newton Street",
+    "Ozark Street",
+    "Pine Street",
+    "Quartz Street",
+    "Regal Lane",
+    "Roanoke Street",
+    "Saint George Street",
+    "Skyview Terrace",
+    "Walnut Street",
+    "Water Street",
+    "Whittington Place",
+    "Willow Street",
+    "Woodfin Street",
+    "Woodmere"
+   ],
+   "deadEnds": []
+  },
+  "fountain": {
+   "label": "Fountain Street",
+   "wayIds": [
+    12810305,
+    250875465
+   ],
+   "names": [
+    "Fountain Street"
+   ],
+   "ways": 2,
+   "lengthFull": 1691.218221,
+   "length": 1691.218221,
+   "vertices": 79,
+   "spacingMean": 21.963873,
+   "spacingMax": 160.040168,
+   "spacingP90": 48.123119,
+   "tag_highway": "residential×2",
+   "tag_oneway": "–×1, yes×1",
+   "tag_lanes": "1×1, 2×1",
+   "tag_surface": "asphalt×2",
+   "tag_maxspeed": "–×2",
+   "tag_bridge": "–×2",
+   "tag_access": "–×2",
+   "elevMin": 187.606057,
+   "elevMax": 286.003236,
+   "maxGrade": 0.141537,
+   "p95Grade": 0.107019,
+   "maxGradeWay": 250875465,
+   "demTiles": {
+    "dem-downtown.tif": 386
+   },
+   "components": 1,
+   "cyclomatic": 0,
+   "componentInfo": [
+    {
+     "ways": [
+      12810305,
+      250875465
+     ],
+     "length": 1691.218221
+    }
+   ],
+   "gaps": [],
+   "joins": {
+    "central": {
+     "label": "Central Avenue",
+     "nodes": 1,
+     "at": [
+      [
+       34.516248,
+       -93.053389
+      ]
+     ],
+     "sharesWays": false
+    },
+    "hsmtnLower": {
+     "label": "Hot Springs Mountain Drive, lower climb (unnamed in OSM)",
+     "nodes": 1,
+     "at": [
+      [
+       34.518601,
+       -93.049196
+      ]
+     ],
+     "sharesWays": false
+    },
+    "northmtn": {
+     "label": "North Mountain Drive / Loop",
+     "nodes": 1,
+     "at": [
+      [
+       34.523527,
+       -93.04164
+      ]
+     ],
+     "sharesWays": false
+    },
+    "promenade": {
+     "label": "Grand Promenade (footway)",
+     "nodes": 1,
+     "at": [
+      [
+       34.517648,
+       -93.051002
+      ]
+     ],
+     "sharesWays": false
+    }
+   },
+   "otherStreets": [
+    "Floral Trail",
+    "Fountain Trail",
+    "Hot Springs Mountain Trail"
+   ],
+   "deadEnds": []
+  },
+  "reserve": {
+   "label": "Reserve Street",
+   "wayIds": [
+    12816310,
+    912626292
+   ],
+   "names": [
+    "Reserve Street"
+   ],
+   "ways": 2,
+   "lengthFull": 529.754775,
+   "length": 529.754775,
+   "vertices": 21,
+   "spacingMean": 27.88183,
+   "spacingMax": 90.260544,
+   "spacingP90": 59.53266,
+   "tag_highway": "tertiary×2",
+   "tag_oneway": "–×2",
+   "tag_lanes": "–×2",
+   "tag_surface": "–×2",
+   "tag_maxspeed": "–×2",
+   "tag_bridge": "–×2",
+   "tag_access": "–×2",
+   "elevMin": 182.825342,
+   "elevMax": 195.411535,
+   "maxGrade": 0.107702,
+   "p95Grade": 0.106291,
+   "maxGradeWay": 912626292,
+   "demTiles": {
+    "dem-downtown.tif": 117
+   },
+   "components": 1,
+   "cyclomatic": 0,
+   "componentInfo": [
+    {
+     "ways": [
+      12816310,
+      912626292
+     ],
+     "length": 529.754775
+    }
+   ],
+   "gaps": [],
+   "joins": {
+    "central": {
+     "label": "Central Avenue",
+     "nodes": 1,
+     "at": [
+      [
+       34.511616,
+       -93.054023
+      ]
+     ],
+     "sharesWays": false
+    }
+   },
+   "otherStreets": [
+    "Beech Street",
+    "Civic Street",
+    "Cottage Street",
+    "Interior Court",
+    "Laurel Street",
+    "Opera Street",
+    "Post Office Court",
+    "Spring Street"
+   ],
+   "deadEnds": []
+  },
+  "bridge": {
+   "label": "Bridge Street",
+   "wayIds": [
+    12805886
+   ],
+   "names": [
+    "Bridge Street"
+   ],
+   "ways": 1,
+   "lengthFull": 54.496962,
+   "length": 54.496962,
+   "vertices": 2,
+   "spacingMean": 54.496962,
+   "spacingMax": 54.496962,
+   "spacingP90": 54.496962,
+   "tag_highway": "secondary×1",
+   "tag_oneway": "–×1",
+   "tag_lanes": "2×1",
+   "tag_surface": "asphalt×1",
+   "tag_maxspeed": "–×1",
+   "tag_bridge": "–×1",
+   "tag_access": "–×1",
+   "elevMin": 180.785622,
+   "elevMax": 181.004549,
+   "maxGrade": 0.008504,
+   "p95Grade": 0.008504,
+   "maxGradeWay": 12805886,
+   "demTiles": {
+    "dem-downtown.tif": 12
+   },
+   "components": 1,
+   "cyclomatic": 0,
+   "componentInfo": [
+    {
+     "ways": [
+      12805886
+     ],
+     "length": 54.496962
+    }
+   ],
+   "gaps": [],
+   "joins": {
+    "central": {
+     "label": "Central Avenue",
+     "nodes": 1,
+     "at": [
+      [
+       34.509445,
+       -93.054034
+      ]
+     ],
+     "sharesWays": false
+    },
+    "malvern": {
+     "label": "Malvern Avenue",
+     "nodes": 1,
+     "at": [
+      [
+       34.509453,
+       -93.053439
+      ]
+     ],
+     "sharesWays": false
+    }
+   },
+   "otherStreets": [
+    "Broadway Bridge"
+   ],
+   "deadEnds": []
+  },
+  "malvern": {
+   "label": "Malvern Avenue",
+   "wayIds": [
+    49223587,
+    127009917,
+    286984409,
+    286984410,
+    911123284,
+    911123306,
+    1486133007
+   ],
+   "names": [
+    "Malvern Avenue"
+   ],
+   "ways": 7,
+   "lengthFull": 3097.030026,
+   "length": 2751.814931,
+   "vertices": 101,
+   "spacingMean": 29.274627,
+   "spacingMax": 139.333565,
+   "spacingP90": 59.170432,
+   "tag_highway": "primary×5, secondary×2",
+   "tag_oneway": "–×7",
+   "tag_lanes": "–×6, 2×1",
+   "tag_surface": "–×5, asphalt×1, paved×1",
+   "tag_maxspeed": "–×7",
+   "tag_bridge": "–×6, yes×1",
+   "tag_access": "–×7",
+   "elevMin": 157.99166,
+   "elevMax": 186.025513,
+   "maxGrade": 0.118179,
+   "p95Grade": 0.051392,
+   "maxGradeWay": 911123306,
+   "demTiles": {
+    "dem-downtown.tif": 585,
+    "dem-region.tif": 18
+   },
+   "components": 1,
+   "cyclomatic": 0,
+   "componentInfo": [
+    {
+     "ways": [
+      49223587,
+      127009917,
+      286984409,
+      286984410,
+      911123284,
+      911123306,
+      1486133007
+     ],
+     "length": 3097.030026
+    }
+   ],
+   "gaps": [],
+   "joins": {
+    "bridge": {
+     "label": "Bridge Street",
+     "nodes": 1,
+     "at": [
+      [
+       34.509453,
+       -93.053439
+      ]
+     ],
+     "sharesWays": false
+    }
+   },
+   "otherStreets": [
+    "Autumn Ridge Circle",
+    "Banks Street",
+    "Blake Street",
+    "Broadway Bridge",
+    "Broadway Street",
+    "Church Street",
+    "Cones Road",
+    "Convention Boulevard",
+    "Creek Street",
+    "Crescent Avenue",
+    "Drexel Street",
+    "East Grand Avenue",
+    "East Maurice Street",
+    "Garden Street",
+    "Garfield Street",
+    "Gould Street",
+    "Grove Street",
+    "Gulpha Street",
+    "Halton Terrace",
+    "Henry Street",
+    "Highland Park Street",
+    "Huntleigh Drive",
+    "Jefferson Street",
+    "Kirk Street",
+    "Lowery Street",
+    "Moore Street",
+    "Nickel Street",
+    "Overton Street",
+    "Ridgeway Street",
+    "Shawnee Street",
+    "Silver Street",
+    "Summit Street"
+   ],
+   "deadEnds": [
+    {
+     "way": 911123306,
+     "at": [
+      34.487612,
+      -93.034472
+     ]
+    }
+   ]
+  },
+  "exchange": {
+   "label": "Exchange Street",
+   "wayIds": [
+    12817702,
+    911117053
+   ],
+   "names": [
+    "Exchange Street"
+   ],
+   "ways": 2,
+   "lengthFull": 339.629217,
+   "length": 339.629217,
+   "vertices": 16,
+   "spacingMean": 24.25923,
+   "spacingMax": 53.080368,
+   "spacingP90": 46.540914,
+   "tag_highway": "residential×2",
+   "tag_oneway": "–×2",
+   "tag_lanes": "–×2",
+   "tag_surface": "asphalt×1, –×1",
+   "tag_maxspeed": "–×2",
+   "tag_bridge": "–×2",
+   "tag_access": "–×2",
+   "elevMin": 183.94539,
+   "elevMax": 188.690663,
+   "maxGrade": 0.04697,
+   "p95Grade": 0.045136,
+   "maxGradeWay": 911117053,
+   "demTiles": {
+    "dem-downtown.tif": 77
+   },
+   "components": 1,
+   "cyclomatic": 0,
+   "componentInfo": [
+    {
+     "ways": [
+      12817702,
+      911117053
+     ],
+     "length": 339.629217
+    }
+   ],
+   "gaps": [],
+   "joins": {
+    "prospect": {
+     "label": "Prospect Avenue",
+     "nodes": 1,
+     "at": [
+      [
+       34.510705,
+       -93.054864
+      ]
+     ],
+     "sharesWays": false
+    }
+   },
+   "otherStreets": [
+    "Bath",
+    "Court Street",
+    "Interior Court",
+    "Mountain Street"
+   ],
+   "deadEnds": []
+  },
+  "prospect": {
+   "label": "Prospect Avenue",
+   "wayIds": [
+    12817743,
+    12817746,
+    12817747,
+    911117054,
+    911117055
+   ],
+   "names": [
+    "Prospect Avenue"
+   ],
+   "ways": 5,
+   "lengthFull": 1975.000495,
+   "length": 1975.000495,
+   "vertices": 100,
+   "spacingMean": 20.789479,
+   "spacingMax": 89.627346,
+   "spacingP90": 31.455912,
+   "tag_highway": "residential×5",
+   "tag_oneway": "–×5",
+   "tag_lanes": "–×4, 2×1",
+   "tag_surface": "–×4, asphalt×1",
+   "tag_maxspeed": "–×5",
+   "tag_bridge": "–×5",
+   "tag_access": "–×5",
+   "elevMin": 181.827249,
+   "elevMax": 221.429067,
+   "maxGrade": 0.084104,
+   "p95Grade": 0.073723,
+   "maxGradeWay": 12817747,
+   "demTiles": {
+    "dem-downtown.tif": 448
+   },
+   "components": 1,
+   "cyclomatic": 0,
+   "componentInfo": [
+    {
+     "ways": [
+      12817743,
+      12817746,
+      12817747,
+      911117054,
+      911117055
+     ],
+     "length": 1975.000495
+    }
+   ],
+   "gaps": [],
+   "joins": {
+    "central": {
+     "label": "Central Avenue",
+     "nodes": 1,
+     "at": [
+      [
+       34.510778,
+       -93.054019
+      ]
+     ],
+     "sharesWays": false
+    },
+    "exchange": {
+     "label": "Exchange Street",
+     "nodes": 1,
+     "at": [
+      [
+       34.510705,
+       -93.054864
+      ]
+     ],
+     "sharesWays": false
+    },
+    "westmtn": {
+     "label": "West Mountain Drive",
+     "nodes": 1,
+     "at": [
+      [
+       34.50476,
+       -93.065932
+      ]
+     ],
+     "sharesWays": false
+    },
+    "westsummit": {
+     "label": "West Mountain Summit Drive",
+     "nodes": 1,
+     "at": [
+      [
+       34.50476,
+       -93.065932
+      ]
+     ],
+     "sharesWays": false
+    }
+   },
+   "otherStreets": [
+    "Belmont Terrace",
+    "Bolton Street",
+    "Bond Court",
+    "Chincapin Street",
+    "Court Street",
+    "Crown Street",
+    "Curve Terrace",
+    "Fawn Street",
+    "Hawthorne Lane",
+    "Hawthorne Street",
+    "Market Street",
+    "Mountain Top Trail",
+    "Orange Street",
+    "Pecan Street",
+    "Quapaw Avenue",
+    "Robinson Court",
+    "Romer Alley",
+    "Rose Street",
+    "Violet Street",
+    "West Grand Avenue"
+   ],
+   "deadEnds": []
+  },
+  "ouachita": {
+   "label": "Ouachita Avenue",
+   "wayIds": [
+    12809567,
+    632110564,
+    911118166,
+    1302627172,
+    1302627173,
+    1302627174,
+    1486153897
+   ],
+   "names": [
+    "Ouachita Avenue"
+   ],
+   "ways": 7,
+   "lengthFull": 979.023479,
+   "length": 979.023479,
+   "vertices": 31,
+   "spacingMean": 40.792645,
+   "spacingMax": 124.614312,
+   "spacingP90": 83.365719,
+   "tag_highway": "tertiary×7",
+   "tag_oneway": "–×6, yes×1",
+   "tag_lanes": "–×4, 2×3",
+   "tag_surface": "asphalt×4, –×3",
+   "tag_maxspeed": "–×7",
+   "tag_bridge": "–×7",
+   "tag_access": "–×7",
+   "elevMin": 183.889677,
+   "elevMax": 195.813745,
+   "maxGrade": 0.035316,
+   "p95Grade": 0.033828,
+   "maxGradeWay": 911118166,
+   "demTiles": {
+    "dem-downtown.tif": 214
+   },
+   "components": 1,
+   "cyclomatic": 0,
+   "componentInfo": [
+    {
+     "ways": [
+      12809567,
+      632110564,
+      911118166,
+      1302627172,
+      1302627173,
+      1302627174,
+      1486153897
+     ],
+     "length": 979.023479
+    }
+   ],
+   "gaps": [],
+   "joins": {
+    "central": {
+     "label": "Central Avenue",
+     "nodes": 1,
+     "at": [
+      [
+       34.508407,
+       -93.054431
+      ]
+     ],
+     "sharesWays": false
+    }
+   },
+   "otherStreets": [
+    "Courthouse Alley",
+    "Hawthorne Street",
+    "Hazel Street",
+    "Hickory Street",
+    "Market Street",
+    "Olive Street",
+    "Orange Street",
+    "West Grand Avenue"
+   ],
+   "deadEnds": []
+  },
+  "hsmtn": {
+   "label": "Hot Springs Mountain Drive",
+   "wayIds": [
+    12806757
+   ],
+   "names": [
+    "Hot Springs Mountain Drive"
+   ],
+   "ways": 1,
+   "lengthFull": 848.006453,
+   "length": 848.006453,
+   "vertices": 12,
+   "spacingMean": 77.091496,
+   "spacingMax": 202.19865,
+   "spacingP90": 164.98687,
+   "tag_highway": "residential×1",
+   "tag_oneway": "yes×1",
+   "tag_lanes": "1×1",
+   "tag_surface": "asphalt×1",
+   "tag_maxspeed": "–×1",
+   "tag_bridge": "–×1",
+   "tag_access": "–×1",
+   "elevMin": 276.36296,
+   "elevMax": 291.325604,
+   "maxGrade": 0.08031,
+   "p95Grade": 0.075346,
+   "maxGradeWay": 12806757,
+   "demTiles": {
+    "dem-downtown.tif": 174
+   },
+   "components": 1,
+   "cyclomatic": 0,
+   "componentInfo": [
+    {
+     "ways": [
+      12806757
+     ],
+     "length": 848.006453
+    }
+   ],
+   "gaps": [],
+   "joins": {
+    "hsmtnLower": {
+     "label": "Hot Springs Mountain Drive, lower climb (unnamed in OSM)",
+     "nodes": 1,
+     "at": [
+      [
+       34.516116,
+       -93.048297
+      ]
+     ],
+     "sharesWays": false
+    },
+    "northmtn": {
+     "label": "North Mountain Drive / Loop",
+     "nodes": 1,
+     "at": [
+      [
+       34.52154,
+       -93.042234
+      ]
+     ],
+     "sharesWays": false
+    }
+   },
+   "otherStreets": [
+    "Hot Springs Mountain Trail",
+    "Peak Trail"
+   ],
+   "deadEnds": []
+  },
+  "hsmtnLower": {
+   "label": "Hot Springs Mountain Drive, lower climb (unnamed in OSM)",
+   "wayIds": [
+    250875470,
+    12800909
+   ],
+   "names": [
+    ""
+   ],
+   "ways": 2,
+   "lengthFull": 2244.489572,
+   "length": 2244.489572,
+   "vertices": 126,
+   "spacingMean": 18.100722,
+   "spacingMax": 54.893026,
+   "spacingP90": 37.894315,
+   "tag_highway": "residential×2",
+   "tag_oneway": "yes×2",
+   "tag_lanes": "–×2",
+   "tag_surface": "asphalt×2",
+   "tag_maxspeed": "–×2",
+   "tag_bridge": "–×2",
+   "tag_access": "–×2",
+   "elevMin": 202.653676,
+   "elevMax": 306.738726,
+   "maxGrade": 0.112699,
+   "p95Grade": 0.091248,
+   "maxGradeWay": 250875470,
+   "demTiles": {
+    "dem-downtown.tif": 512
+   },
+   "components": 1,
+   "cyclomatic": 0,
+   "componentInfo": [
+    {
+     "ways": [
+      250875470,
+      12800909
+     ],
+     "length": 2244.489572
+    }
+   ],
+   "gaps": [],
+   "joins": {
+    "fountain": {
+     "label": "Fountain Street",
+     "nodes": 1,
+     "at": [
+      [
+       34.518601,
+       -93.049196
+      ]
+     ],
+     "sharesWays": false
+    },
+    "hsmtn": {
+     "label": "Hot Springs Mountain Drive",
+     "nodes": 1,
+     "at": [
+      [
+       34.516116,
+       -93.048297
+      ]
+     ],
+     "sharesWays": false
+    },
+    "northmtn": {
+     "label": "North Mountain Drive / Loop",
+     "nodes": 1,
+     "at": [
+      [
+       34.516602,
+       -93.046085
+      ]
+     ],
+     "sharesWays": false
+    }
+   },
+   "otherStreets": [
+    "Fountain Trail",
+    "Honeysuckle Trail",
+    "Hot Springs Mountain Trail",
+    "Peak Trail"
+   ],
+   "deadEnds": []
+  },
+  "northmtn": {
+   "label": "North Mountain Drive / Loop",
+   "wayIds": [
+    12801681,
+    12803330,
+    12803331,
+    12803332
+   ],
+   "names": [
+    "North Mountain Loop",
+    "North Mountain Drive"
+   ],
+   "ways": 4,
+   "lengthFull": 2524.382236,
+   "length": 2524.382236,
+   "vertices": 62,
+   "spacingMean": 43.523832,
+   "spacingMax": 112.9935,
+   "spacingP90": 103.025687,
+   "tag_highway": "residential×4",
+   "tag_oneway": "yes×3, –×1",
+   "tag_lanes": "1×2, –×2",
+   "tag_surface": "asphalt×3, –×1",
+   "tag_maxspeed": "–×4",
+   "tag_bridge": "–×4",
+   "tag_access": "–×4",
+   "elevMin": 276.074396,
+   "elevMax": 324.454042,
+   "maxGrade": 0.132027,
+   "p95Grade": 0.105017,
+   "maxGradeWay": 12803332,
+   "demTiles": {
+    "dem-downtown.tif": 538
+   },
+   "components": 2,
+   "cyclomatic": 2,
+   "componentInfo": [
+    {
+     "ways": [
+      12803330,
+      12803331,
+      12803332
+     ],
+     "length": 1440.922593
+    },
+    {
+     "ways": [
+      12801681
+     ],
+     "length": 1083.459643
+    }
+   ],
+   "gaps": [
+    {
+     "toComponent": 1,
+     "straight": 126.195181,
+     "at": [
+      34.523527,
+      -93.04164
+     ],
+     "to": [
+      34.524656,
+      -93.041508
+     ],
+     "viaRoad": 128.435961,
+     "viaRoadSeq": "(unnamed residential) 128 m",
+     "viaAny": 128.435961
+    }
+   ],
+   "joins": {
+    "fountain": {
+     "label": "Fountain Street",
+     "nodes": 1,
+     "at": [
+      [
+       34.523527,
+       -93.04164
+      ]
+     ],
+     "sharesWays": false
+    },
+    "hsmtn": {
+     "label": "Hot Springs Mountain Drive",
+     "nodes": 1,
+     "at": [
+      [
+       34.52154,
+       -93.042234
+      ]
+     ],
+     "sharesWays": false
+    },
+    "hsmtnLower": {
+     "label": "Hot Springs Mountain Drive, lower climb (unnamed in OSM)",
+     "nodes": 1,
+     "at": [
+      [
+       34.516602,
+       -93.046085
+      ]
+     ],
+     "sharesWays": false
+    }
+   },
+   "otherStreets": [
+    "Goat Rock Trail",
+    "Gulpha Gorge Trail",
+    "Peak Trail"
+   ],
+   "deadEnds": []
+  },
+  "westmtn": {
+   "label": "West Mountain Drive",
+   "wayIds": [
+    12808452,
+    12808467,
+    12808471
+   ],
+   "names": [
+    "West Mountain Drive"
+   ],
+   "ways": 3,
+   "lengthFull": 5647.736151,
+   "length": 5647.736151,
+   "vertices": 133,
+   "spacingMean": 43.444124,
+   "spacingMax": 163.791897,
+   "spacingP90": 91.322895,
+   "tag_highway": "residential×3",
+   "tag_oneway": "–×3",
+   "tag_lanes": "–×3",
+   "tag_surface": "–×3",
+   "tag_maxspeed": "–×3",
+   "tag_bridge": "–×3",
+   "tag_access": "–×3",
+   "elevMin": 201.249163,
+   "elevMax": 334.771522,
+   "maxGrade": 0.099171,
+   "p95Grade": 0.081124,
+   "maxGradeWay": 12808467,
+   "demTiles": {
+    "dem-downtown.tif": 1198
+   },
+   "components": 1,
+   "cyclomatic": 1,
+   "componentInfo": [
+    {
+     "ways": [
+      12808452,
+      12808467,
+      12808471
+     ],
+     "length": 5647.736151
+    }
+   ],
+   "gaps": [],
+   "joins": {
+    "whittington": {
+     "label": "Whittington Avenue",
+     "nodes": 1,
+     "at": [
+      [
+       34.515771,
+       -93.066187
+      ]
+     ],
+     "sharesWays": false
+    },
+    "prospect": {
+     "label": "Prospect Avenue",
+     "nodes": 1,
+     "at": [
+      [
+       34.50476,
+       -93.065932
+      ]
+     ],
+     "sharesWays": false
+    },
+    "westsummit": {
+     "label": "West Mountain Summit Drive",
+     "nodes": 71,
+     "at": [
+      [
+       34.50476,
+       -93.065932
+      ],
+      [
+       34.504907,
+       -93.065929
+      ],
+      [
+       34.505007,
+       -93.065945
+      ]
+     ],
+     "sharesWays": true
+    }
+   },
+   "otherStreets": [
+    "Brook Drive",
+    "Canyon Trail",
+    "Oak Trail",
+    "Sunset Trail",
+    "West Mountain Trail"
+   ],
+   "deadEnds": []
+  },
+  "westsummit": {
+   "label": "West Mountain Summit Drive",
+   "wayIds": [
+    12808452,
+    12808471
+   ],
+   "names": [
+    "West Mountain Drive"
+   ],
+   "ways": 2,
+   "lengthFull": 2948.796786,
+   "length": 2948.796786,
+   "vertices": 73,
+   "spacingMean": 41.532349,
+   "spacingMax": 163.791897,
+   "spacingP90": 97.625148,
+   "tag_highway": "residential×2",
+   "tag_oneway": "–×2",
+   "tag_lanes": "–×2",
+   "tag_surface": "–×2",
+   "tag_maxspeed": "–×2",
+   "tag_bridge": "–×2",
+   "tag_access": "–×2",
+   "elevMin": 215.057294,
+   "elevMax": 334.771522,
+   "maxGrade": 0.089554,
+   "p95Grade": 0.082257,
+   "maxGradeWay": 12808452,
+   "demTiles": {
+    "dem-downtown.tif": 629
+   },
+   "components": 1,
+   "cyclomatic": 1,
+   "componentInfo": [
+    {
+     "ways": [
+      12808452,
+      12808471
+     ],
+     "length": 2948.796786
+    }
+   ],
+   "gaps": [],
+   "joins": {
+    "prospect": {
+     "label": "Prospect Avenue",
+     "nodes": 1,
+     "at": [
+      [
+       34.50476,
+       -93.065932
+      ]
+     ],
+     "sharesWays": false
+    },
+    "westmtn": {
+     "label": "West Mountain Drive",
+     "nodes": 71,
+     "at": [
+      [
+       34.50476,
+       -93.065932
+      ],
+      [
+       34.504907,
+       -93.065929
+      ],
+      [
+       34.505007,
+       -93.065945
+      ]
+     ],
+     "sharesWays": true
+    }
+   },
+   "otherStreets": [
+    "Oak Trail",
+    "Sunset Trail",
+    "West Mountain Trail"
+   ],
+   "deadEnds": []
+  },
+  "music": {
+   "label": "Music Mountain Road",
+   "wayIds": [
+    12817829
+   ],
+   "names": [
+    "Music Mountain Road"
+   ],
+   "ways": 1,
+   "lengthFull": 2581.915421,
+   "length": 2581.915421,
+   "vertices": 66,
+   "spacingMean": 39.721776,
+   "spacingMax": 124.226203,
+   "spacingP90": 77.065111,
+   "tag_highway": "residential×1",
+   "tag_oneway": "–×1",
+   "tag_lanes": "–×1",
+   "tag_surface": "–×1",
+   "tag_maxspeed": "–×1",
+   "tag_bridge": "–×1",
+   "tag_access": "–×1",
+   "elevMin": 127.826561,
+   "elevMax": 160.436056,
+   "maxGrade": 0.269059,
+   "p95Grade": 0.151477,
+   "maxGradeWay": 12817829,
+   "demTiles": {
+    "dem-west.tif": 549
+   },
+   "components": 1,
+   "cyclomatic": 0,
+   "componentInfo": [
+    {
+     "ways": [
+      12817829
+     ],
+     "length": 2581.915421
+    }
+   ],
+   "gaps": [],
+   "joins": {},
+   "otherStreets": [
+    "Albert Pike Road",
+    "Bentley Loop",
+    "Bridwell Drive",
+    "Clarion Lane",
+    "Commerce Street",
+    "Helms Creek Road",
+    "Ledgerock Way",
+    "Music Mountain Terrace"
+   ],
+   "deadEnds": [
+    {
+     "way": 12817829,
+     "at": [
+      34.512766,
+      -93.109206
+     ]
+    }
+   ]
+  },
+  "blacksnake": {
+   "label": "Black Snake Road",
+   "wayIds": [
+    12811566,
+    12811576,
+    250816514,
+    250816515
+   ],
+   "names": [
+    "Blacksnake Road"
+   ],
+   "ways": 4,
+   "lengthFull": 4498.061312,
+   "length": 4387.232518,
+   "vertices": 93,
+   "spacingMean": 49.294747,
+   "spacingMax": 251.302044,
+   "spacingP90": 131.871431,
+   "tag_highway": "tertiary×4",
+   "tag_oneway": "–×4",
+   "tag_lanes": "–×4",
+   "tag_surface": "–×4",
+   "tag_maxspeed": "–×4",
+   "tag_bridge": "–×3, yes×1",
+   "tag_access": "–×4",
+   "elevMin": 129.489941,
+   "elevMax": 284.173127,
+   "maxGrade": 0.241296,
+   "p95Grade": 0.135244,
+   "maxGradeWay": 12811576,
+   "demTiles": {
+    "dem-west.tif": 924
+   },
+   "components": 1,
+   "cyclomatic": 0,
+   "componentInfo": [
+    {
+     "ways": [
+      12811566,
+      12811576,
+      250816514,
+      250816515
+     ],
+     "length": 4498.061312
+    }
+   ],
+   "gaps": [],
+   "joins": {
+    "whittington": {
+     "label": "Whittington Avenue",
+     "nodes": 1,
+     "at": [
+      [
+       34.513897,
+       -93.093789
+      ]
+     ],
+     "sharesWays": false
+    }
+   },
+   "otherStreets": [
+    "Bull Bayou Road",
+    "Catapillar Lane",
+    "Centennial Drive",
+    "Mountain Pine Road",
+    "Sunset Trail",
+    "Turkey Trot Lane"
+   ],
+   "deadEnds": []
+  },
+  "cedarglades": {
+   "label": "Cedar Glades Road",
+   "wayIds": [
+    12804006,
+    250880910,
+    250880911,
+    353011774
+   ],
+   "names": [
+    "Cedarglade Road"
+   ],
+   "ways": 4,
+   "lengthFull": 8942.877976,
+   "length": 8222.030442,
+   "vertices": 179,
+   "spacingMean": 46.983031,
+   "spacingMax": 213.866372,
+   "spacingP90": 105.130931,
+   "tag_highway": "unclassified×4",
+   "tag_oneway": "–×4",
+   "tag_lanes": "–×3, 2×1",
+   "tag_surface": "paved×3, –×1",
+   "tag_maxspeed": "–×4",
+   "tag_bridge": "–×3, yes×1",
+   "tag_access": "–×4",
+   "elevMin": 140.414282,
+   "elevMax": 255.92349,
+   "maxGrade": 0.146991,
+   "p95Grade": 0.0935,
+   "maxGradeWay": 353011774,
+   "demTiles": {
+    "dem-downtown.tif": 476,
+    "dem-west.tif": 870,
+    "dem-region.tif": 391
+   },
+   "components": 1,
+   "cyclomatic": 0,
+   "componentInfo": [
+    {
+     "ways": [
+      12804006,
+      250880910,
+      250880911,
+      353011774
+     ],
+     "length": 8942.877976
+    }
+   ],
+   "gaps": [],
+   "joins": {},
+   "otherStreets": [
+    "Agate Street",
+    "Amber Street",
+    "Canterbury Road",
+    "Cedar Street",
+    "Glade Street",
+    "Heller Mtn Trail",
+    "Keanard Lane",
+    "Leameadow Trail",
+    "Meeks Loop",
+    "Mountain Pine Road",
+    "Pine Street",
+    "Pineland Drive",
+    "Porter Lane",
+    "R Ormond Lane",
+    "Short Leaf Road",
+    "Sunset Trail",
+    "Tunica Trail",
+    "Turkey Trot Lane",
+    "Valley Acres Road",
+    "Wildcat Road"
+   ],
+   "deadEnds": []
+  },
+  "gorge": {
+   "label": "Gorge Road / Gulpha Gorge roads",
+   "wayIds": [
+    12815999,
+    12816000,
+    250880915,
+    250880916,
+    911123299,
+    1076712295,
+    1076712296,
+    1076712297,
+    1076712298,
+    1076712299,
+    1076712300
+   ],
+   "names": [
+    "Gorge Road"
+   ],
+   "ways": 11,
+   "lengthFull": 2576.650437,
+   "length": 2576.650437,
+   "vertices": 85,
+   "spacingMean": 34.819601,
+   "spacingMax": 158.074601,
+   "spacingP90": 68.758858,
+   "tag_highway": "secondary×10, tertiary×1",
+   "tag_oneway": "–×11",
+   "tag_lanes": "–×11",
+   "tag_surface": "paved×9, –×2",
+   "tag_maxspeed": "–×11",
+   "tag_bridge": "–×7, yes×4",
+   "tag_access": "–×11",
+   "elevMin": 154.410081,
+   "elevMax": 184.156534,
+   "maxGrade": 0.126182,
+   "p95Grade": 0.046104,
+   "maxGradeWay": 12816000,
+   "demTiles": {
+    "dem-east.tif": 560
+   },
+   "components": 1,
+   "cyclomatic": 0,
+   "componentInfo": [
+    {
+     "ways": [
+      12815999,
+      12816000,
+      250880915,
+      250880916,
+      911123299,
+      1076712295,
+      1076712296,
+      1076712297,
+      1076712298,
+      1076712299,
+      1076712300
+     ],
+     "length": 2576.650437
+    }
+   ],
+   "gaps": [],
+   "joins": {
+    "park": {
+     "label": "Park Avenue",
+     "nodes": 1,
+     "at": [
+      [
+       34.535624,
+       -93.031644
+      ]
+     ],
+     "sharesWays": false
+    }
+   },
+   "otherStreets": [
+    "East Grand Avenue",
+    "Flora Street",
+    "Sleepy Valley Road",
+    "Sunset Trail"
+   ],
+   "deadEnds": []
+  },
+  "promenade": {
+   "label": "Grand Promenade (footway)",
+   "wayIds": [
+    250880917,
+    1213970862,
+    1213970863,
+    1213970864,
+    1213970865,
+    1531073695
+   ],
+   "names": [
+    "Grand Promenade"
+   ],
+   "ways": 6,
+   "lengthFull": 729.028093,
+   "length": 729.028093,
+   "vertices": 64,
+   "spacingMean": 12.56945,
+   "spacingMax": 53.831888,
+   "spacingP90": 32.829358,
+   "tag_highway": "pedestrian×3, steps×2, footway×1",
+   "tag_oneway": "–×6",
+   "tag_lanes": "–×6",
+   "tag_surface": "–×4, paving_stones×2",
+   "tag_maxspeed": "–×6",
+   "tag_bridge": "–×6",
+   "tag_access": "–×6",
+   "elevMin": 186.819865,
+   "elevMax": 203.617835,
+   "maxGrade": 0.134318,
+   "p95Grade": 0.058621,
+   "maxGradeWay": 1531073695,
+   "demTiles": {
+    "dem-downtown.tif": 177
+   },
+   "components": 1,
+   "cyclomatic": 0,
+   "componentInfo": [
+    {
+     "ways": [
+      250880917,
+      1213970862,
+      1213970863,
+      1213970864,
+      1213970865,
+      1531073695
+     ],
+     "length": 729.028093
+    }
+   ],
+   "gaps": [],
+   "joins": {
+    "fountain": {
+     "label": "Fountain Street",
+     "nodes": 1,
+     "at": [
+      [
+       34.517648,
+       -93.051002
+      ]
+     ],
+     "sharesWays": false
+    }
+   },
+   "otherStreets": [
+    "Peak Trail",
+    "Tufa Terrace Trail"
+   ],
+   "deadEnds": []
+  }
+ },
+ "matrix": {
+  "central": {
+   "park": {
+    "d": 0,
+    "via": ""
+   },
+   "whittington": {
+    "d": 0,
+    "via": ""
+   },
+   "fountain": {
+    "d": 0,
+    "via": ""
+   },
+   "reserve": {
+    "d": 0,
+    "via": ""
+   },
+   "bridge": {
+    "d": 0,
+    "via": ""
+   },
+   "malvern": {
+    "d": 54.496962,
+    "via": "Bridge Street 54 m"
+   },
+   "exchange": {
+    "d": 52.314762,
+    "via": "Mountain Street 52 m"
+   },
+   "prospect": {
+    "d": 0,
+    "via": ""
+   },
+   "ouachita": {
+    "d": 0,
+    "via": ""
+   },
+   "hsmtn": {
+    "d": 1985.061521,
+    "via": "Fountain Street 1,691 m → North Mountain Drive 294 m"
+   },
+   "hsmtnLower": {
+    "d": 467.224647,
+    "via": "Fountain Street 467 m"
+   },
+   "northmtn": {
+    "d": 1691.218221,
+    "via": "Fountain Street 1,691 m"
+   },
+   "westmtn": {
+    "d": 1053.005725,
+    "via": "Whittington Avenue 1,053 m"
+   },
+   "westsummit": {
+    "d": 1115.205516,
+    "via": "West Maurice Street 114 m → Hazel Street 164 m → West Grand Avenue 381 m → Violet Street 344 m → Prospect Avenue 112 m"
+   },
+   "music": {
+    "d": 5960.214432,
+    "via": "Greenwood Avenue 1,762 m → Richard Street 69 m → (unnamed primary_link) 33 m → Albert Pike Road 4,097 m"
+   },
+   "blacksnake": {
+    "d": 4114.71762,
+    "via": "Whittington Avenue 4,115 m"
+   },
+   "cedarglades": {
+    "d": 716.18489,
+    "via": "Whittington Avenue 57 m → Cedar Street 659 m"
+   },
+   "gorge": {
+    "d": 2247.407774,
+    "via": "Reserve Street 530 m → Spring Street 446 m → Coy Street 653 m → East Grand Avenue 619 m"
+   },
+   "promenade": {
+    "d": 268.799614,
+    "via": "Fountain Street 269 m"
+   }
+  },
+  "park": {
+   "central": {
+    "d": 0,
+    "via": ""
+   },
+   "whittington": {
+    "d": 0,
+    "via": ""
+   },
+   "fountain": {
+    "d": 365.852562,
+    "via": "Central Avenue 366 m"
+   },
+   "reserve": {
+    "d": 885.672789,
+    "via": "Central Avenue 886 m"
+   },
+   "bridge": {
+    "d": 1127.109198,
+    "via": "Central Avenue 1,127 m"
+   },
+   "malvern": {
+    "d": 1155.061147,
+    "via": "Central Avenue 945 m → (unnamed service) 49 m → Post Office Court 58 m → Broadway Bridge 103 m"
+   },
+   "exchange": {
+    "d": 710.365442,
+    "via": "Central Avenue 658 m → Mountain Street 52 m"
+   },
+   "prospect": {
+    "d": 978.941056,
+    "via": "Central Avenue 979 m"
+   },
+   "ouachita": {
+    "d": 1248.939452,
+    "via": "Central Avenue 1,249 m"
+   },
+   "hsmtn": {
+    "d": 2350.914082,
+    "via": "Central Avenue 366 m → Fountain Street 1,691 m → North Mountain Drive 294 m"
+   },
+   "hsmtnLower": {
+    "d": 833.077209,
+    "via": "Central Avenue 366 m → Fountain Street 467 m"
+   },
+   "northmtn": {
+    "d": 2057.070783,
+    "via": "Central Avenue 366 m → Fountain Street 1,691 m"
+   },
+   "westmtn": {
+    "d": 1053.005725,
+    "via": "Whittington Avenue 1,053 m"
+   },
+   "westsummit": {
+    "d": 2305.585116,
+    "via": "Central Avenue 658 m → Mountain Street 52 m → Exchange Street 340 m → Prospect Avenue 1,256 m"
+   },
+   "music": {
+    "d": null,
+    "via": ""
+   },
+   "blacksnake": {
+    "d": 4114.71762,
+    "via": "Whittington Avenue 4,115 m"
+   },
+   "cedarglades": {
+    "d": 615.18716,
+    "via": "Crest Street 466 m → Amber Street 150 m"
+   },
+   "gorge": {
+    "d": 0,
+    "via": ""
+   },
+   "promenade": {
+    "d": 634.652176,
+    "via": "Central Avenue 366 m → Fountain Street 269 m"
+   }
+  },
+  "whittington": {
+   "central": {
+    "d": 0,
+    "via": ""
+   },
+   "park": {
+    "d": 0,
+    "via": ""
+   },
+   "fountain": {
+    "d": 346.779063,
+    "via": "Central Avenue 347 m"
+   },
+   "reserve": {
+    "d": 866.599291,
+    "via": "Central Avenue 867 m"
+   },
+   "bridge": {
+    "d": 1108.0357,
+    "via": "Central Avenue 1,108 m"
+   },
+   "malvern": {
+    "d": 1135.987649,
+    "via": "Central Avenue 926 m → (unnamed service) 49 m → Post Office Court 58 m → Broadway Bridge 103 m"
+   },
+   "exchange": {
+    "d": 691.291944,
+    "via": "Central Avenue 639 m → Mountain Street 52 m"
+   },
+   "prospect": {
+    "d": 959.867558,
+    "via": "Central Avenue 960 m"
+   },
+   "ouachita": {
+    "d": 1229.865954,
+    "via": "Central Avenue 1,230 m"
+   },
+   "hsmtn": {
+    "d": 2331.840584,
+    "via": "Central Avenue 347 m → Fountain Street 1,691 m → North Mountain Drive 294 m"
+   },
+   "hsmtnLower": {
+    "d": 814.00371,
+    "via": "Central Avenue 347 m → Fountain Street 467 m"
+   },
+   "northmtn": {
+    "d": 2037.997285,
+    "via": "Central Avenue 347 m → Fountain Street 1,691 m"
+   },
+   "westmtn": {
+    "d": 0,
+    "via": ""
+   },
+   "westsummit": {
+    "d": 2286.511618,
+    "via": "Central Avenue 639 m → Mountain Street 52 m → Exchange Street 340 m → Prospect Avenue 1,256 m"
+   },
+   "music": {
+    "d": 5164.898443,
+    "via": "Blacksnake Road 2,006 m → Bull Bayou Road 2,589 m → Albert Pike Road 569 m"
+   },
+   "blacksnake": {
+    "d": 0,
+    "via": ""
+   },
+   "cedarglades": {
+    "d": 658.726334,
+    "via": "Cedar Street 659 m"
+   },
+   "gorge": {
+    "d": 3093.953356,
+    "via": "Park Avenue 92 m → Arbor Street 408 m → Ramble Street 1,327 m → Edgewood Street 120 m → Park Avenue 1,147 m"
+   },
+   "promenade": {
+    "d": 615.578677,
+    "via": "Central Avenue 347 m → Fountain Street 269 m"
+   }
+  },
+  "fountain": {
+   "central": {
+    "d": 0,
+    "via": ""
+   },
+   "park": {
+    "d": 365.852562,
+    "via": "Central Avenue 366 m"
+   },
+   "whittington": {
+    "d": 346.779063,
+    "via": "Central Avenue 347 m"
+   },
+   "reserve": {
+    "d": 519.820227,
+    "via": "Central Avenue 520 m"
+   },
+   "bridge": {
+    "d": 761.256637,
+    "via": "Central Avenue 761 m"
+   },
+   "malvern": {
+    "d": 789.208585,
+    "via": "Central Avenue 579 m → (unnamed service) 49 m → Post Office Court 58 m → Broadway Bridge 103 m"
+   },
+   "exchange": {
+    "d": 344.51288,
+    "via": "Central Avenue 292 m → Mountain Street 52 m"
+   },
+   "prospect": {
+    "d": 613.088495,
+    "via": "Central Avenue 613 m"
+   },
+   "ouachita": {
+    "d": 883.086891,
+    "via": "Central Avenue 883 m"
+   },
+   "hsmtn": {
+    "d": 293.843299,
+    "via": "North Mountain Drive 294 m"
+   },
+   "hsmtnLower": {
+    "d": 0,
+    "via": ""
+   },
+   "northmtn": {
+    "d": 0,
+    "via": ""
+   },
+   "westmtn": {
+    "d": 1387.358493,
+    "via": "Central Avenue 305 m → (unnamed primary_link) 58 m → Whittington Avenue 1,025 m"
+   },
+   "westsummit": {
+    "d": 1939.732555,
+    "via": "Central Avenue 292 m → Mountain Street 52 m → Exchange Street 340 m → Prospect Avenue 1,256 m"
+   },
+   "music": {
+    "d": null,
+    "via": ""
+   },
+   "blacksnake": {
+    "d": 4449.070389,
+    "via": "Central Avenue 305 m → (unnamed primary_link) 58 m → Whittington Avenue 4,086 m"
+   },
+   "cedarglades": {
+    "d": 1050.537658,
+    "via": "Central Avenue 305 m → (unnamed primary_link) 58 m → Cedar Street 659 m"
+   },
+   "gorge": {
+    "d": 2767.228002,
+    "via": "Central Avenue 520 m → Reserve Street 530 m → Spring Street 446 m → Coy Street 653 m → East Grand Avenue 619 m"
+   },
+   "promenade": {
+    "d": 0,
+    "via": ""
+   }
+  },
+  "reserve": {
+   "central": {
+    "d": 0,
+    "via": ""
+   },
+   "park": {
+    "d": 885.672789,
+    "via": "Central Avenue 886 m"
+   },
+   "whittington": {
+    "d": 866.599291,
+    "via": "Central Avenue 867 m"
+   },
+   "fountain": {
+    "d": 519.820227,
+    "via": "Central Avenue 520 m"
+   },
+   "bridge": {
+    "d": 241.436409,
+    "via": "Central Avenue 241 m"
+   },
+   "malvern": {
+    "d": 243.069749,
+    "via": "Post Office Court 140 m → Broadway Bridge 103 m"
+   },
+   "exchange": {
+    "d": 77.829812,
+    "via": "Interior Court 78 m"
+   },
+   "prospect": {
+    "d": 93.268267,
+    "via": "Central Avenue 93 m"
+   },
+   "ouachita": {
+    "d": 363.266663,
+    "via": "Central Avenue 363 m"
+   },
+   "hsmtn": {
+    "d": 2504.881748,
+    "via": "Central Avenue 520 m → Fountain Street 1,691 m → North Mountain Drive 294 m"
+   },
+   "hsmtnLower": {
+    "d": 987.044874,
+    "via": "Central Avenue 520 m → Fountain Street 467 m"
+   },
+   "northmtn": {
+    "d": 2211.038449,
+    "via": "Central Avenue 520 m → Fountain Street 1,691 m"
+   },
+   "westmtn": {
+    "d": 1427.478301,
+    "via": "Central Avenue 93 m → Prospect Avenue 1,334 m"
+   },
+   "westsummit": {
+    "d": 1427.478301,
+    "via": "Central Avenue 93 m → Prospect Avenue 1,334 m"
+   },
+   "music": {
+    "d": null,
+    "via": ""
+   },
+   "blacksnake": {
+    "d": 4968.890616,
+    "via": "Central Avenue 824 m → (unnamed primary_link) 58 m → Whittington Avenue 4,086 m"
+   },
+   "cedarglades": {
+    "d": 1570.357886,
+    "via": "Central Avenue 824 m → (unnamed primary_link) 58 m → Cedar Street 659 m"
+   },
+   "gorge": {
+    "d": 1717.652999,
+    "via": "Spring Street 446 m → Coy Street 653 m → East Grand Avenue 619 m"
+   },
+   "promenade": {
+    "d": 788.619841,
+    "via": "Central Avenue 520 m → Fountain Street 269 m"
+   }
+  },
+  "bridge": {
+   "central": {
+    "d": 0,
+    "via": ""
+   },
+   "park": {
+    "d": 1127.109198,
+    "via": "Central Avenue 1,127 m"
+   },
+   "whittington": {
+    "d": 1108.0357,
+    "via": "Central Avenue 1,108 m"
+   },
+   "fountain": {
+    "d": 761.256637,
+    "via": "Central Avenue 761 m"
+   },
+   "reserve": {
+    "d": 241.436409,
+    "via": "Central Avenue 241 m"
+   },
+   "malvern": {
+    "d": 0,
+    "via": ""
+   },
+   "exchange": {
+    "d": 226.787719,
+    "via": "Central Avenue 148 m → Prospect Avenue 79 m"
+   },
+   "prospect": {
+    "d": 148.168142,
+    "via": "Central Avenue 148 m"
+   },
+   "ouachita": {
+    "d": 121.830254,
+    "via": "Central Avenue 122 m"
+   },
+   "hsmtn": {
+    "d": 2746.318158,
+    "via": "Central Avenue 761 m → Fountain Street 1,691 m → North Mountain Drive 294 m"
+   },
+   "hsmtnLower": {
+    "d": 1228.481284,
+    "via": "Central Avenue 761 m → Fountain Street 467 m"
+   },
+   "northmtn": {
+    "d": 2452.474858,
+    "via": "Central Avenue 761 m → Fountain Street 1,691 m"
+   },
+   "westmtn": {
+    "d": 1421.971696,
+    "via": "Central Avenue 75 m → Chapel Street 224 m → Quapaw Avenue 91 m → Market Street 102 m → Prospect Avenue 931 m"
+   },
+   "westsummit": {
+    "d": 1421.971696,
+    "via": "Central Avenue 75 m → Chapel Street 224 m → Quapaw Avenue 91 m → Market Street 102 m → Prospect Avenue 931 m"
+   },
+   "music": {
+    "d": null,
+    "via": ""
+   },
+   "blacksnake": {
+    "d": 5210.327025,
+    "via": "Central Avenue 1,066 m → (unnamed primary_link) 58 m → Whittington Avenue 4,086 m"
+   },
+   "cedarglades": {
+    "d": 1811.794295,
+    "via": "Central Avenue 1,066 m → (unnamed primary_link) 58 m → Cedar Street 659 m"
+   },
+   "gorge": {
+    "d": 2351.659526,
+    "via": "Broadway Bridge 103 m → Spring Street 977 m → Coy Street 653 m → East Grand Avenue 619 m"
+   },
+   "promenade": {
+    "d": 1030.056251,
+    "via": "Central Avenue 761 m → Fountain Street 269 m"
+   }
+  },
+  "malvern": {
+   "central": {
+    "d": 54.496962,
+    "via": "Bridge Street 54 m"
+   },
+   "park": {
+    "d": 1155.061147,
+    "via": "Broadway Bridge 103 m → Post Office Court 58 m → (unnamed service) 49 m → Central Avenue 945 m"
+   },
+   "whittington": {
+    "d": 1135.987649,
+    "via": "Broadway Bridge 103 m → Post Office Court 58 m → (unnamed service) 49 m → Central Avenue 926 m"
+   },
+   "fountain": {
+    "d": 789.208585,
+    "via": "Broadway Bridge 103 m → Post Office Court 58 m → (unnamed service) 49 m → Central Avenue 579 m"
+   },
+   "reserve": {
+    "d": 243.069749,
+    "via": "Broadway Bridge 103 m → Post Office Court 140 m"
+   },
+   "bridge": {
+    "d": 0,
+    "via": ""
+   },
+   "exchange": {
+    "d": 256.346449,
+    "via": "Broadway Bridge 103 m → (unnamed primary_link) 60 m → Prospect Avenue 79 m"
+   },
+   "prospect": {
+    "d": 177.726872,
+    "via": "Broadway Bridge 103 m → (unnamed primary_link) 60 m"
+   },
+   "ouachita": {
+    "d": 176.327216,
+    "via": "Bridge Street 54 m → Central Avenue 122 m"
+   },
+   "hsmtn": {
+    "d": 2774.270106,
+    "via": "Broadway Bridge 103 m → Post Office Court 58 m → (unnamed service) 49 m → Central Avenue 579 m → Fountain Street 1,691 m → North Mountain Drive 294 m"
+   },
+   "hsmtnLower": {
+    "d": 1256.433233,
+    "via": "Broadway Bridge 103 m → Post Office Court 58 m → (unnamed service) 49 m → Central Avenue 579 m → Fountain Street 467 m"
+   },
+   "northmtn": {
+    "d": 2480.426807,
+    "via": "Broadway Bridge 103 m → Post Office Court 58 m → (unnamed service) 49 m → Central Avenue 579 m → Fountain Street 1,691 m"
+   },
+   "westmtn": {
+    "d": 1476.468658,
+    "via": "Bridge Street 54 m → Central Avenue 75 m → Chapel Street 224 m → Quapaw Avenue 91 m → Market Street 102 m → Prospect Avenue 931 m"
+   },
+   "westsummit": {
+    "d": 1476.468658,
+    "via": "Bridge Street 54 m → Central Avenue 75 m → Chapel Street 224 m → Quapaw Avenue 91 m → Market Street 102 m → Prospect Avenue 931 m"
+   },
+   "music": {
+    "d": null,
+    "via": ""
+   },
+   "blacksnake": {
+    "d": 5238.278974,
+    "via": "Broadway Bridge 103 m → Post Office Court 58 m → (unnamed service) 49 m → Central Avenue 883 m → (unnamed primary_link) 58 m → Whittington Avenue 4,086 m"
+   },
+   "cedarglades": {
+    "d": 1839.746244,
+    "via": "Broadway Bridge 103 m → Post Office Court 58 m → (unnamed service) 49 m → Central Avenue 883 m → (unnamed primary_link) 58 m → Cedar Street 659 m"
+   },
+   "gorge": {
+    "d": 2211.966598,
+    "via": "Grove Street 622 m → East Grand Avenue 1,590 m"
+   },
+   "promenade": {
+    "d": 1058.008199,
+    "via": "Broadway Bridge 103 m → Post Office Court 58 m → (unnamed service) 49 m → Central Avenue 579 m → Fountain Street 269 m"
+   }
+  },
+  "exchange": {
+   "central": {
+    "d": 52.314762,
+    "via": "Mountain Street 52 m"
+   },
+   "park": {
+    "d": 710.365442,
+    "via": "Mountain Street 52 m → Central Avenue 658 m"
+   },
+   "whittington": {
+    "d": 691.291944,
+    "via": "Mountain Street 52 m → Central Avenue 639 m"
+   },
+   "fountain": {
+    "d": 344.51288,
+    "via": "Mountain Street 52 m → Central Avenue 292 m"
+   },
+   "reserve": {
+    "d": 77.829812,
+    "via": "Interior Court 78 m"
+   },
+   "bridge": {
+    "d": 226.787719,
+    "via": "Prospect Avenue 79 m → Central Avenue 148 m"
+   },
+   "malvern": {
+    "d": 256.346449,
+    "via": "Prospect Avenue 79 m → (unnamed primary_link) 60 m → Broadway Bridge 103 m"
+   },
+   "prospect": {
+    "d": 0,
+    "via": ""
+   },
+   "ouachita": {
+    "d": 348.617973,
+    "via": "Prospect Avenue 79 m → Central Avenue 270 m"
+   },
+   "hsmtn": {
+    "d": 2329.574401,
+    "via": "Mountain Street 52 m → Central Avenue 292 m → Fountain Street 1,691 m → North Mountain Drive 294 m"
+   },
+   "hsmtnLower": {
+    "d": 811.737528,
+    "via": "Mountain Street 52 m → Central Avenue 292 m → Fountain Street 467 m"
+   },
+   "northmtn": {
+    "d": 2035.731102,
+    "via": "Mountain Street 52 m → Central Avenue 292 m → Fountain Street 1,691 m"
+   },
+   "westmtn": {
+    "d": 1255.590457,
+    "via": "Prospect Avenue 1,256 m"
+   },
+   "westsummit": {
+    "d": 1255.590457,
+    "via": "Prospect Avenue 1,256 m"
+   },
+   "music": {
+    "d": null,
+    "via": ""
+   },
+   "blacksnake": {
+    "d": 4793.583269,
+    "via": "Mountain Street 52 m → Central Avenue 597 m → (unnamed primary_link) 58 m → Whittington Avenue 4,086 m"
+   },
+   "cedarglades": {
+    "d": 1395.050539,
+    "via": "Mountain Street 52 m → Central Avenue 597 m → (unnamed primary_link) 58 m → Cedar Street 659 m"
+   },
+   "gorge": {
+    "d": 2325.237586,
+    "via": "Interior Court 78 m → Reserve Street 530 m → Spring Street 446 m → Coy Street 653 m → East Grand Avenue 619 m"
+   },
+   "promenade": {
+    "d": 613.312494,
+    "via": "Mountain Street 52 m → Central Avenue 292 m → Fountain Street 269 m"
+   }
+  },
+  "prospect": {
+   "central": {
+    "d": 0,
+    "via": ""
+   },
+   "park": {
+    "d": 978.941056,
+    "via": "Central Avenue 979 m"
+   },
+   "whittington": {
+    "d": 959.867558,
+    "via": "Central Avenue 960 m"
+   },
+   "fountain": {
+    "d": 613.088495,
+    "via": "Central Avenue 613 m"
+   },
+   "reserve": {
+    "d": 93.268267,
+    "via": "Central Avenue 93 m"
+   },
+   "bridge": {
+    "d": 148.168142,
+    "via": "Central Avenue 148 m"
+   },
+   "malvern": {
+    "d": 177.726872,
+    "via": "(unnamed primary_link) 60 m → Broadway Bridge 103 m"
+   },
+   "exchange": {
+    "d": 0,
+    "via": ""
+   },
+   "ouachita": {
+    "d": 259.704018,
+    "via": "Hawthorne Street 260 m"
+   },
+   "hsmtn": {
+    "d": 2598.150015,
+    "via": "Central Avenue 613 m → Fountain Street 1,691 m → North Mountain Drive 294 m"
+   },
+   "hsmtnLower": {
+    "d": 1080.313142,
+    "via": "Central Avenue 613 m → Fountain Street 467 m"
+   },
+   "northmtn": {
+    "d": 2304.306716,
+    "via": "Central Avenue 613 m → Fountain Street 1,691 m"
+   },
+   "westmtn": {
+    "d": 0,
+    "via": ""
+   },
+   "westsummit": {
+    "d": 0,
+    "via": ""
+   },
+   "music": {
+    "d": 5288.568603,
+    "via": "West Grand Avenue 11 m → Summer Street 511 m → Albert Pike Road 4,767 m"
+   },
+   "blacksnake": {
+    "d": 5062.158883,
+    "via": "Central Avenue 918 m → (unnamed primary_link) 58 m → Whittington Avenue 4,086 m"
+   },
+   "cedarglades": {
+    "d": 1663.626153,
+    "via": "Central Avenue 918 m → (unnamed primary_link) 58 m → Cedar Street 659 m"
+   },
+   "gorge": {
+    "d": 2322.740794,
+    "via": "(unnamed primary_link) 60 m → Spring Street 988 m → Coy Street 653 m → East Grand Avenue 619 m"
+   },
+   "promenade": {
+    "d": 881.888108,
+    "via": "Central Avenue 613 m → Fountain Street 269 m"
+   }
+  },
+  "ouachita": {
+   "central": {
+    "d": 0,
+    "via": ""
+   },
+   "park": {
+    "d": 1248.939452,
+    "via": "Central Avenue 1,249 m"
+   },
+   "whittington": {
+    "d": 1229.865954,
+    "via": "Central Avenue 1,230 m"
+   },
+   "fountain": {
+    "d": 883.086891,
+    "via": "Central Avenue 883 m"
+   },
+   "reserve": {
+    "d": 363.266663,
+    "via": "Central Avenue 363 m"
+   },
+   "bridge": {
+    "d": 121.830254,
+    "via": "Central Avenue 122 m"
+   },
+   "malvern": {
+    "d": 176.327216,
+    "via": "Central Avenue 122 m → Bridge Street 54 m"
+   },
+   "exchange": {
+    "d": 348.617973,
+    "via": "Central Avenue 270 m → Prospect Avenue 79 m"
+   },
+   "prospect": {
+    "d": 259.704018,
+    "via": "Hawthorne Street 260 m"
+   },
+   "hsmtn": {
+    "d": 2868.148411,
+    "via": "Central Avenue 883 m → Fountain Street 1,691 m → North Mountain Drive 294 m"
+   },
+   "hsmtnLower": {
+    "d": 1350.311538,
+    "via": "Central Avenue 883 m → Fountain Street 467 m"
+   },
+   "northmtn": {
+    "d": 2574.305112,
+    "via": "Central Avenue 883 m → Fountain Street 1,691 m"
+   },
+   "westmtn": {
+    "d": 467.15132,
+    "via": "West Grand Avenue 12 m → Violet Street 344 m → Prospect Avenue 112 m"
+   },
+   "westsummit": {
+    "d": 467.15132,
+    "via": "West Grand Avenue 12 m → Violet Street 344 m → Prospect Avenue 112 m"
+   },
+   "music": {
+    "d": 6007.895949,
+    "via": ""
+   },
+   "blacksnake": {
+    "d": 5332.157279,
+    "via": "Central Avenue 1,188 m → (unnamed primary_link) 58 m → Whittington Avenue 4,086 m"
+   },
+   "cedarglades": {
+    "d": 1933.624549,
+    "via": "Central Avenue 1,188 m → (unnamed primary_link) 58 m → Cedar Street 659 m"
+   },
+   "gorge": {
+    "d": 2516.774428,
+    "via": "Central Avenue 222 m → Spring Street 1,023 m → Coy Street 653 m → East Grand Avenue 619 m"
+   },
+   "promenade": {
+    "d": 1151.886505,
+    "via": "Central Avenue 883 m → Fountain Street 269 m"
+   }
+  },
+  "hsmtn": {
+   "central": {
+    "d": 1985.061521,
+    "via": "North Mountain Drive 294 m → Fountain Street 1,691 m"
+   },
+   "park": {
+    "d": 2350.914082,
+    "via": "North Mountain Drive 294 m → Fountain Street 1,691 m → Central Avenue 366 m"
+   },
+   "whittington": {
+    "d": 2331.840584,
+    "via": "North Mountain Drive 294 m → Fountain Street 1,691 m → Central Avenue 347 m"
+   },
+   "fountain": {
+    "d": 293.843299,
+    "via": "North Mountain Drive 294 m"
+   },
+   "reserve": {
+    "d": 2504.881748,
+    "via": "North Mountain Drive 294 m → Fountain Street 1,691 m → Central Avenue 520 m"
+   },
+   "bridge": {
+    "d": 2746.318158,
+    "via": "North Mountain Drive 294 m → Fountain Street 1,691 m → Central Avenue 761 m"
+   },
+   "malvern": {
+    "d": 2774.270106,
+    "via": "North Mountain Drive 294 m → Fountain Street 1,691 m → Central Avenue 579 m → (unnamed service) 49 m → Post Office Court 58 m → Broadway Bridge 103 m"
+   },
+   "exchange": {
+    "d": 2329.574401,
+    "via": "North Mountain Drive 294 m → Fountain Street 1,691 m → Central Avenue 292 m → Mountain Street 52 m"
+   },
+   "prospect": {
+    "d": 2598.150015,
+    "via": "North Mountain Drive 294 m → Fountain Street 1,691 m → Central Avenue 613 m"
+   },
+   "ouachita": {
+    "d": 2868.148411,
+    "via": "North Mountain Drive 294 m → Fountain Street 1,691 m → Central Avenue 883 m"
+   },
+   "hsmtnLower": {
+    "d": 0,
+    "via": ""
+   },
+   "northmtn": {
+    "d": 0,
+    "via": ""
+   },
+   "westmtn": {
+    "d": 3372.420014,
+    "via": "North Mountain Drive 294 m → Fountain Street 1,691 m → Central Avenue 305 m → (unnamed primary_link) 58 m → Whittington Avenue 1,025 m"
+   },
+   "westsummit": {
+    "d": 3924.794076,
+    "via": "North Mountain Drive 294 m → Fountain Street 1,691 m → Central Avenue 292 m → Mountain Street 52 m → Exchange Street 340 m → Prospect Avenue 1,256 m"
+   },
+   "music": {
+    "d": null,
+    "via": ""
+   },
+   "blacksnake": {
+    "d": null,
+    "via": ""
+   },
+   "cedarglades": {
+    "d": 3035.599179,
+    "via": "North Mountain Drive 294 m → Fountain Street 1,691 m → Central Avenue 305 m → (unnamed primary_link) 58 m → Cedar Street 659 m"
+   },
+   "gorge": {
+    "d": 4752.289522,
+    "via": "North Mountain Drive 294 m → Fountain Street 1,691 m → Central Avenue 520 m → Reserve Street 530 m → Spring Street 446 m → Coy Street 653 m → East Grand Avenue 619 m"
+   },
+   "promenade": {
+    "d": 1716.261907,
+    "via": "North Mountain Drive 294 m → Fountain Street 1,422 m"
+   }
+  },
+  "hsmtnLower": {
+   "central": {
+    "d": 467.224647,
+    "via": "Fountain Street 467 m"
+   },
+   "park": {
+    "d": 833.077209,
+    "via": "Fountain Street 467 m → Central Avenue 366 m"
+   },
+   "whittington": {
+    "d": 814.00371,
+    "via": "Fountain Street 467 m → Central Avenue 347 m"
+   },
+   "fountain": {
+    "d": 0,
+    "via": ""
+   },
+   "reserve": {
+    "d": 987.044874,
+    "via": "Fountain Street 467 m → Central Avenue 520 m"
+   },
+   "bridge": {
+    "d": 1228.481284,
+    "via": "Fountain Street 467 m → Central Avenue 761 m"
+   },
+   "malvern": {
+    "d": 1256.433233,
+    "via": "Fountain Street 467 m → Central Avenue 579 m → (unnamed service) 49 m → Post Office Court 58 m → Broadway Bridge 103 m"
+   },
+   "exchange": {
+    "d": 811.737528,
+    "via": "Fountain Street 467 m → Central Avenue 292 m → Mountain Street 52 m"
+   },
+   "prospect": {
+    "d": 1080.313142,
+    "via": "Fountain Street 467 m → Central Avenue 613 m"
+   },
+   "ouachita": {
+    "d": 1350.311538,
+    "via": "Fountain Street 467 m → Central Avenue 883 m"
+   },
+   "hsmtn": {
+    "d": 0,
+    "via": ""
+   },
+   "northmtn": {
+    "d": 0,
+    "via": ""
+   },
+   "westmtn": {
+    "d": 1854.58314,
+    "via": "Fountain Street 467 m → Central Avenue 305 m → (unnamed primary_link) 58 m → Whittington Avenue 1,025 m"
+   },
+   "westsummit": {
+    "d": 2406.957202,
+    "via": "Fountain Street 467 m → Central Avenue 292 m → Mountain Street 52 m → Exchange Street 340 m → Prospect Avenue 1,256 m"
+   },
+   "music": {
+    "d": null,
+    "via": ""
+   },
+   "blacksnake": {
+    "d": 4916.295036,
+    "via": "Fountain Street 467 m → Central Avenue 305 m → (unnamed primary_link) 58 m → Whittington Avenue 4,086 m"
+   },
+   "cedarglades": {
+    "d": 1517.762305,
+    "via": "Fountain Street 467 m → Central Avenue 305 m → (unnamed primary_link) 58 m → Cedar Street 659 m"
+   },
+   "gorge": {
+    "d": 3234.452649,
+    "via": "Fountain Street 467 m → Central Avenue 520 m → Reserve Street 530 m → Spring Street 446 m → Coy Street 653 m → East Grand Avenue 619 m"
+   },
+   "promenade": {
+    "d": 198.425033,
+    "via": "Fountain Street 198 m"
+   }
+  },
+  "northmtn": {
+   "central": {
+    "d": 1691.218221,
+    "via": "Fountain Street 1,691 m"
+   },
+   "park": {
+    "d": 2057.070783,
+    "via": "Fountain Street 1,691 m → Central Avenue 366 m"
+   },
+   "whittington": {
+    "d": 2037.997285,
+    "via": "Fountain Street 1,691 m → Central Avenue 347 m"
+   },
+   "fountain": {
+    "d": 0,
+    "via": ""
+   },
+   "reserve": {
+    "d": 2211.038449,
+    "via": "Fountain Street 1,691 m → Central Avenue 520 m"
+   },
+   "bridge": {
+    "d": 2452.474858,
+    "via": "Fountain Street 1,691 m → Central Avenue 761 m"
+   },
+   "malvern": {
+    "d": 2480.426807,
+    "via": "Fountain Street 1,691 m → Central Avenue 579 m → (unnamed service) 49 m → Post Office Court 58 m → Broadway Bridge 103 m"
+   },
+   "exchange": {
+    "d": 2035.731102,
+    "via": "Fountain Street 1,691 m → Central Avenue 292 m → Mountain Street 52 m"
+   },
+   "prospect": {
+    "d": 2304.306716,
+    "via": "Fountain Street 1,691 m → Central Avenue 613 m"
+   },
+   "ouachita": {
+    "d": 2574.305112,
+    "via": "Fountain Street 1,691 m → Central Avenue 883 m"
+   },
+   "hsmtn": {
+    "d": 0,
+    "via": ""
+   },
+   "hsmtnLower": {
+    "d": 0,
+    "via": ""
+   },
+   "westmtn": {
+    "d": 3078.576715,
+    "via": "Fountain Street 1,691 m → Central Avenue 305 m → (unnamed primary_link) 58 m → Whittington Avenue 1,025 m"
+   },
+   "westsummit": {
+    "d": 3630.950776,
+    "via": "Fountain Street 1,691 m → Central Avenue 292 m → Mountain Street 52 m → Exchange Street 340 m → Prospect Avenue 1,256 m"
+   },
+   "music": {
+    "d": null,
+    "via": ""
+   },
+   "blacksnake": {
+    "d": null,
+    "via": ""
+   },
+   "cedarglades": {
+    "d": 2741.75588,
+    "via": "Fountain Street 1,691 m → Central Avenue 305 m → (unnamed primary_link) 58 m → Cedar Street 659 m"
+   },
+   "gorge": {
+    "d": 4458.446223,
+    "via": "Fountain Street 1,691 m → Central Avenue 520 m → Reserve Street 530 m → Spring Street 446 m → Coy Street 653 m → East Grand Avenue 619 m"
+   },
+   "promenade": {
+    "d": 1422.418608,
+    "via": "Fountain Street 1,422 m"
+   }
+  },
+  "westmtn": {
+   "central": {
+    "d": 1053.005725,
+    "via": "Whittington Avenue 1,053 m"
+   },
+   "park": {
+    "d": 1053.005725,
+    "via": "Whittington Avenue 1,053 m"
+   },
+   "whittington": {
+    "d": 0,
+    "via": ""
+   },
+   "fountain": {
+    "d": 1387.358493,
+    "via": "Whittington Avenue 1,025 m → (unnamed primary_link) 58 m → Central Avenue 305 m"
+   },
+   "reserve": {
+    "d": 1427.478301,
+    "via": "Prospect Avenue 1,334 m → Central Avenue 93 m"
+   },
+   "bridge": {
+    "d": 1421.971696,
+    "via": "Prospect Avenue 931 m → Market Street 102 m → Quapaw Avenue 91 m → Chapel Street 224 m → Central Avenue 75 m"
+   },
+   "malvern": {
+    "d": 1476.468658,
+    "via": "Prospect Avenue 931 m → Market Street 102 m → Quapaw Avenue 91 m → Chapel Street 224 m → Central Avenue 75 m → Bridge Street 54 m"
+   },
+   "exchange": {
+    "d": 1255.590457,
+    "via": "Prospect Avenue 1,256 m"
+   },
+   "prospect": {
+    "d": 0,
+    "via": ""
+   },
+   "ouachita": {
+    "d": 467.15132,
+    "via": "Prospect Avenue 112 m → Violet Street 344 m → West Grand Avenue 12 m"
+   },
+   "hsmtn": {
+    "d": 3372.420014,
+    "via": "Whittington Avenue 1,025 m → (unnamed primary_link) 58 m → Central Avenue 305 m → Fountain Street 1,691 m → North Mountain Drive 294 m"
+   },
+   "hsmtnLower": {
+    "d": 1854.58314,
+    "via": "Whittington Avenue 1,025 m → (unnamed primary_link) 58 m → Central Avenue 305 m → Fountain Street 467 m"
+   },
+   "northmtn": {
+    "d": 3078.576715,
+    "via": "Whittington Avenue 1,025 m → (unnamed primary_link) 58 m → Central Avenue 305 m → Fountain Street 1,691 m"
+   },
+   "westsummit": {
+    "d": 0,
+    "via": ""
+   },
+   "music": {
+    "d": 5833.388282,
+    "via": "Prospect Avenue 42 m → Pecan Street 400 m → West Grand Avenue 114 m → Summer Street 511 m → Albert Pike Road 4,767 m"
+   },
+   "blacksnake": {
+    "d": 3061.711896,
+    "via": "Whittington Avenue 3,062 m"
+   },
+   "cedarglades": {
+    "d": 1425.494027,
+    "via": "Whittington Avenue 461 m → Willow Street 137 m → Walnut Street 269 m → Robin Street 266 m → Union Street 50 m → Wahoo Street 199 m → Pine Street 44 m"
+   },
+   "gorge": {
+    "d": 3656.950828,
+    "via": "Prospect Avenue 1,334 m → (unnamed primary_link) 60 m → Spring Street 988 m → Coy Street 653 m → East Grand Avenue 619 m"
+   },
+   "promenade": {
+    "d": 1656.158107,
+    "via": "Whittington Avenue 1,025 m → (unnamed primary_link) 58 m → Central Avenue 305 m → Fountain Street 269 m"
+   }
+  },
+  "westsummit": {
+   "central": {
+    "d": 1115.205516,
+    "via": "Prospect Avenue 112 m → Violet Street 344 m → West Grand Avenue 381 m → Hazel Street 164 m → West Maurice Street 114 m"
+   },
+   "park": {
+    "d": 2305.585116,
+    "via": "Prospect Avenue 1,256 m → Exchange Street 340 m → Mountain Street 52 m → Central Avenue 658 m"
+   },
+   "whittington": {
+    "d": 2286.511618,
+    "via": "Prospect Avenue 1,256 m → Exchange Street 340 m → Mountain Street 52 m → Central Avenue 639 m"
+   },
+   "fountain": {
+    "d": 1939.732555,
+    "via": "Prospect Avenue 1,256 m → Exchange Street 340 m → Mountain Street 52 m → Central Avenue 292 m"
+   },
+   "reserve": {
+    "d": 1427.478301,
+    "via": "Prospect Avenue 1,334 m → Central Avenue 93 m"
+   },
+   "bridge": {
+    "d": 1421.971696,
+    "via": "Prospect Avenue 931 m → Market Street 102 m → Quapaw Avenue 91 m → Chapel Street 224 m → Central Avenue 75 m"
+   },
+   "malvern": {
+    "d": 1476.468658,
+    "via": "Prospect Avenue 931 m → Market Street 102 m → Quapaw Avenue 91 m → Chapel Street 224 m → Central Avenue 75 m → Bridge Street 54 m"
+   },
+   "exchange": {
+    "d": 1255.590457,
+    "via": "Prospect Avenue 1,256 m"
+   },
+   "prospect": {
+    "d": 0,
+    "via": ""
+   },
+   "ouachita": {
+    "d": 467.15132,
+    "via": "Prospect Avenue 112 m → Violet Street 344 m → West Grand Avenue 12 m"
+   },
+   "hsmtn": {
+    "d": 3924.794076,
+    "via": "Prospect Avenue 1,256 m → Exchange Street 340 m → Mountain Street 52 m → Central Avenue 292 m → Fountain Street 1,691 m → North Mountain Drive 294 m"
+   },
+   "hsmtnLower": {
+    "d": 2406.957202,
+    "via": "Prospect Avenue 1,256 m → Exchange Street 340 m → Mountain Street 52 m → Central Avenue 292 m → Fountain Street 467 m"
+   },
+   "northmtn": {
+    "d": 3630.950776,
+    "via": "Prospect Avenue 1,256 m → Exchange Street 340 m → Mountain Street 52 m → Central Avenue 292 m → Fountain Street 1,691 m"
+   },
+   "westmtn": {
+    "d": 0,
+    "via": ""
+   },
+   "music": {
+    "d": 5833.388282,
+    "via": "Prospect Avenue 42 m → Pecan Street 400 m → West Grand Avenue 114 m → Summer Street 511 m → Albert Pike Road 4,767 m"
+   },
+   "blacksnake": {
+    "d": 5760.65126,
+    "via": "West Mountain Drive 2,699 m → Whittington Avenue 3,062 m"
+   },
+   "cedarglades": {
+    "d": 2990.270213,
+    "via": "Prospect Avenue 1,256 m → Exchange Street 340 m → Mountain Street 52 m → Central Avenue 597 m → (unnamed primary_link) 58 m → Cedar Street 659 m"
+   },
+   "gorge": {
+    "d": 3656.950828,
+    "via": "Prospect Avenue 1,334 m → (unnamed primary_link) 60 m → Spring Street 988 m → Coy Street 653 m → East Grand Avenue 619 m"
+   },
+   "promenade": {
+    "d": 2208.532169,
+    "via": "Prospect Avenue 1,256 m → Exchange Street 340 m → Mountain Street 52 m → Central Avenue 292 m → Fountain Street 269 m"
+   }
+  },
+  "music": {
+   "central": {
+    "d": 5960.214432,
+    "via": "Albert Pike Road 4,097 m → (unnamed primary_link) 33 m → Richard Street 69 m → Greenwood Avenue 1,762 m"
+   },
+   "park": {
+    "d": null,
+    "via": ""
+   },
+   "whittington": {
+    "d": 5164.898443,
+    "via": "Albert Pike Road 569 m → Bull Bayou Road 2,589 m → Blacksnake Road 2,006 m"
+   },
+   "fountain": {
+    "d": null,
+    "via": ""
+   },
+   "reserve": {
+    "d": null,
+    "via": ""
+   },
+   "bridge": {
+    "d": null,
+    "via": ""
+   },
+   "malvern": {
+    "d": null,
+    "via": ""
+   },
+   "exchange": {
+    "d": null,
+    "via": ""
+   },
+   "prospect": {
+    "d": 5288.568603,
+    "via": "Albert Pike Road 4,767 m → Summer Street 511 m → West Grand Avenue 11 m"
+   },
+   "ouachita": {
+    "d": null,
+    "via": ""
+   },
+   "hsmtn": {
+    "d": null,
+    "via": ""
+   },
+   "hsmtnLower": {
+    "d": null,
+    "via": ""
+   },
+   "northmtn": {
+    "d": null,
+    "via": ""
+   },
+   "westmtn": {
+    "d": 5833.388282,
+    "via": "Albert Pike Road 4,767 m → Summer Street 511 m → West Grand Avenue 114 m → Pecan Street 400 m → Prospect Avenue 42 m"
+   },
+   "westsummit": {
+    "d": 5833.388282,
+    "via": "Albert Pike Road 4,767 m → Summer Street 511 m → West Grand Avenue 114 m → Pecan Street 400 m → Prospect Avenue 42 m"
+   },
+   "blacksnake": {
+    "d": 3158.402637,
+    "via": "Albert Pike Road 569 m → Bull Bayou Road 2,589 m"
+   },
+   "cedarglades": {
+    "d": 5891.581061,
+    "via": "Albert Pike Road 1,081 m → (unnamed trunk_link) 75 m → Mountain Pine Road 1,628 m → Mid America Boulevard 107 m → Centennial Drive 829 m → Blacksnake Road 646 m → Turkey Trot Lane 1,527 m"
+   },
+   "gorge": {
+    "d": null,
+    "via": ""
+   },
+   "promenade": {
+    "d": null,
+    "via": ""
+   }
+  },
+  "blacksnake": {
+   "central": {
+    "d": 4114.71762,
+    "via": "Whittington Avenue 4,115 m"
+   },
+   "park": {
+    "d": 4114.71762,
+    "via": "Whittington Avenue 4,115 m"
+   },
+   "whittington": {
+    "d": 0,
+    "via": ""
+   },
+   "fountain": {
+    "d": 4449.070389,
+    "via": "Whittington Avenue 4,086 m → (unnamed primary_link) 58 m → Central Avenue 305 m"
+   },
+   "reserve": {
+    "d": 4968.890616,
+    "via": "Whittington Avenue 4,086 m → (unnamed primary_link) 58 m → Central Avenue 824 m"
+   },
+   "bridge": {
+    "d": 5210.327025,
+    "via": "Whittington Avenue 4,086 m → (unnamed primary_link) 58 m → Central Avenue 1,066 m"
+   },
+   "malvern": {
+    "d": 5238.278974,
+    "via": "Whittington Avenue 4,086 m → (unnamed primary_link) 58 m → Central Avenue 883 m → (unnamed service) 49 m → Post Office Court 58 m → Broadway Bridge 103 m"
+   },
+   "exchange": {
+    "d": 4793.583269,
+    "via": "Whittington Avenue 4,086 m → (unnamed primary_link) 58 m → Central Avenue 597 m → Mountain Street 52 m"
+   },
+   "prospect": {
+    "d": 5062.158883,
+    "via": "Whittington Avenue 4,086 m → (unnamed primary_link) 58 m → Central Avenue 918 m"
+   },
+   "ouachita": {
+    "d": 5332.157279,
+    "via": "Whittington Avenue 4,086 m → (unnamed primary_link) 58 m → Central Avenue 1,188 m"
+   },
+   "hsmtn": {
+    "d": null,
+    "via": ""
+   },
+   "hsmtnLower": {
+    "d": 4916.295036,
+    "via": "Whittington Avenue 4,086 m → (unnamed primary_link) 58 m → Central Avenue 305 m → Fountain Street 467 m"
+   },
+   "northmtn": {
+    "d": null,
+    "via": ""
+   },
+   "westmtn": {
+    "d": 3061.711896,
+    "via": "Whittington Avenue 3,062 m"
+   },
+   "westsummit": {
+    "d": 5760.65126,
+    "via": "Whittington Avenue 3,062 m → West Mountain Drive 2,699 m"
+   },
+   "music": {
+    "d": 3158.402637,
+    "via": "Bull Bayou Road 2,589 m → Albert Pike Road 569 m"
+   },
+   "cedarglades": {
+    "d": 1526.877933,
+    "via": "Turkey Trot Lane 1,527 m"
+   },
+   "gorge": {
+    "d": null,
+    "via": ""
+   },
+   "promenade": {
+    "d": 4717.870003,
+    "via": "Whittington Avenue 4,086 m → (unnamed primary_link) 58 m → Central Avenue 305 m → Fountain Street 269 m"
+   }
+  },
+  "cedarglades": {
+   "central": {
+    "d": 716.18489,
+    "via": "Cedar Street 659 m → Whittington Avenue 57 m"
+   },
+   "park": {
+    "d": 615.18716,
+    "via": "Amber Street 150 m → Crest Street 466 m"
+   },
+   "whittington": {
+    "d": 658.726334,
+    "via": "Cedar Street 659 m"
+   },
+   "fountain": {
+    "d": 1050.537658,
+    "via": "Cedar Street 659 m → (unnamed primary_link) 58 m → Central Avenue 305 m"
+   },
+   "reserve": {
+    "d": 1570.357886,
+    "via": "Cedar Street 659 m → (unnamed primary_link) 58 m → Central Avenue 824 m"
+   },
+   "bridge": {
+    "d": 1811.794295,
+    "via": "Cedar Street 659 m → (unnamed primary_link) 58 m → Central Avenue 1,066 m"
+   },
+   "malvern": {
+    "d": 1839.746244,
+    "via": "Cedar Street 659 m → (unnamed primary_link) 58 m → Central Avenue 883 m → (unnamed service) 49 m → Post Office Court 58 m → Broadway Bridge 103 m"
+   },
+   "exchange": {
+    "d": 1395.050539,
+    "via": "Cedar Street 659 m → (unnamed primary_link) 58 m → Central Avenue 597 m → Mountain Street 52 m"
+   },
+   "prospect": {
+    "d": 1663.626153,
+    "via": "Cedar Street 659 m → (unnamed primary_link) 58 m → Central Avenue 918 m"
+   },
+   "ouachita": {
+    "d": 1933.624549,
+    "via": "Cedar Street 659 m → (unnamed primary_link) 58 m → Central Avenue 1,188 m"
+   },
+   "hsmtn": {
+    "d": 3035.599179,
+    "via": "Cedar Street 659 m → (unnamed primary_link) 58 m → Central Avenue 305 m → Fountain Street 1,691 m → North Mountain Drive 294 m"
+   },
+   "hsmtnLower": {
+    "d": 1517.762305,
+    "via": "Cedar Street 659 m → (unnamed primary_link) 58 m → Central Avenue 305 m → Fountain Street 467 m"
+   },
+   "northmtn": {
+    "d": 2741.75588,
+    "via": "Cedar Street 659 m → (unnamed primary_link) 58 m → Central Avenue 305 m → Fountain Street 1,691 m"
+   },
+   "westmtn": {
+    "d": 1425.494027,
+    "via": "Pine Street 44 m → Wahoo Street 199 m → Union Street 50 m → Robin Street 266 m → Walnut Street 269 m → Willow Street 137 m → Whittington Avenue 461 m"
+   },
+   "westsummit": {
+    "d": 2990.270213,
+    "via": "Cedar Street 659 m → (unnamed primary_link) 58 m → Central Avenue 597 m → Mountain Street 52 m → Exchange Street 340 m → Prospect Avenue 1,256 m"
+   },
+   "music": {
+    "d": 5891.581061,
+    "via": "Turkey Trot Lane 1,527 m → Blacksnake Road 646 m → Centennial Drive 829 m → Mid America Boulevard 107 m → Mountain Pine Road 1,628 m → (unnamed trunk_link) 75 m → Albert Pike Road 1,081 m"
+   },
+   "blacksnake": {
+    "d": 1526.877933,
+    "via": "Turkey Trot Lane 1,527 m"
+   },
+   "gorge": {
+    "d": 3286.545473,
+    "via": "Amber Street 703 m → Park Avenue 2,583 m"
+   },
+   "promenade": {
+    "d": 1319.337272,
+    "via": "Cedar Street 659 m → (unnamed primary_link) 58 m → Central Avenue 305 m → Fountain Street 269 m"
+   }
+  },
+  "gorge": {
+   "central": {
+    "d": 2247.407774,
+    "via": "East Grand Avenue 619 m → Coy Street 653 m → Spring Street 446 m → Reserve Street 530 m"
+   },
+   "park": {
+    "d": 0,
+    "via": ""
+   },
+   "whittington": {
+    "d": 3093.953356,
+    "via": "Park Avenue 1,147 m → Edgewood Street 120 m → Ramble Street 1,327 m → Arbor Street 408 m → Park Avenue 92 m"
+   },
+   "fountain": {
+    "d": 2767.228002,
+    "via": "East Grand Avenue 619 m → Coy Street 653 m → Spring Street 446 m → Reserve Street 530 m → Central Avenue 520 m"
+   },
+   "reserve": {
+    "d": 1717.652999,
+    "via": "East Grand Avenue 619 m → Coy Street 653 m → Spring Street 446 m"
+   },
+   "bridge": {
+    "d": 2351.659526,
+    "via": "East Grand Avenue 619 m → Coy Street 653 m → Spring Street 977 m → Broadway Bridge 103 m"
+   },
+   "malvern": {
+    "d": 2211.966598,
+    "via": "East Grand Avenue 1,590 m → Grove Street 622 m"
+   },
+   "exchange": {
+    "d": 2325.237586,
+    "via": "East Grand Avenue 619 m → Coy Street 653 m → Spring Street 446 m → Reserve Street 530 m → Interior Court 78 m"
+   },
+   "prospect": {
+    "d": 2322.740794,
+    "via": "East Grand Avenue 619 m → Coy Street 653 m → Spring Street 988 m → (unnamed primary_link) 60 m"
+   },
+   "ouachita": {
+    "d": 2516.774428,
+    "via": "East Grand Avenue 619 m → Coy Street 653 m → Spring Street 1,023 m → Central Avenue 222 m"
+   },
+   "hsmtn": {
+    "d": 4752.289522,
+    "via": "East Grand Avenue 619 m → Coy Street 653 m → Spring Street 446 m → Reserve Street 530 m → Central Avenue 520 m → Fountain Street 1,691 m → North Mountain Drive 294 m"
+   },
+   "hsmtnLower": {
+    "d": 3234.452649,
+    "via": "East Grand Avenue 619 m → Coy Street 653 m → Spring Street 446 m → Reserve Street 530 m → Central Avenue 520 m → Fountain Street 467 m"
+   },
+   "northmtn": {
+    "d": 4458.446223,
+    "via": "East Grand Avenue 619 m → Coy Street 653 m → Spring Street 446 m → Reserve Street 530 m → Central Avenue 520 m → Fountain Street 1,691 m"
+   },
+   "westmtn": {
+    "d": 3656.950828,
+    "via": "East Grand Avenue 619 m → Coy Street 653 m → Spring Street 988 m → (unnamed primary_link) 60 m → Prospect Avenue 1,334 m"
+   },
+   "westsummit": {
+    "d": 3656.950828,
+    "via": "East Grand Avenue 619 m → Coy Street 653 m → Spring Street 988 m → (unnamed primary_link) 60 m → Prospect Avenue 1,334 m"
+   },
+   "music": {
+    "d": null,
+    "via": ""
+   },
+   "blacksnake": {
+    "d": null,
+    "via": ""
+   },
+   "cedarglades": {
+    "d": 3286.545473,
+    "via": "Park Avenue 2,583 m → Amber Street 703 m"
+   },
+   "promenade": {
+    "d": 3036.027616,
+    "via": "East Grand Avenue 619 m → Coy Street 653 m → Spring Street 446 m → Reserve Street 530 m → Central Avenue 520 m → Fountain Street 269 m"
+   }
+  },
+  "promenade": {
+   "central": {
+    "d": 85.0189,
+    "via": "(unnamed footway) 85 m"
+   },
+   "park": {
+    "d": 540.615169,
+    "via": "Tufa Terrace Trail 108 m → (unnamed footway) 282 m → Central Avenue 151 m"
+   },
+   "whittington": {
+    "d": 521.541671,
+    "via": "Tufa Terrace Trail 108 m → (unnamed footway) 282 m → Central Avenue 132 m"
+   },
+   "fountain": {
+    "d": 0,
+    "via": ""
+   },
+   "reserve": {
+    "d": 36.60113,
+    "via": "(unnamed footway) 28 m → (unnamed service) 9 m"
+   },
+   "bridge": {
+    "d": 298.425284,
+    "via": "(unnamed footway) 65 m → Post Office Court 130 m → Broadway Bridge 103 m"
+   },
+   "malvern": {
+    "d": 298.425284,
+    "via": "(unnamed footway) 65 m → Post Office Court 130 m → Broadway Bridge 103 m"
+   },
+   "exchange": {
+    "d": 165.33616,
+    "via": "(unnamed footway) 165 m"
+   },
+   "prospect": {
+    "d": 185.407238,
+    "via": "(unnamed footway) 81 m → Reserve Street 11 m → Central Avenue 93 m"
+   },
+   "ouachita": {
+    "d": 455.405634,
+    "via": "(unnamed footway) 81 m → Reserve Street 11 m → Central Avenue 363 m"
+   },
+   "hsmtn": {
+    "d": 626.893476,
+    "via": "Peak Trail 627 m"
+   },
+   "hsmtnLower": {
+    "d": 65.147967,
+    "via": "(unnamed footway) 65 m"
+   },
+   "northmtn": {
+    "d": 819.832481,
+    "via": "Oertel Trail 274 m → Short Cut Trail 302 m → Hot Springs Mountain Trail 84 m → (unnamed residential) 145 m"
+   },
+   "westmtn": {
+    "d": 821.316952,
+    "via": "(unnamed footway) 132 m → Mountain Street 36 m → (unnamed footway) 140 m → Oak Trail 306 m → Canyon Trail 200 m"
+   },
+   "westsummit": {
+    "d": 1252.15364,
+    "via": "(unnamed footway) 132 m → Mountain Street 36 m → (unnamed footway) 140 m → Oak Trail 937 m"
+   },
+   "music": {
+    "d": null,
+    "via": ""
+   },
+   "blacksnake": {
+    "d": 4631.784144,
+    "via": "Tufa Terrace Trail 108 m → (unnamed footway) 58 m → Central Avenue 322 m → (unnamed primary_link) 58 m → Whittington Avenue 4,086 m"
+   },
+   "cedarglades": {
+    "d": 1233.251414,
+    "via": "Tufa Terrace Trail 108 m → (unnamed footway) 58 m → Central Avenue 322 m → (unnamed primary_link) 58 m → Cedar Street 659 m"
+   },
+   "gorge": {
+    "d": 2169.826794,
+    "via": "(unnamed footway) 85 m → Reserve Street 358 m → Spring Street 446 m → Coy Street 653 m → East Grand Avenue 619 m"
+   }
+  }
+ },
+ "loops": [
+  {
+   "id": "row-promenade",
+   "label": "Central Ave (Bathhouse Row) + Grand Promenade (footways allowed)",
+   "profile": "any",
+   "legs": [
+    {
+     "len": 268.799614,
+     "seq": "Fountain Street 269 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      0,
+      0.049557
+     ]
+    },
+    {
+     "len": 439.719812,
+     "seq": "Grand Promenade 440 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      0.049557,
+      14.538104
+     ]
+    },
+    {
+     "len": 289.308281,
+     "seq": "Grand Promenade 289 m",
+     "against": 0,
+     "stepsM": 13.447315,
+     "privateM": 0,
+     "snap": [
+      14.538104,
+      0.028816
+     ]
+    },
+    {
+     "len": 94.559172,
+     "seq": "(unnamed footway) 28 m → (unnamed service) 9 m → Reserve Street 58 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      0.028816,
+      0
+     ]
+    },
+    {
+     "len": 239.736537,
+     "seq": "Central Avenue 240 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      0,
+      12.139394
+     ]
+    },
+    {
+     "len": 280.083691,
+     "seq": "Central Avenue 280 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      12.139394,
+      0
+     ]
+    }
+   ],
+   "ok": true,
+   "only": false,
+   "len": 1612.207107,
+   "reuse": 0,
+   "onNamed": 1575.605977,
+   "byClass": {
+    "residential": 268.799614,
+    "footway": 187.603602,
+    "pedestrian": 555.687287,
+    "steps": 13.447315,
+    "service": 8.891018,
+    "tertiary": 57.958043,
+    "primary": 519.820227
+   },
+   "against": 0,
+   "stepsM": 13.447315,
+   "privateM": 0,
+   "elev": {
+    "min": 182.825342,
+    "max": 203.617835,
+    "ascent": 19.193961,
+    "maxGrade": 0.208331
+   },
+   "wayIds": [
+    12810305,
+    1531073695,
+    250880917,
+    1213970863,
+    1213970862,
+    1213970865,
+    1213970864,
+    472037658,
+    1481563184,
+    912626292,
+    695791275
+   ]
+  },
+  {
+   "id": "park-only",
+   "label": "Park Ave only: the Y → Gorge Road junction → back (oneway respected, Park Ave ways only)",
+   "profile": "road1",
+   "legs": [
+    {
+     "len": 3210.537938,
+     "seq": "Park Avenue 3,211 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      0,
+      0
+     ]
+    },
+    {
+     "len": 3210.537938,
+     "seq": "Park Avenue 3,211 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      0,
+      0
+     ]
+    }
+   ],
+   "ok": true,
+   "only": true,
+   "len": 6421.075875,
+   "reuse": 3210.537938,
+   "onNamed": 6421.075875,
+   "byClass": {
+    "primary": 6421.075875
+   },
+   "against": 0,
+   "stepsM": 0,
+   "privateM": 0,
+   "elev": {
+    "min": 182.236086,
+    "max": 227.187341,
+    "ascent": 79.105413,
+    "maxGrade": 0.05978
+   },
+   "wayIds": [
+    1302627169,
+    1422568703,
+    1422568702,
+    1302627170,
+    911123309,
+    1302627171,
+    12816840
+   ]
+  },
+  {
+   "id": "park-gorge-grand",
+   "label": "Park Ave → Gorge Road → East Grand Ave → Central Ave → the Y",
+   "profile": "road1",
+   "legs": [
+    {
+     "len": 3210.537938,
+     "seq": "Park Avenue 3,211 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      0,
+      0
+     ]
+    },
+    {
+     "len": 2576.650437,
+     "seq": "Gorge Road 2,577 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      0,
+      0
+     ]
+    },
+    {
+     "len": 3186.502772,
+     "seq": "East Grand Avenue 71 m → Illinois Street 340 m → Butterfield Street 256 m → East Grand Avenue 261 m → Spring Street 1,410 m → Central Avenue 849 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      0,
+      20.674471
+     ]
+    },
+    {
+     "len": 2241.913158,
+     "seq": "Plateau Street 111 m → Oak Street 427 m → Olive Street 135 m → Broadway Street 350 m → Malvern Avenue 55 m → Broadway Bridge 103 m → Post Office Court 58 m → (unnamed service) 49 m → Central Avenue 949 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      20.674471,
+      0
+     ]
+    }
+   ],
+   "ok": true,
+   "only": false,
+   "len": 11215.604305,
+   "reuse": 0,
+   "onNamed": 7590.478518,
+   "byClass": {
+    "primary": 5274.627967,
+    "secondary": 4107.933864,
+    "tertiary": 107.71741,
+    "residential": 1268.75511,
+    "unclassified": 349.516932,
+    "service": 107.053022
+   },
+   "against": 0,
+   "stepsM": 0,
+   "privateM": 0,
+   "elev": {
+    "min": 154.410081,
+    "max": 227.187341,
+    "ascent": 118.703809,
+    "maxGrade": 0.126182
+   },
+   "wayIds": [
+    1302627169,
+    1422568703,
+    1422568702,
+    1302627170,
+    911123309,
+    1302627171,
+    12816840,
+    1076712295,
+    1076712296,
+    250880915,
+    1076712298,
+    1076712297,
+    250880916,
+    12816000,
+    1076712300,
+    1076712299,
+    911123299,
+    12815999,
+    911123298,
+    286832009,
+    12810219,
+    1343372631,
+    250880940,
+    912626295,
+    912626294,
+    912626293,
+    911123295,
+    1386992264,
+    911117052,
+    911118163,
+    911123764,
+    911111871,
+    1052549591,
+    911111876,
+    12802476,
+    12808094,
+    12813222,
+    911123289,
+    911123287,
+    911123282,
+    134874867,
+    911123284,
+    12805528,
+    12807135,
+    955872778,
+    1126117538,
+    695791275,
+    1481563210,
+    1481563209,
+    1422568704,
+    1254974019
+   ]
+  },
+  {
+   "id": "park-northmtn",
+   "label": "Park Ave north → North Mountain → Fountain St → Central → the Y (the trivia board loop)",
+   "profile": "road1",
+   "legs": [
+    {
+     "len": 1899.125384,
+     "seq": "Park Avenue 1,899 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      0,
+      86.915336
+     ]
+    },
+    {
+     "len": 6034.582677,
+     "seq": "Coolidge Street 70 m → Edgewood Street 101 m → Bloom Street 157 m → Ramble Street 1,203 m → Park Avenue 447 m → Central Avenue 366 m → Fountain Street 467 m → (unnamed residential) 2,244 m → North Mountain Drive 980 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      86.915336,
+      4.08973
+     ]
+    },
+    {
+     "len": 1188.615528,
+     "seq": "North Mountain Drive 1 m → Fountain Street 1,188 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      4.08973,
+      1.837665
+     ]
+    },
+    {
+     "len": 503.324678,
+     "seq": "Fountain Street 503 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      1.837665,
+      0
+     ]
+    },
+    {
+     "len": 370.534672,
+     "seq": "Central Avenue 371 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      0,
+      0
+     ]
+    }
+   ],
+   "ok": true,
+   "only": false,
+   "len": 9996.182939,
+   "reuse": 959.703382,
+   "onNamed": 8465.917257,
+   "byClass": {
+    "primary": 3082.507687,
+    "residential": 6913.675252
+   },
+   "against": 0,
+   "stepsM": 0,
+   "privateM": 0,
+   "elev": {
+    "min": 187.570595,
+    "max": 306.83638,
+    "ascent": 188.474436,
+    "maxGrade": 0.141537
+   },
+   "wayIds": [
+    1302627169,
+    1422568703,
+    1422568702,
+    1302627170,
+    911123309,
+    1302627171,
+    12816840,
+    12814435,
+    353012875,
+    12803766,
+    12807534,
+    1254974019,
+    1422568704,
+    1481563211,
+    12810305,
+    250875470,
+    12800909,
+    12803331,
+    12803330,
+    250875465,
+    1481563210,
+    1481563209
+   ]
+  },
+  {
+   "id": "whittington",
+   "label": "Whittington Ave: the Y → Black Snake Rd junction → back (oneway respected; the divided section uses each carriageway once)",
+   "profile": "road1",
+   "legs": [
+    {
+     "len": 4208.850326,
+     "seq": "Whittington Avenue 1,626 m → Woodfin Street 67 m → Whittington Avenue 2,515 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      0,
+      0
+     ]
+    },
+    {
+     "len": 4135.182187,
+     "seq": "Whittington Avenue 4,116 m → Central Avenue 19 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      0,
+      0
+     ]
+    }
+   ],
+   "ok": true,
+   "only": false,
+   "len": 8344.032513,
+   "reuse": 3015.305393,
+   "onNamed": 8257.50765,
+   "byClass": {
+    "tertiary": 8324.959015,
+    "primary": 19.073498
+   },
+   "against": 0,
+   "stepsM": 0,
+   "privateM": 0,
+   "elev": {
+    "min": 191.263689,
+    "max": 283.967167,
+    "ascent": 92.511178,
+    "maxGrade": 0.160313
+   },
+   "wayIds": [
+    286815113,
+    1422568705,
+    911123310,
+    286815111,
+    1481196983,
+    1422561498,
+    1422561495,
+    12809350,
+    911123313,
+    911123316,
+    12809360,
+    12809343,
+    286815112,
+    1422561499,
+    286815114,
+    1254974020,
+    1254974019
+   ]
+  },
+  {
+   "id": "bridge-malvern-exchange",
+   "label": "Central/Bridge → Bridge St → Malvern Ave → … → Exchange St → Central (oneway respected)",
+   "profile": "road1",
+   "legs": [
+    {
+     "len": 54.496962,
+     "seq": "Bridge Street 54 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      0,
+      0
+     ]
+    },
+    {
+     "len": 367.194664,
+     "seq": "Malvern Avenue 367 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      0,
+      35.846887
+     ]
+    },
+    {
+     "len": 1010.659465,
+     "seq": "Creek Street 87 m → Broadway Terrace 199 m → Market Street 180 m → Central Avenue 342 m → Prospect Avenue 79 m → Exchange Street 125 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      35.846887,
+      8.989642
+     ]
+    },
+    {
+     "len": 440.274427,
+     "seq": "Exchange Street 27 m → Interior Court 78 m → Reserve Street 38 m → Post Office Court 140 m → Broadway Bridge 103 m → Bridge Street 54 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      8.989642,
+      0
+     ]
+    }
+   ],
+   "ok": true,
+   "only": false,
+   "len": 1872.625518,
+   "reuse": 81.33988,
+   "onNamed": 1086.159275,
+   "byClass": {
+    "secondary": 579.511391,
+    "residential": 773.393495,
+    "primary": 341.9387,
+    "tertiary": 38.034986,
+    "service": 139.746947
+   },
+   "against": 0,
+   "stepsM": 0,
+   "privateM": 0,
+   "elev": {
+    "min": 175.136179,
+    "max": 186.506057,
+    "ascent": 12.219169,
+    "maxGrade": 0.083146
+   },
+   "wayIds": [
+    12805886,
+    911123284,
+    49223587,
+    12809326,
+    12796900,
+    911123285,
+    911123283,
+    911118162,
+    1302627175,
+    911118163,
+    911117052,
+    1386992264,
+    1126117538,
+    911117054,
+    911117053,
+    12817702,
+    12812931,
+    912626292,
+    12807135,
+    12805528
+   ]
+  },
+  {
+   "id": "hsmtn-outer",
+   "label": "Hot Springs Mountain scenic loop: Fountain St → lower drive → tower → North Mountain Dr → North Mountain Loop → Fountain St (oneway respected)",
+   "profile": "road1",
+   "legs": [
+    {
+     "len": 2347.28529,
+     "seq": "Fountain Street 36 m → (unnamed residential) 2,244 m → North Mountain Drive 67 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      1.837665,
+      27.845851
+     ]
+    },
+    {
+     "len": 932.058357,
+     "seq": "North Mountain Drive 932 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      27.845851,
+      4.08973
+     ]
+    },
+    {
+     "len": 994.918028,
+     "seq": "North Mountain Drive 1 m → (unnamed residential) 128 m → North Mountain Loop 866 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      4.08973,
+      4.124638
+     ]
+    },
+    {
+     "len": 1534.029063,
+     "seq": "North Mountain Loop 218 m → (unnamed residential) 128 m → Fountain Street 1,188 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      4.124638,
+      1.837665
+     ]
+    }
+   ],
+   "ok": true,
+   "only": false,
+   "len": 5808.290739,
+   "reuse": 128.435961,
+   "onNamed": 5551.418818,
+   "byClass": {
+    "residential": 5808.290739
+   },
+   "against": 0,
+   "stepsM": 0,
+   "privateM": 0,
+   "elev": {
+    "min": 202.653676,
+    "max": 324.454042,
+    "ascent": 165.193657,
+    "maxGrade": 0.141537
+   },
+   "wayIds": [
+    12810305,
+    250875470,
+    12800909,
+    12803332,
+    12803331,
+    12803330,
+    250875473,
+    12801681,
+    250875465
+   ]
+  },
+  {
+   "id": "hsmtn-summit",
+   "label": "Summit circuit: tower → North Mountain Dr → Hot Springs Mountain Drive (named) → picnic area → tower (oneway respected)",
+   "profile": "road1",
+   "legs": [
+    {
+     "len": 393.749778,
+     "seq": "North Mountain Drive 394 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      27.845851,
+      7.010377
+     ]
+    },
+    {
+     "len": 720.354171,
+     "seq": "North Mountain Drive 245 m → Hot Springs Mountain Drive 475 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      7.010377,
+      42.851007
+     ]
+    },
+    {
+     "len": 664.462104,
+     "seq": "Hot Springs Mountain Drive 373 m → (unnamed residential) 225 m → North Mountain Drive 67 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      42.851007,
+      27.845851
+     ]
+    }
+   ],
+   "ok": true,
+   "only": false,
+   "len": 1778.566053,
+   "reuse": 0,
+   "onNamed": 1778.566053,
+   "byClass": {
+    "residential": 1778.566053
+   },
+   "against": 0,
+   "stepsM": 0,
+   "privateM": 0,
+   "elev": {
+    "min": 276.36296,
+    "max": 317.509516,
+    "ascent": 42.132689,
+    "maxGrade": 0.132027
+   },
+   "wayIds": [
+    12803332,
+    12803331,
+    12806757,
+    12800909
+   ]
+  },
+  {
+   "id": "goatrock-gulpha-road",
+   "label": "Goat Rock overlook → Gulpha Gorge Campground by road (oneway respected)",
+   "profile": "road1",
+   "legs": [
+    {
+     "len": 8973.321836,
+     "seq": "North Mountain Loop 762 m → (unnamed residential) 128 m → Fountain Street 1,691 m → Central Avenue 371 m → Park Avenue 3,211 m → Gorge Road 2,095 m → (unnamed residential) 716 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      110.556495,
+      10.968891
+     ]
+    }
+   ],
+   "ok": true,
+   "only": false,
+   "len": 8973.321836,
+   "reuse": 0,
+   "onNamed": 6067.059151,
+   "byClass": {
+    "residential": 3297.451744,
+    "primary": 3581.072609,
+    "secondary": 2094.797482
+   },
+   "against": 0,
+   "stepsM": 0,
+   "privateM": 0,
+   "elev": {
+    "min": 157.280279,
+    "max": 324.454042,
+    "ascent": 57.804246,
+    "maxGrade": 0.141537
+   },
+   "wayIds": [
+    12801681,
+    250875473,
+    250875465,
+    12810305,
+    1481563210,
+    1481563209,
+    1422568704,
+    1254974019,
+    1302627169,
+    1422568703,
+    1422568702,
+    1302627170,
+    911123309,
+    1302627171,
+    12816840,
+    1076712295,
+    1076712296,
+    250880915,
+    1076712298,
+    1076712297,
+    250880916,
+    12816000,
+    517972533,
+    12797546,
+    517972532
+   ]
+  },
+  {
+   "id": "goatrock-gulpha-any",
+   "label": "Goat Rock overlook → Gulpha Gorge Campground on any way (trails allowed)",
+   "profile": "any",
+   "legs": [
+    {
+     "len": 1274.741573,
+     "seq": "(unnamed footway) 62 m → Goat Rock Trail 323 m → Gulpha Gorge Trail 712 m → (unnamed residential) 177 m",
+     "against": 177.394312,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      0.058539,
+      10.968891
+     ]
+    }
+   ],
+   "ok": true,
+   "only": false,
+   "len": 1274.741573,
+   "reuse": 0,
+   "onNamed": 0,
+   "byClass": {
+    "footway": 1097.347262,
+    "residential": 177.394312
+   },
+   "against": 177.394312,
+   "stepsM": 0,
+   "privateM": 0,
+   "elev": {
+    "min": 161.131956,
+    "max": 270.15351,
+    "ascent": 8.947072,
+    "maxGrade": 0.40468
+   },
+   "wayIds": [
+    982266809,
+    626283168,
+    626283164,
+    12797546,
+    517972532
+   ]
+  },
+  {
+   "id": "westmtn-loop",
+   "label": "West Mountain Drive loop: Prospect entrance → Whittington entrance → Whittington Ave → the Y → Central → Prospect Ave (oneway respected)",
+   "profile": "road1",
+   "legs": [
+    {
+     "len": 3550.355208,
+     "seq": "West Mountain Drive 3,550 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      0,
+      0
+     ]
+    },
+    {
+     "len": 1073.470291,
+     "seq": "Whittington Avenue 1,054 m → Central Avenue 19 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      0,
+      0
+     ]
+    },
+    {
+     "len": 978.941056,
+     "seq": "Central Avenue 979 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      0,
+      0
+     ]
+    },
+    {
+     "len": 1334.210034,
+     "seq": "Prospect Avenue 1,334 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      0,
+      0
+     ]
+    }
+   ],
+   "ok": true,
+   "only": false,
+   "len": 6936.976589,
+   "reuse": 19.073498,
+   "onNamed": 6936.976589,
+   "byClass": {
+    "residential": 4884.565242,
+    "tertiary": 1054.396793,
+    "primary": 998.014555
+   },
+   "against": 0,
+   "stepsM": 0,
+   "privateM": 0,
+   "elev": {
+    "min": 181.827249,
+    "max": 259.858072,
+    "ascent": 90.828149,
+    "maxGrade": 0.099171
+   },
+   "wayIds": [
+    12808452,
+    12808467,
+    286815112,
+    1422561499,
+    1481196983,
+    286815111,
+    286815114,
+    1254974020,
+    1254974019,
+    1422568704,
+    1481563211,
+    695791275,
+    1126117538,
+    911117054,
+    911117055,
+    12817743,
+    12817746
+   ]
+  },
+  {
+   "id": "westmtn-summit",
+   "label": "West Mountain Summit Loop spur: Prospect entrance → Summit Loop overlook → Whittington entrance",
+   "profile": "road1",
+   "legs": [
+    {
+     "len": 2643.106486,
+     "seq": "West Mountain Drive 2,643 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      0,
+      40.948698
+     ]
+    },
+    {
+     "len": 4740.903914,
+     "seq": "West Mountain Drive 4,741 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      40.948698,
+      0
+     ]
+    }
+   ],
+   "ok": true,
+   "only": false,
+   "len": 7384.0104,
+   "reuse": 1736.27425,
+   "onNamed": 7384.0104,
+   "byClass": {
+    "residential": 7384.0104
+   },
+   "against": 0,
+   "stepsM": 0,
+   "privateM": 0,
+   "elev": {
+    "min": 201.249163,
+    "max": 334.771522,
+    "ascent": 132.338272,
+    "maxGrade": 0.099171
+   },
+   "wayIds": [
+    12808452,
+    12808471,
+    12808467
+   ]
+  },
+  {
+   "id": "westside-loop",
+   "label": "Whittington Ave → Black Snake Rd → Cedar Glades Rd → back east to the Y (oneway respected)",
+   "profile": "road1",
+   "legs": [
+    {
+     "len": 4208.850326,
+     "seq": "Whittington Avenue 1,626 m → Woodfin Street 67 m → Whittington Avenue 2,515 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      0,
+      0
+     ]
+    },
+    {
+     "len": 7676.768513,
+     "seq": "Blacksnake Road 3,285 m → Turkey Trot Lane 1,527 m → Cedarglade Road 2,864 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      0,
+      1.251354
+     ]
+    },
+    {
+     "len": 2133.346387,
+     "seq": "Cedarglade Road 2,133 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      1.251354,
+      621.58169
+     ]
+    },
+    {
+     "len": 2849.450928,
+     "seq": "Cedarglade Road 2,113 m → Cedar Street 659 m → Whittington Avenue 59 m → Central Avenue 19 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      621.58169,
+      0
+     ]
+    }
+   ],
+   "ok": true,
+   "only": false,
+   "len": 16868.416155,
+   "reuse": 0,
+   "onNamed": 14615.360522,
+   "byClass": {
+    "tertiary": 7553.196125,
+    "residential": 2185.604268,
+    "unclassified": 7110.542263,
+    "primary": 19.073498
+   },
+   "against": 0,
+   "stepsM": 0,
+   "privateM": 0,
+   "elev": {
+    "min": 129.489941,
+    "max": 284.173127,
+    "ascent": 287.581761,
+    "maxGrade": 0.241296
+   },
+   "wayIds": [
+    286815113,
+    1422568705,
+    911123310,
+    286815111,
+    1481196983,
+    1422561498,
+    1422561495,
+    12809350,
+    911123313,
+    911123316,
+    12809360,
+    12809343,
+    12811576,
+    250816514,
+    250816515,
+    12811566,
+    12815717,
+    250880911,
+    250880910,
+    353011774,
+    12804006,
+    701718128,
+    286815110,
+    286815114,
+    1254974020,
+    1254974019
+   ]
+  },
+  {
+   "id": "music-link",
+   "label": "Black Snake Rd ↔ Music Mountain Rd round trip (no reuse if possible)",
+   "profile": "road1",
+   "legs": [
+    {
+     "len": 6393.588878,
+     "seq": "Blacksnake Road 2,006 m → Bull Bayou Road 2,589 m → Albert Pike Road 569 m → Music Mountain Road 1,229 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 0,
+     "snap": [
+      0,
+      87.618893
+     ]
+    },
+    {
+     "len": 9061.881071,
+     "seq": "Music Mountain Road 1,047 m → Ledgerock Way 127 m → Ledgerock Road 271 m → Albert Pike Road 215 m → (unnamed service) 191 m → Albert Pike Road 42 m → (unnamed service) 89 m → Albert Pike Road 512 m → (unnamed trunk_link) 75 m → Mountain Pine Road 1,628 m → Mid America Boulevard 107 m → Centennial Drive 829 m → Blacksnake Road 3,931 m",
+     "against": 0,
+     "stepsM": 0,
+     "privateM": 33.9585,
+     "snap": [
+      87.618893,
+      0
+     ]
+    }
+   ],
+   "ok": true,
+   "only": false,
+   "len": 15455.469949,
+   "reuse": 3310.043034,
+   "onNamed": 8213.330564,
+   "byClass": {
+    "tertiary": 8527.007261,
+    "trunk": 1337.696301,
+    "residential": 3608.902085,
+    "service": 279.47458,
+    "trunk_link": 74.708239,
+    "secondary": 1627.681482
+   },
+   "against": 0,
+   "stepsM": 0,
+   "privateM": 33.9585,
+   "elev": {
+    "min": 120.050003,
+    "max": 284.173127,
+    "ascent": 297.563849,
+    "maxGrade": 0.274563
+   },
+   "wayIds": [
+    12811576,
+    250816514,
+    250816515,
+    12815961,
+    250816510,
+    250816511,
+    52495384,
+    12817829,
+    12802857,
+    12816792,
+    1570596410,
+    1570596409,
+    1570596408,
+    1570596413,
+    12798540,
+    12798977,
+    891789315,
+    1302636685,
+    1332638329,
+    12806986,
+    12808358,
+    12813700,
+    12811566
+   ]
+  }
+ ],
+ "links": [
+  {
+   "id": "behind-row-road",
+   "label": "Behind the Row by road: lower Hot Springs Mtn Dr (south end, behind the Maurice) → Reserve St, not using Central Ave",
+   "ok": false
+  },
+  {
+   "id": "behind-row-any",
+   "label": "Same, any way (footways/steps allowed)",
+   "ok": true,
+   "len": 864.343129,
+   "seq": "(unnamed residential) 126 m → Honeysuckle Trail 73 m → Peak Trail 269 m → Tufa Terrace Trail 97 m → (unnamed footway) 8 m → Grand Promenade 255 m → (unnamed footway) 28 m → (unnamed service) 9 m",
+   "byClass": {
+    "residential": 126.473451,
+    "footway": 473.868711,
+    "pedestrian": 241.662634,
+    "steps": 13.447315,
+    "service": 8.891018
+   },
+   "stepsM": 13.447315,
+   "against": 0,
+   "end": [
+    34.511644,
+    -93.053391
+   ],
+   "maxGrade": 0.208331
+  },
+  {
+   "id": "promenade-south",
+   "label": "Grand Promenade south end → Reserve St (any way)",
+   "ok": true,
+   "len": 36.60113,
+   "seq": "(unnamed footway) 28 m → (unnamed service) 9 m",
+   "byClass": {
+    "footway": 27.710111,
+    "service": 8.891018
+   },
+   "stepsM": 0,
+   "against": 0,
+   "end": [
+    34.511644,
+    -93.053391
+   ],
+   "maxGrade": 0.106297
+  },
+  {
+   "id": "promenade-north",
+   "label": "Grand Promenade north end → Fountain St (any way)",
+   "ok": true,
+   "len": 0,
+   "seq": "(none)",
+   "byClass": {},
+   "stepsM": 0,
+   "against": 0,
+   "end": [
+    34.517648,
+    -93.051002
+   ],
+   "maxGrade": 0
+  },
+  {
+   "id": "park-northmtn",
+   "label": "Park Ave → North Mountain Dr/Loop by road without Fountain St, the lower drive or Central Ave",
+   "ok": false
+  },
+  {
+   "id": "gorge-northmtn",
+   "label": "Gorge Road / Gulpha Gorge → North Mountain Dr/Loop by road without Fountain St / the lower drive",
+   "ok": false
+  },
+  {
+   "id": "goatrock-to-road",
+   "label": "Goat Rock overlook → nearest drivable road node",
+   "ok": true,
+   "len": 833.808074,
+   "seq": "(unnamed footway) 62 m → Goat Rock Trail 323 m → Gulpha Gorge Trail 440 m → Hot Springs Mountain Trail 8 m",
+   "byClass": {
+    "footway": 833.808074
+   },
+   "stepsM": 0,
+   "against": 0,
+   "end": [
+    34.523616,
+    -93.041626
+   ],
+   "maxGrade": 0.40468
+  },
+  {
+   "id": "campground-to-gorge",
+   "label": "Gulpha Gorge Campground → Gorge Road",
+   "ok": true,
+   "len": 283.160539,
+   "seq": "(unnamed residential) 283 m",
+   "byClass": {
+    "residential": 283.160539
+   },
+   "stepsM": 0,
+   "against": 22.651647,
+   "end": [
+    34.522345,
+    -93.03497
+   ],
+   "maxGrade": 0.041196
+  },
+  {
+   "id": "westsummit-whittington",
+   "label": "West Mountain Summit Loop → Whittington Ave without the Whittington leg of West Mountain Dr (way 12808467)",
+   "ok": true,
+   "len": 2286.511618,
+   "seq": "Prospect Avenue 1,256 m → Exchange Street 340 m → Mountain Street 52 m → Central Avenue 639 m",
+   "byClass": {
+    "residential": 1647.534436,
+    "primary": 638.977182
+   },
+   "stepsM": 0,
+   "against": 320.368896,
+   "end": [
+    34.518606,
+    -93.055771
+   ],
+   "maxGrade": 0.100772
+  },
+  {
+   "id": "blacksnake-cedarglades",
+   "label": "Black Snake Rd → Cedar Glades Rd by road",
+   "ok": true,
+   "len": 1526.877933,
+   "seq": "Turkey Trot Lane 1,527 m",
+   "byClass": {
+    "residential": 1526.877933
+   },
+   "stepsM": 0,
+   "against": 0,
+   "end": [
+    34.537675,
+    -93.12293
+   ],
+   "maxGrade": 0.092838
+  },
+  {
+   "id": "blacksnake-music",
+   "label": "Black Snake Rd → Music Mountain Rd by road",
+   "ok": true,
+   "len": 3158.402637,
+   "seq": "Bull Bayou Road 2,589 m → Albert Pike Road 569 m",
+   "byClass": {
+    "tertiary": 2589.331285,
+    "trunk": 569.071353
+   },
+   "stepsM": 0,
+   "against": 0,
+   "end": [
+    34.494828,
+    -93.119879
+   ],
+   "maxGrade": 0.274563
+  },
+  {
+   "id": "cedarglades-music",
+   "label": "Cedar Glades Rd → Music Mountain Rd by road",
+   "ok": true,
+   "len": 5891.581061,
+   "seq": "Turkey Trot Lane 1,527 m → Blacksnake Road 646 m → Centennial Drive 829 m → Mid America Boulevard 107 m → Mountain Pine Road 1,628 m → (unnamed trunk_link) 75 m → Albert Pike Road 1,081 m",
+   "byClass": {
+    "residential": 2462.394118,
+    "tertiary": 645.683995,
+    "secondary": 1627.681482,
+    "trunk_link": 74.708239,
+    "trunk": 1081.113226
+   },
+   "stepsM": 0,
+   "against": 74.708239,
+   "end": [
+    34.494828,
+    -93.119879
+   ],
+   "maxGrade": 0.274563
+  },
+  {
+   "id": "music-westsummit",
+   "label": "Music Mountain Rd → West Mountain Summit Drive by road",
+   "ok": true,
+   "len": 5833.388282,
+   "seq": "Albert Pike Road 4,767 m → Summer Street 511 m → West Grand Avenue 114 m → Pecan Street 400 m → Prospect Avenue 42 m",
+   "byClass": {
+    "trunk": 628.885486,
+    "primary": 4763.045563,
+    "residential": 441.457234
+   },
+   "stepsM": 0,
+   "against": 546.957559,
+   "end": [
+    34.50476,
+    -93.065932
+   ],
+   "maxGrade": 0.090999
+  },
+  {
+   "id": "music-summit-road",
+   "label": "Music Mountain summit → nearest drivable road node",
+   "ok": true,
+   "len": 1488.06123,
+   "seq": "(unnamed footway) 127 m → Sunset Trail 1,361 m",
+   "byClass": {
+    "footway": 1488.06123
+   },
+   "stepsM": 0,
+   "against": 0,
+   "end": [
+    34.51393,
+    -93.093865
+   ],
+   "maxGrade": 0.342
+  }
+ ],
+ "islands": [],
+ "culverts": [
+  {
+   "id": 1213972844,
+   "name": "Hot Springs Creek",
+   "waterway": "stream",
+   "len": 1864.918539,
+   "from": {
+    "lon": -93.055267,
+    "lat": 34.52243
+   },
+   "to": {
+    "lon": -93.052004,
+    "lat": 34.507257
+   }
+  },
+  {
+   "id": 1214138567,
+   "name": "Hot Springs Creek",
+   "waterway": "stream",
+   "len": 445.512238,
+   "from": {
+    "lon": -93.0527,
+    "lat": 34.527528
+   },
+   "to": {
+    "lon": -93.054122,
+    "lat": 34.523775
+   }
+  },
+  {
+   "id": 1214370911,
+   "name": "",
+   "waterway": "stream",
+   "len": 28.471851,
+   "from": {
+    "lon": -93.031487,
+    "lat": 34.535947
+   },
+   "to": {
+    "lon": -93.031209,
+    "lat": 34.535832
+   }
+  },
+  {
+   "id": 1076712294,
+   "name": "",
+   "waterway": "stream",
+   "len": 25.995777,
+   "from": {
+    "lon": -93.028043,
+    "lat": 34.532611
+   },
+   "to": {
+    "lon": -93.028252,
+    "lat": 34.532453
+   }
+  },
+  {
+   "id": 250880955,
+   "name": "Hot Springs Creek",
+   "waterway": "stream",
+   "len": 21.627208,
+   "from": {
+    "lon": -93.050658,
+    "lat": 34.506044
+   },
+   "to": {
+    "lon": -93.050567,
+    "lat": 34.505865
+   }
+  },
+  {
+   "id": 1214138570,
+   "name": "Hot Springs Creek",
+   "waterway": "stream",
+   "len": 17.43606,
+   "from": {
+    "lon": -93.054255,
+    "lat": 34.52368
+   },
+   "to": {
+    "lon": -93.054398,
+    "lat": 34.523576
+   }
+  },
+  {
+   "id": 1076712292,
+   "name": "",
+   "waterway": "stream",
+   "len": 12.943469,
+   "from": {
+    "lon": -93.023917,
+    "lat": 34.535202
+   },
+   "to": {
+    "lon": -93.023978,
+    "lat": 34.535097
+   }
+  },
+  {
+   "id": 1213970880,
+   "name": "",
+   "waterway": "stream",
+   "len": 11.959094,
+   "from": {
+    "lon": -93.052352,
+    "lat": 34.515847
+   },
+   "to": {
+    "lon": -93.052474,
+    "lat": 34.515884
+   }
+  },
+  {
+   "id": 1214138572,
+   "name": "Hot Springs Creek",
+   "waterway": "stream",
+   "len": 11.768331,
+   "from": {
+    "lon": -93.054723,
+    "lat": 34.523343
+   },
+   "to": {
+    "lon": -93.05476,
+    "lat": 34.523242
+   }
+  },
+  {
+   "id": 1214138566,
+   "name": "Hot Springs Creek",
+   "waterway": "stream",
+   "len": 8.169137,
+   "from": {
+    "lon": -93.052205,
+    "lat": 34.528214
+   },
+   "to": {
+    "lon": -93.052276,
+    "lat": 34.528169
+   }
+  }
+ ]
+}

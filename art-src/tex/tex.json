@@ -1,0 +1,159 @@
+{
+ "note": "Codex-painted sources (art-src/tex/**/*.png, git-ignored) become N64-sized textures packed as base64 in assets/pack-<pack>.js. rgb555 quantizes to 5 bits per channel with an ordered dither, like the N64 RGBA16 texture format.",
+ "items": [
+  {
+   "name": "asphalt",
+   "src": "pilot/asphalt.png",
+   "w": 64,
+   "h": 64,
+   "pack": "core",
+   "rgb555": true
+  },
+  {
+   "name": "brick",
+   "src": "pilot/sidewalk-brick.png",
+   "w": 64,
+   "h": 64,
+   "pack": "core",
+   "rgb555": true
+  },
+  {
+   "name": "fordyce-bay",
+   "src": "pilot/fordyce-bay.png",
+   "w": 64,
+   "h": 64,
+   "pack": "core",
+   "rgb555": true
+  },
+  {
+   "name": "pine",
+   "src": "pilot/pine-sprite.png",
+   "w": 32,
+   "h": 64,
+   "fit": "contain",
+   "keyWhite": 40,
+   "trim": true,
+   "pack": "core",
+   "rgb555": true
+  },
+  {
+   "name": "crowd",
+   "src": "pilot/crowd-sprite.png",
+   "w": 128,
+   "h": 64,
+   "fit": "contain",
+   "keyWhite": 40,
+   "trim": true,
+   "pack": "core",
+   "rgb555": true
+  },
+  {
+   "name": "superior-bay",
+   "src": "row/superior-bay.png",
+   "w": 64,
+   "h": 64,
+   "pack": "row",
+   "rgb555": true,
+   "tileX": true
+  },
+  {
+   "name": "hale-bay",
+   "src": "row/hale-bay.png",
+   "w": 64,
+   "h": 64,
+   "pack": "row",
+   "rgb555": true,
+   "tileX": true
+  },
+  {
+   "name": "maurice-bay",
+   "src": "row/maurice-bay.png",
+   "w": 64,
+   "h": 64,
+   "pack": "row",
+   "rgb555": true,
+   "tileX": true
+  },
+  {
+   "name": "quapaw-bay",
+   "src": "row/quapaw-bay.png",
+   "w": 64,
+   "h": 64,
+   "pack": "row",
+   "rgb555": true,
+   "tileX": true
+  },
+  {
+   "name": "ozark-bay",
+   "src": "row/ozark-bay.png",
+   "w": 64,
+   "h": 64,
+   "pack": "row",
+   "rgb555": true,
+   "tileX": true
+  },
+  {
+   "name": "buckstaff-bay",
+   "src": "row/buckstaff-bay.png",
+   "w": 64,
+   "h": 64,
+   "pack": "row",
+   "rgb555": true,
+   "tileX": true
+  },
+  {
+   "name": "lamar-bay",
+   "src": "row/lamar-bay.png",
+   "w": 64,
+   "h": 64,
+   "pack": "row",
+   "rgb555": true,
+   "tileX": true
+  },
+  {
+   "name": "admin-bay",
+   "src": "row/admin-bay.png",
+   "w": 64,
+   "h": 64,
+   "pack": "row",
+   "rgb555": true,
+   "tileX": true
+  },
+  {
+   "name": "arlington-bay",
+   "src": "row/arlington-bay.png",
+   "w": 64,
+   "h": 64,
+   "pack": "row",
+   "rgb555": true,
+   "tileX": true
+  },
+  {
+   "name": "store-a",
+   "src": "row/store-a.png",
+   "w": 64,
+   "h": 64,
+   "pack": "row",
+   "rgb555": true,
+   "tileX": true
+  },
+  {
+   "name": "store-b",
+   "src": "row/store-b.png",
+   "w": 64,
+   "h": 64,
+   "pack": "row",
+   "rgb555": true,
+   "tileX": true
+  },
+  {
+   "name": "store-c",
+   "src": "row/store-c.png",
+   "w": 64,
+   "h": 64,
+   "pack": "row",
+   "rgb555": true,
+   "tileX": true
+  }
+ ]
+}

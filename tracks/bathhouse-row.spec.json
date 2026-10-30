@@ -1,0 +1,380 @@
+{
+ "id": "bathhouse-row",
+ "name": "Bathhouse Row",
+ "cup": "bathhouse",
+ "note": "Central Avenue south past the eight bathhouses (true scale), Reserve Street, then north along the Grand Promenade behind the Row (game course: a brick walk in real life) and down Fountain Street to the Arlington.",
+ "step": 2,
+ "laps": 3,
+ "route": {
+  "profile": "any",
+  "prefer": "Central Avenue|Grand Promenade|Reserve Street|Fountain Street",
+  "via": [
+   {
+    "near": [
+     34.51585,
+     -93.05345
+    ],
+    "on": "Central Avenue"
+   },
+   {
+    "near": [
+     34.51165,
+     -93.054
+    ],
+    "on": "Central Avenue"
+   },
+   {
+    "near": [
+     34.511738,
+     -93.053097
+    ]
+   },
+   {
+    "near": [
+     34.5143,
+     -93.0529
+    ],
+    "on": "Grand Promenade"
+   },
+   {
+    "near": [
+     34.517648,
+     -93.051002
+    ]
+   },
+   {
+    "near": [
+     34.51628,
+     -93.05328
+    ],
+    "on": "Fountain Street"
+   },
+   {
+    "near": [
+     34.51585,
+     -93.05345
+    ],
+    "on": "Central Avenue"
+   }
+  ],
+  "pins": [
+   {
+    "from": [
+     34.5152,
+     -93.0535
+    ],
+    "to": [
+     34.5119,
+     -93.05385
+    ],
+    "label": "Bathhouse Row frontage, Superior to Lamar"
+   },
+   {
+    "from": [
+     34.51165,
+     -93.054
+    ],
+    "to": [
+     34.51185,
+     -93.0531
+    ],
+    "label": "Reserve Street to the promenade (keeps the Row's depth)"
+   }
+  ],
+  "targetLength": 1010,
+  "minRadius": 19,
+  "gmax": 0.13,
+  "smooth": 13,
+  "ySmooth": 18
+ },
+ "polyline": "tracks/bathhouse-row.route.json",
+ "byName": {
+  "Central Avenue": {
+   "width": 19,
+   "surface": "asphalt",
+   "verge": "curb",
+   "lim": 5.5
+  },
+  "Grand Promenade": {
+   "width": 12,
+   "surface": "brick",
+   "verge": "grass",
+   "lim": 5,
+   "limType": "wall"
+  },
+  "Fountain Street": {
+   "width": 13,
+   "surface": "asphalt",
+   "verge": "curb",
+   "lim": 5
+  },
+  "Reserve Street": {
+   "width": 13,
+   "surface": "asphalt",
+   "verge": "curb",
+   "lim": 5
+  },
+  "*": {
+   "width": 12,
+   "surface": "concrete",
+   "verge": "grass",
+   "lim": 5
+  }
+ },
+ "terrain": {
+  "kind": "dem"
+ },
+ "buildings": {
+  "source": "osm",
+  "maxDist": 75,
+  "skipNearAnchors": 26,
+  "rowStreet": "Central Avenue"
+ },
+ "landmarks": [
+  {
+   "id": "superior",
+   "model": "superior",
+   "anchor": "bathhouse-superior",
+   "facades": {
+    "wall": "superior-bay"
+   }
+  },
+  {
+   "id": "hale",
+   "model": "hale",
+   "anchor": "bathhouse-hale",
+   "facades": {
+    "wall": "hale-bay"
+   }
+  },
+  {
+   "id": "maurice",
+   "model": "maurice",
+   "anchor": "bathhouse-maurice",
+   "facades": {
+    "wall": "maurice-bay"
+   }
+  },
+  {
+   "id": "fordyce",
+   "model": "fordyce",
+   "anchor": "bathhouse-fordyce",
+   "facades": {
+    "wall": "fordyce-bay"
+   }
+  },
+  {
+   "id": "quapaw",
+   "model": "quapaw",
+   "anchor": "bathhouse-quapaw",
+   "facades": {
+    "wall": "quapaw-bay"
+   }
+  },
+  {
+   "id": "ozark",
+   "model": "ozark",
+   "anchor": "bathhouse-ozark",
+   "facades": {
+    "wall": "ozark-bay"
+   }
+  },
+  {
+   "id": "buckstaff",
+   "model": "buckstaff",
+   "anchor": "bathhouse-buckstaff",
+   "facades": {
+    "wall": "buckstaff-bay"
+   }
+  },
+  {
+   "id": "lamar",
+   "model": "lamar",
+   "anchor": "bathhouse-lamar",
+   "facades": {
+    "wall": "lamar-bay"
+   }
+  },
+  {
+   "id": "admin",
+   "model": "admin",
+   "lonlat": [
+    -93.053596,
+    34.511935
+   ],
+   "facades": {
+    "wall": "admin-bay"
+   },
+   "street": "Central Avenue"
+  },
+  {
+   "id": "arlington",
+   "model": "arlington",
+   "anchor": "arlington",
+   "facades": {
+    "wall": "arlington-bay"
+   },
+   "street": "Central Avenue"
+  }
+ ],
+ "rowAnchors": [
+  "bathhouse-superior",
+  "bathhouse-hale",
+  "bathhouse-maurice",
+  "bathhouse-fordyce",
+  "bathhouse-quapaw",
+  "bathhouse-ozark",
+  "bathhouse-buckstaff",
+  "bathhouse-lamar"
+ ],
+ "zones": [
+  {
+   "type": "crowd",
+   "on": "Central Avenue",
+   "d": [
+    -14,
+    14
+   ],
+   "rate": 0.15,
+   "label": "Spectator blasters"
+  },
+  {
+   "type": "refill",
+   "anchor": "display-spring",
+   "len": 26,
+   "dSide": "near",
+   "rate": 7,
+   "label": "Display Spring"
+  }
+ ],
+ "propsByName": [
+  {
+   "on": "Central Avenue",
+   "type": "lamp",
+   "every": 15,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 1.2
+  },
+  {
+   "on": "Central Avenue",
+   "type": "magnolia",
+   "every": 7.6,
+   "sides": [
+    -1
+   ],
+   "d": 3.6,
+   "scale": [
+    0.95,
+    1.15
+   ]
+  },
+  {
+   "on": "Central Avenue",
+   "type": "crowd",
+   "every": 8,
+   "sides": [
+    1
+   ],
+   "d": 3.2
+  },
+  {
+   "on": "Grand Promenade",
+   "type": "lamp",
+   "every": 22,
+   "sides": [
+    -1
+   ],
+   "d": 1.0
+  },
+  {
+   "on": "Grand Promenade",
+   "type": "oak",
+   "every": 11,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 7,
+   "scale": [
+    0.9,
+    1.25
+   ]
+  },
+  {
+   "on": "Grand Promenade",
+   "type": "pine",
+   "every": 14,
+   "sides": [
+    1
+   ],
+   "d": 16,
+   "scale": [
+    0.9,
+    1.3
+   ]
+  },
+  {
+   "on": "Fountain Street",
+   "type": "pine",
+   "every": 10,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 8,
+   "scale": [
+    0.9,
+    1.3
+   ]
+  },
+  {
+   "on": "Central Avenue",
+   "type": "crowd",
+   "every": 23,
+   "sides": [
+    -1
+   ],
+   "d": 1.8
+  }
+ ],
+ "env": {
+  "palette": "gilded-spa",
+  "sky": [
+   "#79B3E2",
+   "#DCEEF6"
+  ],
+  "fog": [
+   110,
+   360
+  ],
+  "fogColor": "#CFE3EC",
+  "sun": [
+   0.35,
+   0.82,
+   0.45
+  ],
+  "time": "day",
+  "ridges": [
+   "#86A2B6",
+   "#62806A",
+   "#3F5E45"
+  ]
+ },
+ "meta": {
+  "credits": "Streets \u00a9 OpenStreetMap contributors (ODbL); elevation USGS 3DEP",
+  "sources": "research/town-content.md \u00a74"
+ },
+ "rowStreet": "Central Avenue",
+ "start": {
+  "anchor": "central-at-fordyce",
+  "offset": -10
+ },
+ "lapTarget": [
+  42,
+  62
+ ],
+ "minRadiusCheck": 9
+}

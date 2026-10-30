@@ -1,0 +1,15 @@
+{
+  "name": "hsg-tub-rally",
+  "private": true,
+  "type": "module",
+  "description": "Spa City Tub Rally: an N64-style bathtub kart racer on the streets and mountain roads of Hot Springs, Arkansas",
+  "license": "MIT",
+  "scripts": {
+    "setup": "cd shared/test-harness && npm install && npx playwright install chromium",
+    "vendor": "node tools/build-vendor.mjs",
+    "tracks": "node tools/track/bake.mjs --all",
+    "check": "node tools/track/check.mjs --all",
+    "build": "node shared/tools/inline.mjs .",
+    "test": "node shared/test-harness/run.mjs ."
+  }
+}

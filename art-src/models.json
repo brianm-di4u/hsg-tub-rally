@@ -1,0 +1,15 @@
+{
+  "note": "Blender exports packed as base64 GLB in classic-script packs (assets/models-<pack>.js) so they load from file://.",
+  "items": [
+    { "name": "fordyce", "src": "blender/export/fordyce.glb", "pack": "row" },
+    { "name": "superior", "src": "blender/export/superior.glb", "pack": "row" },
+    { "name": "hale", "src": "blender/export/hale.glb", "pack": "row" },
+    { "name": "maurice", "src": "blender/export/maurice.glb", "pack": "row" },
+    { "name": "quapaw", "src": "blender/export/quapaw.glb", "pack": "row" },
+    { "name": "ozark", "src": "blender/export/ozark.glb", "pack": "row" },
+    { "name": "buckstaff", "src": "blender/export/buckstaff.glb", "pack": "row" },
+    { "name": "lamar", "src": "blender/export/lamar.glb", "pack": "row" },
+    { "name": "admin", "src": "blender/export/admin.glb", "pack": "row" },
+    { "name": "arlington", "src": "blender/export/arlington.glb", "pack": "row" }
+  ]
+}

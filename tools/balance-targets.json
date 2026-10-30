@@ -1,0 +1,32 @@
+{
+ "note": "Targets for tools/balance.mjs (Soak class unless stated). Ranges are inclusive.",
+ "lapWindowFromSpec": true,
+ "spreadSec": [
+  3,
+  14
+ ],
+ "waterFinishFrac": [
+  0.38,
+  0.72
+ ],
+ "under10Share": [
+  0.04,
+  0.3
+ ],
+ "hitsPerRace": [
+  5,
+  40
+ ],
+ "fumblesPerKart": [
+  0.4,
+  3.5
+ ],
+ "divisionWinShare": [
+  0.15,
+  0.5
+ ],
+ "cleanShare": [
+  0.5,
+  0.95
+ ]
+}

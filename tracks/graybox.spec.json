@@ -1,0 +1,313 @@
+{
+ "id": "graybox",
+ "name": "Gray-box test loop",
+ "note": "M0 look pilot: a hand-placed downtown-sized loop (a long main street, a hairpin, a climbing promenade). Not a real course.",
+ "step": 2,
+ "laps": 3,
+ "points": [
+  [
+   0,
+   -260,
+   2
+  ],
+  [
+   3,
+   -150,
+   1.5
+  ],
+  [
+   8,
+   -40,
+   1
+  ],
+  [
+   5,
+   60,
+   0.5
+  ],
+  [
+   -5,
+   150,
+   0
+  ],
+  [
+   20,
+   205,
+   0
+  ],
+  [
+   60,
+   215,
+   1.5
+  ],
+  [
+   95,
+   185,
+   4
+  ],
+  [
+   105,
+   120,
+   8
+  ],
+  [
+   110,
+   20,
+   13
+  ],
+  [
+   112,
+   -90,
+   17
+  ],
+  [
+   105,
+   -190,
+   19
+  ],
+  [
+   85,
+   -268,
+   17
+  ],
+  [
+   55,
+   -332,
+   12
+  ],
+  [
+   14,
+   -350,
+   6
+  ],
+  [
+   -6,
+   -322,
+   3
+  ]
+ ],
+ "width": [
+  {
+   "at": 0,
+   "v": 17
+  },
+  {
+   "at": 0.36,
+   "v": 17
+  },
+  {
+   "at": 0.42,
+   "v": 12
+  },
+  {
+   "at": 0.9,
+   "v": 12
+  },
+  {
+   "at": 0.96,
+   "v": 17
+  }
+ ],
+ "limL": [
+  {
+   "at": 0,
+   "v": 5
+  }
+ ],
+ "limR": [
+  {
+   "at": 0,
+   "v": 5
+  }
+ ],
+ "limTypeDefault": "wall",
+ "vergeDefault": "curb",
+ "surface": [
+  {
+   "at": 0,
+   "v": "asphalt"
+  },
+  {
+   "at": 0.42,
+   "v": "brick"
+  },
+  {
+   "at": 0.9,
+   "v": "asphalt"
+  }
+ ],
+ "terrain": {
+  "L": {
+   "kind": "hills",
+   "riseDefault": 14
+  },
+  "R": {
+   "kind": "hills",
+   "riseDefault": -4
+  }
+ },
+ "zones": [
+  {
+   "type": "crowd",
+   "at": [
+    0.02,
+    0.34
+   ],
+   "d": [
+    -12,
+    12
+   ],
+   "rate": 0.5,
+   "label": "Spectator blasters"
+  },
+  {
+   "type": "refill",
+   "at": [
+    0.37,
+    0.4
+   ],
+   "d": [
+    2,
+    7
+   ],
+   "rate": 7,
+   "label": "Refill buckets"
+  }
+ ],
+ "props": [
+  {
+   "type": "lamp",
+   "every": 15,
+   "from": 0.02,
+   "to": 0.34,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 1.2
+  },
+  {
+   "type": "magnolia",
+   "every": 8,
+   "from": 0.03,
+   "to": 0.33,
+   "sides": [
+    -1
+   ],
+   "d": 3.2,
+   "scale": [
+    0.9,
+    1.15
+   ]
+  },
+  {
+   "type": "crowd",
+   "every": 9,
+   "from": 0.04,
+   "to": 0.33,
+   "sides": [
+    1
+   ],
+   "d": 3.4
+  },
+  {
+   "type": "pine",
+   "every": 9,
+   "from": 0.42,
+   "to": 0.9,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 7,
+   "scale": [
+    0.85,
+    1.3
+   ]
+  },
+  {
+   "type": "bucket",
+   "every": 6,
+   "from": 0.37,
+   "to": 0.4,
+   "sides": [
+    1
+   ],
+   "d": 0.8
+  }
+ ],
+ "buildingRows": [
+  {
+   "side": -1,
+   "from": 0.04,
+   "to": 0.095,
+   "setback": 12,
+   "depth": 24,
+   "h": [
+    10,
+    16
+   ],
+   "style": "bathhouse",
+   "gap": 4
+  },
+  {
+   "side": -1,
+   "from": 0.16,
+   "to": 0.32,
+   "setback": 12,
+   "depth": 24,
+   "h": [
+    10,
+    16
+   ],
+   "style": "bathhouse",
+   "gap": 4
+  },
+  {
+   "side": 1,
+   "from": 0.03,
+   "to": 0.34,
+   "setback": 4.5,
+   "depth": 18,
+   "h": [
+    8,
+    18
+   ],
+   "style": "store"
+  }
+ ],
+ "env": {
+  "palette": "lake-life",
+  "sky": [
+   "#7FB6E0",
+   "#D9ECF5"
+  ],
+  "fog": [
+   90,
+   330
+  ],
+  "fogColor": "#C9DFE8",
+  "sun": [
+   0.4,
+   0.8,
+   0.3
+  ],
+  "time": "day"
+ },
+ "landmarks": [
+  {
+   "id": "fordyce",
+   "model": "fordyce",
+   "at": 0.127,
+   "side": -1,
+   "setback": 13,
+   "facades": {
+    "wall": "fordyce-bay"
+   }
+  }
+ ],
+ "lapTarget": [
+  55,
+  72
+ ]
+}
