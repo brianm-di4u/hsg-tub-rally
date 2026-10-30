@@ -11,8 +11,19 @@ import { gaussSmooth } from './lib.mjs';
 let DEM = null;
 const dem = () => (DEM ||= loadDefaultDem());
 
-export function loadRoute(spec) {
-  const r = JSON.parse(fs.readFileSync(path.join(ROOT, spec.polyline), 'utf8'));
+// A hand-drawn course in the real map frame (arena): real and game coordinates are the same.
+export function routeFromLine(x, z, st, name = '') {
+  const n = x.length, D = dem(), map = [];
+  for (let i = 0; i < n; i++) {
+    const p = (i - 1 + n) % n, q = (i + 1) % n, h = Math.atan2(x[q] - x[p], z[q] - z[p]);
+    const { lon, lat } = unproject(x[i], z[i]);
+    map.push({ sr: i * st, sg: i * st, x: x[i], z: z[i], h, y: D.sample(lon, lat), name });
+  }
+  return { meta: { length: n * st, kv: 1, realLength: n * st, ks: 1, kt: 1 }, map };
+}
+
+export function loadRoute(spec, pre) {
+  const r = pre || JSON.parse(fs.readFileSync(path.join(ROOT, spec.polyline), 'utf8'));
   const map = r.map, L = r.meta.length;
   // real info at game arc length sg (wraps); linear interpolation between map entries
   const at = (sg) => {
@@ -89,6 +100,7 @@ export function osmBuildings(spec, R, game, opts) {
   const cand = [];
   for (const el of j.elements) {
     if (el.type !== 'way' || !el.geometry || !el.tags || !el.tags.building) continue;
+    if (opts.skipIds && opts.skipIds.has(el.id)) continue;
     let pts = el.geometry.filter(Boolean).map((p) => { const q = project(p.lon, p.lat); return [q.x, q.z]; });
     if (pts.length > 2 && pts[0][0] === pts[pts.length - 1][0] && pts[0][1] === pts[pts.length - 1][1]) pts.pop();
     if (pts.length < 3) continue;
@@ -98,7 +110,7 @@ export function osmBuildings(spec, R, game, opts) {
     pts = [...simplify(pts.slice(0, far + 1), 0.8).slice(0, -1), ...simplify([...pts.slice(far), pts[0]], 0.8).slice(0, -1)];
     if (pts.length < 3) continue;
     const A = Math.abs(area(pts));
-    if (A < 25) continue;
+    if (A < 25 || (opts.maxArea && A > opts.maxArea)) continue;
     const cx = pts.reduce((s, p) => s + p[0], 0) / pts.length, cz = pts.reduce((s, p) => s + p[1], 0) / pts.length;
     if (skipPts.some((q) => Math.hypot(q.x - cx, q.z - cz) < (cfg.skipNearAnchors ?? 20))) continue;
     const nr = R.nearest(cx, cz, /bath/i.test(el.tags.name || '') ? cfg.rowStreet : undefined);

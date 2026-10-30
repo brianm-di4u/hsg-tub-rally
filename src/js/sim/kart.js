@@ -197,7 +197,7 @@ export function stepKart(k, inp, track, dt, env = {}) {
   stepWater(w, aF, aR, st, dt);
 
   // refill zones and crowds
-  for (const zn of track.zonesAt(k.s, k.d)) {
+  if (!k.out) for (const zn of track.zonesAt(k.s, k.d)) {
     if (zn.type === 'refill') addWater(w, (zn.rate || 6) * dt);
     else if (zn.type === 'crowd') addWater(w, (zn.rate || 0.6) * dt);
     else if (zn.type === 'ford') { addWater(w, (zn.rate || 9) * dt); }

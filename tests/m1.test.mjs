@@ -69,7 +69,7 @@ tests.push(
     viewports: ['desktop'],
     async run(t) {
       await t.waitIdle(8000);
-      const opts = { track: TRACK, team: 'engine-six', classId: 'soak', laps: 3, seed: 21, count: 8, paused: true, autoplay: true };
+      const opts = { track: TRACK, team: 'engine-six', classId: 'soak', laps: 3, seed: 21, count: 8, paused: true, autoplay: true, noItems: false };
       await t.game('newGame', opts);
       await t.game('step', 900);
       const hb = await t.game('act', 'hash');
@@ -77,7 +77,7 @@ tests.push(
       const { makeRace, stepRace, DT } = await import('../src/js/sim/race.js');
       const { hashRace } = await import('../src/js/hooks.js');
       const tr = new Track(JSON.parse(fs.readFileSync(path.join(ROOT, `data/tracks/${TRACK}.json`), 'utf8')));
-      const race = makeRace(tr, { laps: 3, classId: 'soak', player: 'engine-six', seed: 21, mode: 'quick', noItems: true, count: 8, autoplay: true });
+      const race = makeRace(tr, { laps: 3, classId: 'soak', player: 'engine-six', seed: 21, mode: 'quick', noItems: false, count: 8, autoplay: true });
       for (let i = 0; i < 900; i++) stepRace(race, tr, [], DT);
       const hn = hashRace(race);
       t.equal(hb, hn, 'same seed and inputs → same state hash');

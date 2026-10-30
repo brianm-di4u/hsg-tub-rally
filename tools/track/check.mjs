@@ -62,7 +62,8 @@ export function checkTrack(id, { quick = false } = {}) {
   let turn = 0;
   const y0 = Math.atan2(tr.tx[0], tr.tz[0]);
   for (let s = 0; s <= 60; s += st) { const c = tr.at(tr.length - s); turn = Math.max(turn, Math.abs(Math.atan2(Math.sin(Math.atan2(c.tx, c.tz) - y0), Math.cos(Math.atan2(c.tx, c.tz) - y0)))); }
-  ok('≥ 60 m straight behind the start', turn < 0.3, `max heading change ${(turn * 57.3).toFixed(1)}°`);
+  if (spec.arena) res.push({ name: 'arena: no start grid needed', pass: true, detail: 'battle arena' });
+  else ok('≥ 60 m straight behind the start', turn < 0.3, `max heading change ${(turn * 57.3).toFixed(1)}°`);
   // markup
   let badZones = 0;
   for (const z of json.zones || []) {
@@ -74,12 +75,18 @@ export function checkTrack(id, { quick = false } = {}) {
   let propsOnRoad = 0;
   for (const p of json.props || []) { const l = tr.locate(p.x, p.z, p.s); const c = tr.at(l.s); if (Math.abs(l.d) < (l.d >= 0 ? c.wr : c.wl) - 0.2) propsOnRoad++; }
   ok('no props on the road', propsOnRoad === 0, `${propsOnRoad} props inside the road`);
+  // corners off the road AND no road centreline/edge point inside any footprint (a long building can straddle)
+  const inPoly = (px, pz, fp) => { let c = false; for (let i = 0, j = fp.length - 1; i < fp.length; j = i++) { const [xi, zi] = fp[i], [xj, zj] = fp[j]; if ((zi > pz) !== (zj > pz) && px < ((xj - xi) * (pz - zi)) / (zj - zi) + xi) c = !c; } return c; };
   let bOnRoad = 0;
-  for (const b of json.buildings || []) for (const [x, z] of b.fp) { const l = tr.locate(x, z); const c = tr.at(l.s); if (Math.abs(l.d) < (l.d >= 0 ? c.wr : c.wl) + 0.5) { bOnRoad++; break; } }
+  for (const b of json.buildings || []) {
+    let hit = b.fp.some(([x, z]) => { const l = tr.locate(x, z); const c = tr.at(l.s); return Math.abs(l.d) < (l.d >= 0 ? c.wr : c.wl) + 0.5; });
+    if (!hit) for (let i = 0; i < n && !hit; i++) for (const d of [0, -a.wl[i], a.wr[i]]) { if (inPoly(a.x[i] - tr.tz[i] * d, a.z[i] + tr.tx[i] * d, b.fp)) { hit = true; break; } }
+    if (hit) bOnRoad++;
+  }
   ok('no building over the road', bOnRoad === 0, `${bOnRoad} of ${(json.buildings || []).length} buildings touch the road`);
   // AI race
   const target = spec.lapTarget || [42, 62];
-  if (!quick) {
+  if (!quick && !spec.arena) {
     const race = makeRace(tr, { laps: 3, classId: 'soak', player: null, seed: 7, noItems: true });
     for (let i = 0; i < 60 * 420 && race.phase !== 'done'; i++) stepRace(race, tr, [], DT);
     const fin = race.karts.filter((k) => k.finished).length;

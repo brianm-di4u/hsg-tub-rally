@@ -9,9 +9,9 @@ export const DIVISIONS = {
   traditional: { id: 'traditional', name: 'Traditional', tub: 'Cast-iron tub', tubKg: 150, capGal: 42,
     push: 1.04, top: 0.99, turn: 0.9, grip: 1.03, slosh: 0.86, rim: 1.08, blurb: 'Heavy cast iron. High top speed, wins every shove, slow off the line.' },
   modified: { id: 'modified', name: 'Modified', tub: 'Fiberglass tub', tubKg: 40, capGal: 34,
-    push: 0.92, top: 0.98, turn: 1.12, grip: 0.98, slosh: 1.22, rim: 0.9, blurb: 'Light fiberglass. Jumps off the line and turns sharp, but sloshes.' },
+    push: 0.99, top: 0.99, turn: 1.12, grip: 0.98, slosh: 1.22, rim: 0.9, blurb: 'Light fiberglass. Jumps off the line and turns sharp, but sloshes.' },
   stock: { id: 'stock', name: 'Stock', tub: 'Provided tub', tubKg: 85, capGal: 38,
-    push: 1, top: 1, turn: 1, grip: 1, slosh: 1, rim: 1, blurb: 'The tub the organizers hand you. Balanced in every way.' },
+    push: 0.96, top: 0.99, turn: 1, grip: 1, slosh: 1, rim: 1, blurb: 'The tub the organizers hand you. Balanced in every way.' },
 };
 
 // Speed classes (game difficulty; named for bath temperatures). vTop in m/s for a Stock tub.

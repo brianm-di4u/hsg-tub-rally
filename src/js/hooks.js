@@ -10,11 +10,12 @@ export function installHooks(App, api) {
     const out = {
       scene: App.scene, screen: App.screens.cur, paused: App.paused || App.testPaused, ready: App.ready,
       track: App.track ? { id: App.track.id, name: App.track.name, length: +App.track.length.toFixed(1), n: App.track.n } : null,
-      render: { w: App.renderer.size.w, h: App.renderer.size.h, mode: App.renderer.mode, draws: App.renderer.info.draws, tris: App.renderer.info.tris },
+      render: { w: App.renderer.size.w, h: App.renderer.size.h, mode: App.renderer.mode, draws: App.renderer.info.draws, tris: App.renderer.info.tris, tier: App.tier },
       world: App.world ? App.world.userData : null,
       settings: App.save.settings, steps: App.steps,
       ghost: App.ghost ? { team: App.ghost.team, total: App.ghost.total, n: App.ghost.n } : null, newRecord: !!App.newRecord,
       best: App.track ? App.save.best[App.track.id] || null : null,
+      audio: App.audioState ? App.audioState() : null,
     };
     if (r) {
       out.race = {
@@ -53,14 +54,14 @@ export function installHooks(App, api) {
     step(n = 1) { for (let i = 0; i < n; i++) api.stepOnce(); return summary(); },
     pause() { App.testPaused = true; return true; },
     resume() { App.testPaused = false; App.paused = false; return true; },
-    scene(name) {
+    async scene(name) {
       if (name === 'title') api.gotoTitle();
-      else if (name === 'race' || name === 'game') api.startRace({ seed: App.nextSeed ?? 7 });
+      else if (name === 'race' || name === 'game') return api.startRace({ seed: App.nextSeed ?? 7 }).then(summary);
       else if (['help', 'settings'].includes(name)) { if (App.scene !== 'title') api.gotoTitle(); App.screens.show(name); }
       else if (name === 'pause') { if (App.scene === 'race') { App.paused = true; App.screens.show('pause'); } }
       return summary();
     },
-    newGame(opts = {}) { api.startRace({ seed: App.nextSeed ?? 7, ...opts }); return summary(); },
+    async newGame(opts = {}) { await api.startRace({ seed: App.nextSeed ?? 7, ...opts }); return summary(); },
     act(name, ...args) {
       const r = App.race, k = r && r.player >= 0 ? r.karts[r.player] : null;
       switch (name) {
@@ -72,11 +73,13 @@ export function installHooks(App, api) {
         case 'camSnap': App.cam.snap(); return true;
         // fixed review camera: act('camAt', [x,y,z], [tx,ty,tz]) or act('camAt', null) to release
         case 'camAt': App.camOverride = args[0] ? { pos: args[0], target: args[1] } : null; return true;
+        case 'landmarks': return App.world ? App.world.children.filter((g) => g.name.startsWith('landmark:')).map((g) => g.name.slice(9)) : [];
         case 'landmark': { // position of a placed landmark (for review shots)
           const g = App.world && App.world.getObjectByName('landmark:' + args[0]);
           return g ? { x: g.position.x, y: g.position.y, z: g.position.z, yaw: g.rotation.y } : null;
         }
         case 'hash': return r ? hashRace(r) : 0;
+        case 'camDebug': { const c = App.renderer.camera, k = App.camPose && App.camPose.k; const g = App.track.surface(c.position.x, c.position.z, k ? k.s : 0); return { cam: [c.position.x, c.position.y, c.position.z], ground: g.h, d: g.d, s: g.s, fov: c.fov }; }
         case 'aiHint': { // what the AI would press for the player's tub right now (for real-keyboard tests)
           if (!k) return null;
           App._hintDrv = App._hintDrv && App._hintDrv.k === k ? App._hintDrv : { k, d: makeDriver(k, r.classId, makeRng(5), 1) };

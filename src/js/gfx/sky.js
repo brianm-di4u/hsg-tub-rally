@@ -1,6 +1,6 @@
 // Sky: a vertex-coloured gradient dome plus a painted ring of ridges (the Ouachita horizon) that follows the
 // camera position, so it always sits at the horizon. Drawn first with depth writes off.
-import { horizonCanvas } from './textures.js';
+import { horizonCanvas, tex, hasArt } from './textures.js';
 import { texFromCanvas } from './n64mat.js';
 import { hex } from './geom.js';
 
@@ -31,19 +31,24 @@ export function buildSky(THREE, env = {}) {
   group.add(dome);
   // horizon ring: a cylinder with the ridge painting, fading into the fog colour at its base
   const ringCols = env.ridges || ['#7F9AB0', '#5F7F6E', '#40604A'];
-  const tex = texFromCanvas(horizonCanvas(ringCols, env.ridgeSeed || 3), { repeat: true, mips: false });
-  tex.repeat.set(2, 1);
-  const rg = new THREE.CylinderGeometry(330, 330, 110, 24, 1, true);
-  const rm = new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.BackSide, depthWrite: false, fog: false, alphaTest: 0.05 });
+  // a painted panorama of the real ridges when the art pack has one, else ridges drawn in code
+  const painted = env.skyTex && hasArt(env.skyTex);
+  const ringTex = painted ? tex(env.skyTex, { mips: false }) : texFromCanvas(horizonCanvas(ringCols, env.ridgeSeed || 3), { repeat: true, mips: false });
+  ringTex.repeat.set(painted ? 3 : 2, 1);
+  // painted panoramas: stretch the ring down (top edge unchanged) so their pale lower haze sits below the horizon
+  const rg = new THREE.CylinderGeometry(330, 330, painted ? 134 : 110, 24, 1, true);
+  const rm = new THREE.MeshBasicMaterial({ map: ringTex, transparent: !painted, side: THREE.BackSide, depthWrite: false, fog: false, alphaTest: painted ? 0 : 0.05 });
   const ring = new THREE.Mesh(rg, rm);
-  ring.position.y = 10;
+  ring.position.y = painted ? -2 : 10;
   ring.renderOrder = -9;
   group.add(ring);
   // a low fog band to blend the ring into the ground
   const bg = new THREE.CylinderGeometry(320, 320, 24, 24, 1, true);
   const bcol = [];
   const bp = bg.getAttribute('position');
-  for (let i = 0; i < bp.count; i++) { const up = bp.getY(i) > 0; bcol.push(F[0], F[1], F[2]); }
+  const R3 = hex((env.ridges || ['#7F9AB0', '#5F7F6E', '#40604A'])[2]);
+  const H = [F[0] * 0.45 + R3[0] * 0.55, F[1] * 0.45 + R3[1] * 0.55, F[2] * 0.45 + R3[2] * 0.55];
+  for (let i = 0; i < bp.count; i++) { const up = bp.getY(i) > 0; const c = up ? F : H; bcol.push(c[0], c[1], c[2]); }
   bg.setAttribute('color', new THREE.Float32BufferAttribute(bcol, 3));
   const band = new THREE.Mesh(bg, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, depthWrite: false, fog: false, transparent: true, opacity: 0.85 }));
   band.position.y = -18;

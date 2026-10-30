@@ -10,6 +10,12 @@ Uses Blender's image API and bundled numpy only (no PIL needed).
 
 Options (after --): --suffix _check_rear  (any 640x480 preview, halved)
                     --out <path.png>
+                    --names a,b,c  (other models, in this order)
+                    --cols N       (cells per row, default 5)
+e.g. the mountain + downtown landmarks:
+    ... --python art-src/blender/scripts/contact_sheet.py -- --cols 4
+        --names hs-tower,pagoda,wm-shelter,balanced-rock,goat-rock,medical-arts,army-navy,vapors
+        --out art-src/blender/renders/landmarks2-sheet.png
 """
 import os
 import sys
@@ -38,6 +44,8 @@ G = {
     'T': '11111 00100 00100 00100 00100 00100 00100', 'U': '10001 10001 10001 10001 10001 10001 01110',
     'W': '10001 10001 10001 10101 10101 11011 10001', 'Y': '10001 10001 01010 00100 00100 00100 00100',
     'Z': '11111 00001 00010 00100 01000 10000 11111', ' ': '00000 00000 00000 00000 00000 00000 00000',
+    'V': '10001 10001 10001 10001 10001 01010 00100', 'J': '00111 00010 00010 00010 00010 10010 01100',
+    'X': '10001 10001 01010 00100 01010 10001 10001', '-': '00000 00000 00000 11111 00000 00000 00000',
 }
 
 
@@ -57,16 +65,18 @@ def label(img, text, x0, y0, scale=2, col=(0.95, 0.95, 0.95)):
 def main():
     args = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
     suffix = args[args.index('--suffix') + 1] if '--suffix' in args else '_street_320'
-    out_path = (args[args.index('--out') + 1] if '--out' in args
+    out_path = (os.path.abspath(args[args.index('--out') + 1]) if '--out' in args
                 else os.path.join(RENDERS, 'row-sheet.png'))
-    rows = (len(NAMES) + COLS - 1) // COLS
-    W, H = CW * COLS, (CH + LAB) * rows
+    names = args[args.index('--names') + 1].split(',') if '--names' in args else NAMES
+    cols = int(args[args.index('--cols') + 1]) if '--cols' in args else COLS
+    rows = (len(names) + cols - 1) // cols
+    W, H = CW * cols, (CH + LAB) * rows
     sheet = np.zeros((H, W, 4), dtype=np.float32)
     sheet[..., :3] = 0.12
     sheet[..., 3] = 1.0
-    for i, n in enumerate(NAMES):
+    for i, n in enumerate(names):
         path = os.path.join(RENDERS, n + suffix + '.png')
-        cx, cy = (i % COLS) * CW, (i // COLS) * (CH + LAB)
+        cx, cy = (i % cols) * CW, (i // cols) * (CH + LAB)
         if os.path.exists(path):
             im = bpy.data.images.load(path)
             w, h = im.size

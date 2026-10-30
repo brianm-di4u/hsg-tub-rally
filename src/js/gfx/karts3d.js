@@ -11,7 +11,7 @@ import { TEAM_BY_ID, DIVISIONS } from '../data/teams.js';
 const BODY = 0, WHEEL = [1, 2, 3, 4], FLAG = 5, DUCK = 6, CAP_T = 7, CAP_H = 8, CAP_LA = 9, CAP_RA = 10, WATER = 23;
 const ATT = [[11, 12, 13], [14, 15, 16], [17, 18, 19], [20, 21, 22]]; // [torso, left leg, right leg]
 // attendant rest positions (x, z) in kart space: forward is +z, the kart's right is -x
-const ATT_POS = [[0.34, -1.32], [-0.34, -1.32], [0.92, -0.95], [-0.92, -0.95]];
+const ATT_POS = [[0.62, -1.3], [-0.62, -1.3], [1.04, -0.72], [-1.04, -0.72]];
 const ITEM_COL = { towel: '#F4F1EA', mat: '#3FA8C0', soap: '#F7B6CE', loofah: '#D9B77A' };
 const ITEM_ORDER = ['towel', 'mat', 'soap', 'loofah'];
 
@@ -191,11 +191,11 @@ export class KartView {
     // captain: steering arms and a lean
     const lean = -k.steer * 0.2;
     const fl = k.state === 'circle' || k.state === 'rescue';
-    this.setPart(CAP_T, 0, 0.62, -0.1, 0.05, 0, lean);
-    this.setPart(CAP_H, Math.sin(lean) * -0.45, 1.12, -0.06 + 0.02, 0, -k.steer * 0.3, lean * 0.5);
+    this.setPart(CAP_T, 0, 0.7, -0.1, 0.05, 0, lean, 1.12, 1.12, 1.12);
+    this.setPart(CAP_H, Math.sin(lean) * -0.5, 1.26, -0.04, 0, -k.steer * 0.3, lean * 0.5, 1.25, 1.25, 1.25);
     const armUp = fl ? -1.2 + Math.sin(time * 14) * 0.6 : -0.15;
-    this.setPart(CAP_LA, 0.24, 0.98, -0.02, armUp - k.steer * 0.25, 0, 0);
-    this.setPart(CAP_RA, -0.24, 0.98, -0.02, (fl ? -1.2 - Math.sin(time * 14) * 0.6 : -0.15) + k.steer * 0.25, 0, 0);
+    this.setPart(CAP_LA, 0.26, 1.08, -0.02, armUp - k.steer * 0.25, 0, 0);
+    this.setPart(CAP_RA, -0.26, 1.08, -0.02, (fl ? -1.2 - Math.sin(time * 14) * 0.6 : -0.15) + k.steer * 0.25, 0, 0);
     // attendants: push-run behind the tub, or circle it after a fumble (real rule 7)
     const ph = k.runPhase;
     const circling = k.state === 'circle';

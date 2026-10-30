@@ -10,6 +10,14 @@
     { "name": "buckstaff", "src": "blender/export/buckstaff.glb", "pack": "row" },
     { "name": "lamar", "src": "blender/export/lamar.glb", "pack": "row" },
     { "name": "admin", "src": "blender/export/admin.glb", "pack": "row" },
-    { "name": "arlington", "src": "blender/export/arlington.glb", "pack": "row" }
+    { "name": "arlington", "src": "blender/export/arlington.glb", "pack": "row" },
+    { "name": "hs-tower", "src": "blender/export/hs-tower.glb", "pack": "mountain" },
+    { "name": "pagoda", "src": "blender/export/pagoda.glb", "pack": "mountain" },
+    { "name": "wm-shelter", "src": "blender/export/wm-shelter.glb", "pack": "mountain" },
+    { "name": "balanced-rock", "src": "blender/export/balanced-rock.glb", "pack": "mountain" },
+    { "name": "goat-rock", "src": "blender/export/goat-rock.glb", "pack": "mountain" },
+    { "name": "medical-arts", "src": "blender/export/medical-arts.glb", "pack": "downtown" },
+    { "name": "army-navy", "src": "blender/export/army-navy.glb", "pack": "downtown" },
+    { "name": "vapors", "src": "blender/export/vapors.glb", "pack": "downtown" }
   ]
 }

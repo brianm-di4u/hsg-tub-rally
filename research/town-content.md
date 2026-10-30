@@ -104,9 +104,11 @@ All courses follow real streets from OpenStreetMap (© OpenStreetMap contributor
 
 **West Mountain Summit** — West Mountain Drive has entrances on Prospect Ave and Whittington Ave and climbs to the Summit Loop's three overlooks: views of Bathhouse Row and the former Army-Navy Hospital; a 1924 trail shelter with picnic tables; and the summit view south to the Trap Mountains and Lake Hamilton with a novaculite outcrop (NPS scenic overlooks page).
 
-**Sunset Ridge** — Music Mountain is the park's high point, 1,405 ft (NPS) or 1,418 ft (SummitPost), at the west end of the Sunset Trail, the park's longest trail; the Sugarloaf section between Black Snake Rd and Cedar Glades Rd includes Balanced Rock, a novaculite outcrop (NPS Sunset Trail page, nps.gov/hosp/planyourvisit/sunset-trail.htm).
+**Sunset Ridge (as built: the Hot Springs Mountain summit circuit at sunset)** — the Sugarloaf / Black Snake / Cedar Glades / Music Mountain roads only form 10–17 km loops (research/geo/road-survey.md), so the built course is the 1.8 km summit circuit past the picnic area, the Pagoda and the Tower; see `tracks/sunset-ridge.notes.md`. Background facts kept for cards: Music Mountain is the park's high point, 1,405 ft (NPS) or 1,418 ft (SummitPost), at the west end of the Sunset Trail, the park's longest trail; the Sugarloaf section between Black Snake Rd and Cedar Glades Rd includes Balanced Rock, a novaculite outcrop (NPS Sunset Trail page, nps.gov/hosp/planyourvisit/sunset-trail.htm).
 
 **Battle arena: Hill Wheatley Plaza** — downtown plaza where tubs are judged on Friday (2026 rules); it has a thermal-water jug fountain (hotspringsguides.com listing; NPS "Getting Around" places RV/bus parking there).
+
+Per-course street lists, facts, compression factors and every game-course link are in `tracks/<id>.notes.md`.
 
 ## 5. Colours and palettes
 
@@ -141,3 +143,19 @@ Course lengths are compressed to fit 45–60 s laps (factor printed per track); 
 grade would be undrivable; hairpins are widened to a 14 m minimum radius; game-course links (Grand Promenade
 racing, the creek culvert, return roads that don't exist) are labelled. Building positions keep their order
 and side of the street; generic buildings are stand-ins.
+
+## 9. Source keys (used by `src/js/data/facts.js` and checked by `tools/check-facts.mjs`)
+
+| Key | Source |
+|---|---|
+| `rules-2026` | 2026 World Championship Running of the Tubs Official Rules (PDF, runningofthetubs.org, fetched 2026-10-30) |
+| `rott-about` | runningofthetubs.org/about |
+| `rott-faq` | runningofthetubs.org/faq |
+| `sr-2016` | Sentinel-Record, 2016-06-05, "Battle of the Badges and more entertains at tub races" (hotsr.com) |
+| `katv-2026` | KATV, 2026-05-15 preview of the 20th running |
+| `nps-overlooks` | NPS Hot Springs National Park, "Scenic Drives & Overlooks" (home.nps.gov/hosp/planyourvisit/scenic-overlooks.htm) |
+| `nps-sunset` | NPS, "Sunset Trail" (nps.gov/hosp/planyourvisit/sunset-trail.htm) |
+| `nps-display-spring` | NPS, Maurice Historic Display Spring (via research/geography-lakes-mountains.md) |
+| `corpus-row` | research/bathhouse-row-layout.md (HABS AR-28, NHL nomination, OSM) |
+| `corpus-gangster` | research/gangster-era-and-gambling.md |
+| `corpus-culture` | research/culture-events-food.md |

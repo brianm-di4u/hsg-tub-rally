@@ -24,7 +24,7 @@ function hash(i, s = 0) { let h = (i * 374761393 + s * 668265263) | 0; h = (h ^ 
 
 export async function bakeSpec(spec) {
   const step = spec.step || 2;
-  const real = spec.polyline ? await import('./real.mjs') : null;
+  const real = spec.polyline || spec.realFrame ? await import('./real.mjs') : null;
   // 1. centreline
   let poly;
   if (spec.points) poly = catmullClosed(spec.points, 32);
@@ -33,12 +33,20 @@ export async function bakeSpec(spec) {
   const R0 = resampleClosed(poly, step);
   let { x, z, y, n } = R0;
   const st = R0.step;
-  const R = real ? real.loadRoute(spec) : null;
+  let R = null;
+  if (real && spec.realFrame) {
+    // points are real map metres: elevation from the DEM, and the "route" is the line itself
+    const pre = real.routeFromLine(x, z, st, spec.name);
+    const base = pre.map[0].y;
+    y = Float64Array.from(pre.map, (m) => (Number.isFinite(m.y) ? m.y - base : 0));
+    pre.map.forEach((m) => { if (!Number.isFinite(m.y)) m.y = base; });
+    R = real.loadRoute(spec, pre);
+  } else if (real) R = real.loadRoute(spec);
   const anchors = real ? real.loadAnchors() : {};
   // where the start line sits: a fraction of the lap, or the course point nearest an anchor
   let startS = (spec.start?.at ?? 0) * n * st;
-  if (R && spec.start?.anchor) {
-    const a = anchors[spec.start.anchor];
+  if (R && (spec.start?.anchor || spec.start?.lonlat)) {
+    const a = spec.start.lonlat ? { lon: spec.start.lonlat[0], lat: spec.start.lonlat[1] } : anchors[spec.start.anchor];
     const q = (await import('../geo/geo-lib.mjs')).project(a.lon, a.lat);
     const nr = R.nearest(q.x, q.z);
     startS = nr.e.sg + nr.a + (spec.start.offset || 0);
@@ -119,12 +127,45 @@ export async function bakeSpec(spec) {
       }
     }
   }
+  // "auto" limits: look at the terrain just beyond the drivable band on each side
+  const autoL = spec.autoLimits || (spec.byName && Object.values(spec.byName).some((v) => v.limType === 'auto'));
+  if (autoL) {
+    for (let i = 0; i < n; i++) for (let side = 0; side < 2; side++) {
+      const arr = side === 1 ? tr : tl;
+      const nm = names ? names[i] : null, cfg = nm && spec.byName ? (spec.byName[nm] || spec.byName['*'] || {}) : {};
+      if ((side === 1 ? cfg.limTypeR || cfg.limType : cfg.limType) !== 'auto') continue;
+      // judge the real terrain: the stored cross-section is scaled like the course (kv), so undo that first
+      const kvE = R && R.kv ? Math.max(0.05, R.kv) : 1;
+      const h14 = xs[(i * 2 + side) * XS_OFF.length + 2] / 10 / kvE, h6 = xs[(i * 2 + side) * XS_OFF.length + 1] / 10 / kvE;
+      arr[i] = h14 < -3 || h6 < -1.5 ? LIMIT.rail : h14 > 3 || h6 > 1.5 ? LIMIT.wall : LIMIT.soft;
+    }
+    // no single-sample flicker
+    for (const arr of [tl, tr]) { for (let i = 0; i < n; i++) { const a = arr[(i - 1 + n) % n], b = arr[(i + 1) % n]; if (a === b && arr[i] !== a) arr[i] = a; } }
+  }
   // smooth the terrain along the course (the DEM is noisy beside a compressed road)
   for (let side = 0; side < 2; side++) for (let m = 1; m < XS_OFF.length; m++) {
     const col = Float64Array.from({ length: n }, (_, i) => xs[(i * 2 + side) * XS_OFF.length + m]);
     const sm = gaussSmooth(col, 3);
     for (let i = 0; i < n; i++) xs[(i * 2 + side) * XS_OFF.length + m] = Math.round(sm[i]);
   }
+  // terrain reach: how far the side terrain may extend before it would cover another part of the course
+  // (compressed switchbacks put legs of road close together); half the gap to any non-local section
+  const reachL = new Float64Array(n).fill(60), reachR = new Float64Array(n).fill(60);
+  for (let i = 0; i < n; i++) {
+    const rx = -fr.tz[i], rz = fr.tx[i];
+    for (let j = 0; j < n; j++) {
+      let dsj = Math.abs(i - j) * st; dsj = Math.min(dsj, L - dsj);
+      if (dsj < 70) continue;
+      const vx = x[j] - x[i], vz = z[j] - z[i];
+      const lat = vx * rx + vz * rz, along = vx * fr.tx[i] + vz * fr.tz[i];
+      if (Math.abs(along) > 14 || Math.abs(lat) > 140) continue;
+      const wj = Math.max(wl[j], wr[j]) + 2;
+      if (lat > 0) reachR[i] = Math.min(reachR[i], Math.max(3, (lat - wr[i] - wj) / 2));
+      else reachL[i] = Math.min(reachL[i], Math.max(3, (-lat - wl[i] - wj) / 2));
+    }
+  }
+  const sm = (a) => gaussSmooth(a, 2);
+  const rL = sm(reachL), rR = sm(reachR);
   // 6. checkpoints, zones and props
   const nCp = spec.checkpoints ?? 16;
   const cps = Array.from({ length: nCp - 1 }, (_, k) => Math.round(((k + 1) * n) / nCp));
@@ -144,8 +185,8 @@ export async function bakeSpec(spec) {
   for (const zn of spec.zones || []) {
     if (zn.at) zones.push({ type: zn.type, s0: zn.at[0] * L, s1: zn.at[1] * L, d0: zn.d ? zn.d[0] : null, d1: zn.d ? zn.d[1] : null, rate: zn.rate, label: zn.label });
     else if (zn.on && names) for (const [s0, s1] of runsOf(zn.on)) zones.push({ type: zn.type, s0, s1, d0: zn.d ? zn.d[0] : null, d1: zn.d ? zn.d[1] : null, rate: zn.rate, label: zn.label });
-    else if (zn.anchor && R) {
-      const a = anchors[zn.anchor];
+    else if ((zn.anchor || zn.lonlat) && R) {
+      const a = zn.lonlat ? { lon: zn.lonlat[0], lat: zn.lonlat[1] } : anchors[zn.anchor];
       const { project } = await import('../geo/geo-lib.mjs');
       const q = project(a.lon, a.lat), nr = R.nearest(q.x, q.z);
       const s = (((nr.e.sg + nr.a - startS) % L) + L) % L, side = Math.sign(nr.d) || 1, i = Math.floor(s / st) % n;
@@ -202,7 +243,20 @@ export async function bakeSpec(spec) {
     if (spec.buildings?.source === 'osm') {
       const skipAnchors = (spec.landmarks || []).map((lm) => (lm.lonlat ? { lon: lm.lonlat[0], lat: lm.lonlat[1] } : anchors[lm.anchor])).filter(Boolean);
       const game = (sg, d) => { const s = sg - startS, c = frame(s); return { x: c.x - c.tz * d, z: c.z + c.tx * d, h: Math.atan2(c.tx, c.tz), y: c.y }; };
-      const clearOf = (fp) => {
+      const inPoly = (px, pz, fp) => { let c = false; for (let i = 0, j = fp.length - 1; i < fp.length; j = i++) { const [xi, zi] = fp[i], [xj, zj] = fp[j]; if ((zi > pz) !== (zj > pz) && px < ((xj - xi) * (pz - zi)) / (zj - zi) + xi) c = !c; } return c; };
+      const roadInside = (fp) => {
+        let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+        for (const [px, pz] of fp) { x0 = Math.min(x0, px); x1 = Math.max(x1, px); z0 = Math.min(z0, pz); z1 = Math.max(z1, pz); }
+        for (let i = 0; i < n; i++) {
+          for (const d of [0, -wl[i], wr[i], -wl[i] - 2, wr[i] + 2]) {
+            const px = x[i] - fr.tz[i] * d, pz = z[i] + fr.tx[i] * d;
+            if (px < x0 || px > x1 || pz < z0 || pz > z1) continue;
+            if (inPoly(px, pz, fp)) return true;
+          }
+        }
+        return false;
+      };
+      const clearOf0 = (fp) => {
         // every corner must sit beyond the road edge + sidewalk + 0.8 m; push outward (≤ 16 m) or give up
         let worst = 0, dir = null;
         for (const [px, pz] of fp) {
@@ -217,7 +271,9 @@ export async function bakeSpec(spec) {
         for (const [px, pz] of moved) { const l = locateBaked(px, pz), i = l.i; if (Math.abs(l.d) < (Math.sign(l.d) > 0 ? wr[i] : wl[i]) + 2) return null; }
         return moved;
       };
-      const osm = real.osmBuildings(spec, R, game, { skipAnchors, clearOf, style: spec.buildings.style });
+      const skipIds = new Set(spec.buildings.skipIds || []);
+      const clearOf = (fp) => { const out = clearOf0(fp); return out && !roadInside(out) ? out : null; };
+      const osm = real.osmBuildings(spec, R, game, { skipAnchors, clearOf, style: spec.buildings.style, skipIds, maxArea: spec.buildings.maxArea });
       for (const b of osm) {
         // the street the building belongs to (its nearest real street, mapped to the course), not just the
         // nearest bit of course: a bathhouse sits between Central and the Promenade but fronts Central
@@ -248,7 +304,7 @@ export async function bakeSpec(spec) {
     arr: {
       x: enc(x), z: enc(z), y: enc(y), bank: enc(bank), wl: enc(wl), wr: enc(wr), limL: enc(limL), limR: enc(limR),
       tl: enc(tl, 'u8'), tr: enc(tr, 'u8'), vl: enc(vl, 'u8'), vr: enc(vr, 'u8'), surf: enc(surf, 'u8'),
-      line: enc(line), vmax: enc(vmax), xs: enc(xs, 'i16'),
+      line: enc(line), vmax: enc(vmax), xs: enc(xs, 'i16'), reachL: enc(rL), reachR: enc(rR),
     },
     xsOff: XS_OFF, cps, start: { i: 0 }, zones, props, buildings, rowOrder,
     landmarks: R ? landmarks : spec.landmarks || [], env: spec.env || {},

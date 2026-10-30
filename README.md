@@ -11,6 +11,10 @@ fictional; the game is not affiliated with the event, Visit Hot Springs or any b
 Open `index.html` (works from `file://` too). Arrow keys or WASD to push and steer, Shift/Space to hop and power
 slide, X to use an item, Esc to pause. Gamepads and touch are supported.
 
+Modes: Grand Prix (Bathhouse Cup and Ouachita Cup, four courses each), Quick Race, Time Trial with ghosts,
+Rules of the Row (the real race's format: head-to-head heats down Central Avenue with judge stops) and Water Fight
+(a battle arena at Hill Wheatley Plaza).
+
 ## Build
 ```bash
 npm run setup          # once: test-harness dependencies + Chromium
@@ -18,6 +22,10 @@ npm run vendor         # vendor/three-r186.min.js (needs tools/dev: npm install 
 npm run tracks         # tracks/*.spec.json → data/tracks/*.json
 node tools/tex.mjs     # Codex paintings (art-src/tex, git-ignored) → assets/pack-*.js
 node tools/pack-models.mjs   # Blender exports → assets/models-*.js
+node tools/track/route.mjs <id> && node tools/track/bake.mjs <id> && node tools/track/check.mjs <id>   # a course
+node tools/pack-tracks.mjs   # courses → assets/track-*.js (lazy-loaded) + assets/tracks.js
+node tools/balance.mjs --track all   # headless AI races against tools/balance-targets.json
+node tools/check-facts.mjs   # every shown fact has a source key
 npm run build          # src/ → index.html
 npm test               # Playwright tests (add --gpu for real WebGL, --file-url for offline)
 ```

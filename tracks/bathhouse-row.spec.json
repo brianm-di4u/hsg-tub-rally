@@ -215,6 +215,25 @@
     "wall": "arlington-bay"
    },
    "street": "Central Avenue"
+  },
+  {
+   "id": "medical-arts",
+   "model": "medical-arts",
+   "lonlat": [
+    -93.054004,
+    34.516524
+   ],
+   "street": "Central Avenue"
+  },
+  {
+   "id": "army-navy",
+   "model": "army-navy",
+   "lonlat": [
+    -93.052594,
+    34.512239
+   ],
+   "street": "Grand Promenade",
+   "minGap": 14
   }
  ],
  "rowAnchors": [
@@ -361,7 +380,8 @@
    "#86A2B6",
    "#62806A",
    "#3F5E45"
-  ]
+  ],
+  "skyTex": "ridge-day"
  },
  "meta": {
   "credits": "Streets \u00a9 OpenStreetMap contributors (ODbL); elevation USGS 3DEP",

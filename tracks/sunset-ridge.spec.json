@@ -1,0 +1,357 @@
+{
+ "id": "sunset-ridge",
+ "name": "Sunset Ridge",
+ "cup": "ouachita",
+ "note": "Fallback course (the Black Snake / Cedar Glades / Music Mountain roads only make 9-16 km loops): the Hot Springs Mountain summit circuit at sunset. Hot Springs Mountain Drive south-west along the west flank past the picnic area, the Pagoda, North Mountain Drive past the Tower and over the summit, back to the top of the Drive.",
+ "step": 2,
+ "laps": 3,
+ "route": {
+  "profile": "road1",
+  "prefer": "Hot Springs Mountain Drive|North Mountain Drive|^$",
+  "via": [
+   {
+    "near": [
+     34.5196,
+     -93.0446
+    ],
+    "on": "Hot Springs Mountain Drive",
+    "tol": 30
+   },
+   {
+    "near": [
+     34.5166,
+     -93.04609
+    ],
+    "tol": 5
+   },
+   {
+    "near": [
+     34.51745,
+     -93.0458
+    ],
+    "on": "North Mountain Drive",
+    "tol": 5
+   },
+   {
+    "near": [
+     34.52154,
+     -93.04223
+    ],
+    "tol": 5
+   },
+   {
+    "near": [
+     34.5196,
+     -93.0446
+    ],
+    "on": "Hot Springs Mountain Drive",
+    "tol": 30
+   }
+  ],
+  "pins": [],
+  "targetLength": 1000,
+  "minRadius": 17,
+  "gmax": 0.12,
+  "smooth": 20,
+  "ySmooth": 18,
+  "gradeWindow": 50
+ },
+ "polyline": "tracks/sunset-ridge.route.json",
+ "byName": {
+  "Hot Springs Mountain Drive": {
+   "width": 12,
+   "surface": "asphalt",
+   "verge": "gravel",
+   "lim": 5,
+   "limType": "auto"
+  },
+  "North Mountain Drive": {
+   "width": 12,
+   "surface": "asphalt",
+   "verge": "gravel",
+   "lim": 5,
+   "limType": "auto"
+  },
+  "residential": {
+   "width": 12,
+   "surface": "asphalt",
+   "verge": "gravel",
+   "lim": 5,
+   "limType": "auto"
+  },
+  "*": {
+   "width": 12,
+   "surface": "asphalt",
+   "verge": "gravel",
+   "lim": 5,
+   "limType": "auto"
+  }
+ },
+ "terrain": {
+  "kind": "dem"
+ },
+ "zones": [
+  {
+   "type": "refill",
+   "at": [
+    0.108,
+    0.138
+   ],
+   "d": [
+    1,
+    7
+   ],
+   "rate": 9,
+   "label": "Picnic-area water spigot (game)"
+  },
+  {
+   "type": "refill",
+   "at": [
+    0.462,
+    0.494
+   ],
+   "d": [
+    -7,
+    -1
+   ],
+   "rate": 9,
+   "label": "Tower plaza water fountain (game)"
+  },
+  {
+   "type": "items",
+   "at": [
+    0.06,
+    0.065
+   ],
+   "label": "Hot Springs Mountain Drive"
+  },
+  {
+   "type": "items",
+   "at": [
+    0.36,
+    0.365
+   ],
+   "label": "Climb to the Pagoda"
+  },
+  {
+   "type": "items",
+   "at": [
+    0.6,
+    0.605
+   ],
+   "label": "North Mountain Drive"
+  },
+  {
+   "type": "items",
+   "at": [
+    0.8,
+    0.805
+   ],
+   "label": "North Mountain Drive, top"
+  },
+  {
+   "type": "judge",
+   "at": [
+    0.2,
+    0.205
+   ],
+   "d": [
+    1,
+    6
+   ],
+   "label": "Judge stand by the picnic area"
+  }
+ ],
+ "propsByName": [
+  {
+   "on": "Hot Springs Mountain Drive",
+   "type": "pine",
+   "every": 9,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 2.5,
+   "scale": [
+    0.85,
+    1.3
+   ]
+  },
+  {
+   "on": "Hot Springs Mountain Drive",
+   "type": "pine",
+   "every": 12,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 5,
+   "scale": [
+    0.9,
+    1.4
+   ]
+  },
+  {
+   "on": "Hot Springs Mountain Drive",
+   "type": "oak",
+   "every": 19,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 3.5,
+   "scale": [
+    0.8,
+    1.2
+   ]
+  },
+  {
+   "on": "North Mountain Drive",
+   "type": "pine",
+   "every": 9,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 2.5,
+   "scale": [
+    0.85,
+    1.3
+   ]
+  },
+  {
+   "on": "North Mountain Drive",
+   "type": "pine",
+   "every": 12,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 5,
+   "scale": [
+    0.9,
+    1.4
+   ]
+  },
+  {
+   "on": "North Mountain Drive",
+   "type": "oak",
+   "every": 19,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 3.5,
+   "scale": [
+    0.8,
+    1.2
+   ]
+  },
+  {
+   "on": "residential",
+   "type": "pine",
+   "every": 9,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 2.5,
+   "scale": [
+    0.85,
+    1.3
+   ]
+  },
+  {
+   "on": "residential",
+   "type": "pine",
+   "every": 12,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 5,
+   "scale": [
+    0.9,
+    1.4
+   ]
+  },
+  {
+   "on": "residential",
+   "type": "oak",
+   "every": 19,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 3.5,
+   "scale": [
+    0.8,
+    1.2
+   ]
+  },
+  {
+   "on": "Hot Springs Mountain Drive",
+   "type": "bench",
+   "every": 70,
+   "sides": [
+    1
+   ],
+   "d": 1.5
+  }
+ ],
+ "env": {
+  "palette": "ouachita-forest",
+  "time": "sunset",
+  "sky": [
+   "#5B4A8A",
+   "#F7B267"
+  ],
+  "fog": [
+   90,
+   330
+  ],
+  "fogColor": "#E8A87C",
+  "sun": [
+   -0.82,
+   0.26,
+   0.5
+  ],
+  "amb": 0.5,
+  "diff": 0.62,
+  "ridges": [
+   "#8C5E7A",
+   "#5A4466",
+   "#2F3046"
+  ],
+  "skyTex": "ridge-dusk",
+  "wallTex": "rock",
+  "groundTex": "grass"
+ },
+ "meta": {
+  "credits": "Roads \u00a9 OpenStreetMap contributors (ODbL); elevation USGS 3DEP",
+  "sources": "research/town-content.md \u00a74"
+ },
+ "start": {
+  "at": 0
+ },
+ "lapTarget": [
+  42,
+  62
+ ],
+ "minRadiusCheck": 12,
+ "landmarks": [
+  {
+   "id": "tower",
+   "model": "hs-tower",
+   "anchor": "hot-springs-mountain-tower",
+   "street": "North Mountain Drive",
+   "minGap": 8
+  },
+  {
+   "id": "pagoda",
+   "model": "pagoda",
+   "anchor": "pagoda",
+   "minGap": 4
+  }
+ ]
+}

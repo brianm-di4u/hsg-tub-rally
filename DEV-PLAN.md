@@ -69,4 +69,31 @@ world, settings, steps, race:{phase, time, laps, mode, classId, player, seed, ka
 | D3 | M0 | Portrait HUD: lap text overlapped the item bubble; place badge too large | fixed (portrait layout) |
 | D4 | M0 | Chase camera too low; attendants hid the tub | fixed (higher, farther camera; portrait offset) |
 | D5 | M0 | AI race end condition ended races at 12 s when no human was racing | fixed |
-| D6 | M0 | Traditional tubs win the gray box (AI); Modified lose too much water | open → M2 balance |
+| D6 | M0 | Traditional tubs win the gray box (AI); Modified lose too much water | fixed in M2 balance (division wins 30/37/33% on Soak) |
+| D7 | M1 | Row anchors mapped to the Promenade (nearest street) so the Row order read backwards | fixed (anchors map to Central Ave via `rowStreet`) |
+| D8 | M1 | Building fronts faced the Promenade for bathhouses between the two streets | fixed (front edge from the building's own street) |
+| D9 | M1 | Inside road edge folded over itself at the Central/Reserve corner | fixed (inside half-width capped at 70% of the radius, eroded over ±8 m) |
+| D10 | M1 | Closed-ring building footprints simplified to a single point (Douglas–Peucker on a closed ring) | fixed (simplify in two halves) |
+| D11 | M2 | Water at the finish 0.88 (too easy) then 0.19 (too hard) | tuned: 0.43 mean, 26% under 10 gal on Soak |
+| D12 | M2 | Item hits per race 3.8 (bubbles respawned too slowly) | fixed: 1.6 s respawn, ~10 hits per race |
+| D13 | M2 | Enter on a focused menu button fired twice (native click + menu.ok) | fixed (keyboard Enter/Space left to the browser) |
+| D14 | M2 | Magnolias on the storefront side; crowds on the Row side | fixed (magnolias on the Row side, crowds on both) |
+| D15 | M3 | Base64 GLB model pack 676 KB | fixed: compact Int16/byte pack, 260 KB; GLTFLoader dropped from the vendor bundle (631 → 545 KB) |
+| D16 | M3 | Captain hidden behind the rear attendants from the chase camera | fixed (attendants at the corners, captain raised and scaled) |
+| D17 | M3 | Scald class: 39% of AI finish under 10 gal | open, by design for the hard class; noted in REPORT |
+| D18 | M3 | Phone draw calls 90 (budget 80) | fixed: 78 phone, 86 desktop |
+| D19 | M4 review | Chase camera inside trees and buildings; own tub out of frame; landmark shots inside walls | fixed: camera lifts over anything on its line of sight; landmarks placed from model depth |
+| D20 | M4 review | Horizon read as sea | fixed: painted ridge panoramas, ring stretched so the pale haze sits below the horizon (a haze band still shows from high mountain views) |
+| D21 | M4 review | Dusk/sunset sky over daytime-green ground | fixed: light tint on every world material |
+| D22 | M4 review | Portrait: buttons covered the tub, top 40% empty sky | fixed: higher portrait camera, gauge top-left, smaller buttons |
+| D23 | M4 review | Untextured building sides; judge stops only a banner | fixed: every wall textured; booth, flags and painted stop box at each stop |
+| D24 | M4 review | Phone Hot Springs Mountain start showed only grass: terrain from a neighbouring compressed switchback covered the road | fixed: bake stores terrain reach per sample (half the gap to other legs); terrain clipped to it |
+| D25 | M4 review | Near trees dither-faded into noise, then cut into stumps | fixed: a whole tree hides within ~7 m (per instance) |
+| D26 | M4 review | Phone countdown overlapped the item pips | fixed |
+| D27 | M4 review | Crowd sprites smoother than the 64 px period look | open |
+
+## Visual review (M4)
+Blind critics scored the final screenshots against `reviews/RUBRIC.md`: Claude 41.5/80 (art 5.5, atmosphere 5,
+animation 5, UI 5.5, type 5.5, readability 4.5, mobile 4.5, authenticity 6) and Codex 46/80 (6, 6, 5, 6.5, 6.5, 4.5,
+4.5, 7). No gate was met on that pass. Their shared top issues (camera clipping, sea horizon, portrait framing, dusk
+light, bare slabs, judge stops) are fixed as D19–D26; the fixes were checked on reshot sheets but not re-scored.

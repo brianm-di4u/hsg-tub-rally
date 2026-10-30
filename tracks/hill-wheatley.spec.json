@@ -1,0 +1,199 @@
+{
+ "id": "hill-wheatley",
+ "name": "Hill Wheatley Plaza",
+ "arena": true,
+ "note": "Water Fight arena: a ring around the plaza's thermal jug fountain, on Central Avenue one block south of the Row, closed for the event (game course).",
+ "step": 2,
+ "laps": 99,
+ "realFrame": true,
+ "points": [
+  [
+   -14.0,
+   386.0
+  ],
+  [
+   -2.24,
+   382.18
+  ],
+  [
+   5.02,
+   372.18
+  ],
+  [
+   5.02,
+   359.82
+  ],
+  [
+   -2.24,
+   349.82
+  ],
+  [
+   -14.0,
+   346.0
+  ],
+  [
+   -25.76,
+   349.82
+  ],
+  [
+   -33.02,
+   359.82
+  ],
+  [
+   -33.02,
+   372.18
+  ],
+  [
+   -25.76,
+   382.18
+  ]
+ ],
+ "checkpoints": 8,
+ "width": [
+  {
+   "at": 0,
+   "v": 26
+  }
+ ],
+ "limL": [
+  {
+   "at": 0,
+   "v": 1
+  }
+ ],
+ "limR": [
+  {
+   "at": 0,
+   "v": 3
+  }
+ ],
+ "limTypeDefault": "wall",
+ "vergeDefault": "curb",
+ "surfaceDefault": "brick",
+ "terrain": {
+  "kind": "flat"
+ },
+ "buildings": {
+  "source": "osm",
+  "maxDist": 70,
+  "skipNearAnchors": 0
+ },
+ "zones": [
+  {
+   "type": "refill",
+   "at": [
+    0,
+    1
+   ],
+   "d": [
+    -13,
+    -9
+   ],
+   "rate": 3.5,
+   "label": "Thermal jug fountain"
+  },
+  {
+   "type": "crowd",
+   "at": [
+    0,
+    1
+   ],
+   "d": [
+    9,
+    13
+   ],
+   "rate": 0.08,
+   "label": "Spectators"
+  },
+  {
+   "type": "items",
+   "at": [
+    0.0,
+    0.02
+   ]
+  },
+  {
+   "type": "items",
+   "at": [
+    0.33,
+    0.35
+   ]
+  },
+  {
+   "type": "items",
+   "at": [
+    0.66,
+    0.68
+   ]
+  }
+ ],
+ "props": [
+  {
+   "type": "lamp",
+   "every": 14,
+   "from": 0,
+   "to": 1,
+   "sides": [
+    1
+   ],
+   "d": 1.4
+  },
+  {
+   "type": "crowd",
+   "every": 9,
+   "from": 0.03,
+   "to": 1,
+   "sides": [
+    1
+   ],
+   "d": 3.0
+  },
+  {
+   "type": "bucket",
+   "every": 12,
+   "from": 0,
+   "to": 1,
+   "sides": [
+    -1
+   ],
+   "d": 0.8
+  },
+  {
+   "type": "jug",
+   "at": 0.0,
+   "d": -20,
+   "sc": 1.3
+  }
+ ],
+ "landmarks": [],
+ "env": {
+  "palette": "lake-life",
+  "sky": [
+   "#79B3E2",
+   "#DCEEF6"
+  ],
+  "fog": [
+   90,
+   300
+  ],
+  "fogColor": "#CFE3EC",
+  "sun": [
+   0.35,
+   0.82,
+   0.45
+  ],
+  "time": "day",
+  "ridges": [
+   "#86A2B6",
+   "#62806A",
+   "#3F5E45"
+  ],
+  "noStartLine": true,
+  "skyTex": "ridge-day"
+ },
+ "lapTarget": [
+  5,
+  40
+ ],
+ "bankScale": 0
+}

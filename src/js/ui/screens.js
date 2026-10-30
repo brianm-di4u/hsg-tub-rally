@@ -4,6 +4,7 @@ import { pixelText } from './pixelfont.js';
 import { fmtTime } from './hud.js';
 import { TEAM_BY_ID, TEAMS, DIVISIONS, CLASSES, kartStats } from '../data/teams.js';
 import { CUPS, TROPHY } from '../data/cups.js';
+import { factFor } from '../data/facts.js';
 
 export class Screens {
   constructor(root, app) {
@@ -51,8 +52,11 @@ const TEMPLATES = {
         ${btn('gp', 'Grand Prix', 'autofocus')}
         ${btn('quick', 'Quick Race')}
         ${btn('timetrial', 'Time Trial')}
+        ${btn('row', 'Rules of the Row')}
+        ${btn('battle', 'Water Fight')}
         ${btn('help', 'How to Play')}
         ${btn('settings', 'Settings')}
+        ${btn('credits', 'Credits')}
       </nav>
       <p class="fineprint">Inspired by the World Championship Running of the Tubs, held each June on Central Avenue. Fictional teams; not affiliated with the event or any business shown.</p>
     </div>`,
@@ -64,7 +68,7 @@ const TEMPLATES = {
   results: (app, { results, laps, trackName, gp, newRecord, mode }) => `
     <div class="panel results" role="dialog" aria-label="Race results">
       <canvas data-pixel="RESULTS" data-scale="6"></canvas>
-      <p class="sub">${trackName || ''} · ${laps} laps${newRecord ? ' · <b class="clean">NEW RECORD</b>' : ''}</p>
+      <p class="sub">${mode === 'battle' ? `${trackName} · Water Fight: last tub with water wins` : `${trackName || ''} · ${laps} laps`}${newRecord ? ' · <b class="clean">NEW RECORD</b>' : ''}</p>
       <table class="rtable"><thead><tr><th>#</th><th>Team</th><th>Time</th><th>Water</th><th>Pts</th></tr></thead><tbody>
       ${(results || []).map((r) => `<tr class="${r.human ? 'me' : ''}"><td>${r.place}</td><td><span class="sw" style="background:${TEAM_BY_ID[r.team].colors.tub}"></span>${TEAM_BY_ID[r.team].name}${r.human ? ' (you)' : ''}</td><td>${r.estimated ? '~' : ''}${fmtTime(r.time)}</td><td>${r.gal.toFixed(0)} gal${r.clean ? ' <b class="clean" title="Clean Finish: 10+ gallons and all four items">CLEAN</b>' : ''}</td><td>${r.points}</td></tr>`).join('')}
       </tbody></table>
@@ -126,7 +130,7 @@ const TEMPLATES = {
   courses: (app, { list }) => `
     <div class="panel courses" role="dialog" aria-label="Choose a course">
       <canvas data-pixel="CHOOSE A COURSE" data-scale="4"></canvas>
-      <div class="card-row">${list.map((t, i) => { const best = app.save.best[t.id]; return `<button type="button" class="ccard postcard" data-act="course" data-id="${t.id}" ${i === 0 ? 'autofocus' : ''}><b>${t.name}</b><small>${t.blurb || ''}</small><em>${Math.round(t.length || 0)} m lap${best ? ` · best ${fmtTime(best.race)}` : ''}</em></button>`; }).join('')}</div>
+      <div class="card-row">${list.map((t, i) => { const best = app.save.best[t.id]; return `<button type="button" class="ccard postcard" data-act="course" data-id="${t.id}" ${i === 0 ? 'autofocus' : ''}><b>${t.name}</b><small>${t.blurb || ''}</small><i class="fact">${factFor(t.id).t}</i><em>${Math.round(t.length || 0)} m lap${(window.TR_INFO || {})[t.id] && window.TR_INFO[t.id].real ? ` · real streets ${(window.TR_INFO[t.id].real / 1000).toFixed(1)} km, compressed` : ''}${best ? ` · best ${fmtTime(best.race)}` : ''}</em></button>`; }).join('')}</div>
       <nav class="menu row">${btn('back', 'Back', 'data-back')}</nav>
     </div>`,
   standings: (app, { rows, round, rounds, cupName, final }) => `
@@ -145,6 +149,62 @@ const TEMPLATES = {
       ${unlockedTeam ? `<p class="unlock">New team unlocked: <b>${TEAM_BY_ID[unlockedTeam].name}</b></p>` : ''}
       <nav class="menu row">${btn('quit', 'Back to title', 'autofocus data-back')}</nav>
     </div>`,
+  rowIntro: (app, { team, bracket }) => `
+    <div class="panel rowintro" role="dialog" aria-label="Rules of the Row">
+      <canvas data-pixel="RULES OF THE ROW" data-scale="4"></canvas>
+      <p class="sub">The real race's format: head-to-head heats down Central Avenue in front of Bathhouse Row</p>
+      <div class="help-cols">
+        <section><h3>The rules (from the real event)</h3><ul>
+          <li>Captain rides and steers; four bath attendants push, each holding a towel, bath mat, soap or loofah mitt.</li>
+          <li>Stop at every <b>blue feather flag</b> and do the judges' task.</li>
+          <li>Cross the line with <b>10 gallons or more</b> and all four items, or you are <b>disqualified</b>.</li>
+          <li>Bath tickets bribe the judges; they may give a head start on a whim.</li></ul></section>
+        <section><h3>${DIVISIONS[TEAM_BY_ID[team].div].name} division bracket</h3><ul class="bracket">
+          ${bracket.semis.map((p, i) => `<li><b>Semifinal ${i + 1}:</b> ${p.map((t) => TEAM_BY_ID[t].name + (t === team ? ' (you)' : '')).join(' vs ')}</li>`).join('')}
+          <li><b>Final:</b> the two heat winners</li></ul>
+          <p class="fineprint">Inspired by the World Championship Running of the Tubs (since 2006). Game rules; fictional teams.</p></section>
+      </div>
+      <nav class="menu row">${btn('rowStart', 'Start my heat', 'autofocus')}${btn('badge', 'Battle of the Badge')}${btn('quit', 'Back', 'data-back')}</nav>
+    </div>`,
+  rowResult: (app, { results, title, msg, next }) => `
+    <div class="panel results" role="dialog" aria-label="Heat result">
+      <canvas data-pixel="${title}" data-scale="5"></canvas>
+      <p class="sub">${msg}</p>
+      <table class="rtable"><thead><tr><th>#</th><th>Team</th><th>Time</th><th>Water</th><th>Items</th><th></th></tr></thead><tbody>
+      ${results.map((r) => `<tr class="${r.human ? 'me' : ''}"><td>${r.dq ? '–' : r.place}</td><td><span class="sw" style="background:${TEAM_BY_ID[r.team].colors.tub}"></span>${TEAM_BY_ID[r.team].name}${r.human ? ' (you)' : ''}</td><td>${r.time != null ? fmtTime(r.time) : '–'}</td><td>${r.gal.toFixed(0)} gal</td><td>${r.items}/4</td><td>${r.dq ? `<b class="dq">DQ: ${r.dq}</b>` : ''}</td></tr>`).join('')}
+      </tbody></table>
+      <nav class="menu row">${btn(next.act, next.label, 'autofocus')}${btn('quit', 'Title', 'data-back')}</nav>
+    </div>`,
+  awards: (app, { a, champion, division }) => `
+    <div class="panel trophy awards" role="dialog" aria-label="Awards ceremony">
+      <canvas data-pixel="AWARDS CEREMONY" data-scale="4"></canvas>
+      <p class="sub">${DIVISIONS[division].name} Division Cup: <b>${champion ? TEAM_BY_ID[champion].name : 'no finisher'}</b></p>
+      <ul class="award-list">
+        <li><b>Best Overall Tub</b>${TEAM_BY_ID[a.bestOverall]?.name || '–'}</li>
+        <li><b>Most Spirit</b>${TEAM_BY_ID[a.mostSpirit]?.name || '–'}</li>
+        <li><b>Most Original</b>${TEAM_BY_ID[a.mostOriginal]?.name || '–'}</li>
+        <li><b>Fan Favorite</b>${TEAM_BY_ID[a.fanAward]?.name || '–'}</li>
+      </ul>
+      <p class="fineprint">Award categories follow coverage of the real event; winners here are decided by game rules (and the judges' whims).</p>
+      <nav class="menu row">${btn('quit', 'Back to title', 'autofocus data-back')}</nav>
+    </div>`,
+  credits: () => `
+    <div class="panel help" role="dialog" aria-label="Credits">
+      <canvas data-pixel="CREDITS" data-scale="5"></canvas>
+      <div class="help-cols">
+        <section><h3>The real race</h3><ul>
+          <li>Inspired by the World Championship Running of the Tubs, held each June on Central Avenue in Hot Springs, Arkansas, since 2006 and organized by Visit Hot Springs. Named for downtown businessman Stueart Pennington.</li>
+          <li>This is an independent fan-made game. It is not affiliated with or endorsed by the event, Visit Hot Springs, the National Park Service or any business shown. Every team in the game is fictional.</li></ul></section>
+        <section><h3>Maps and facts</h3><ul>
+          <li>Streets and buildings: © OpenStreetMap contributors (ODbL 1.0). Elevation: USGS 3D Elevation Program (public domain).</li>
+          <li>Facts: the event's 2026 official rules and website, NPS Hot Springs National Park pages, and the Hot Springs Games research corpus (sources listed in the game's research/town-content.md).</li>
+          <li>Courses are compressed real streets; game-only links (racing on the Grand Promenade and the like) are game courses, not real roads.</li></ul></section>
+        <section><h3>Made with</h3><ul>
+          <li>three.js (MIT). Textures painted for this game with Codex; landmark models built with scripted Blender; music and sound synthesized live with WebAudio.</li>
+          <li>Part of the open-source (MIT) Hot Springs Games collection.</li></ul></section>
+      </div>
+      <nav class="menu row">${btn('back', 'Back', 'autofocus data-back')}</nav>
+    </div>`,
   settings: (app) => {
     const s = app.save.settings;
     const opt = (name, val, label, cur) => `<button type="button" class="chip ${cur === val ? 'sel' : ''}" data-act="set" data-k="${name}" data-v="${val}" aria-pressed="${cur === val}">${label}</button>`;
@@ -155,6 +215,7 @@ const TEMPLATES = {
       <div class="set-row"><span>Detail</span>${opt('quality', 'auto', 'Auto', s.quality)}${opt('quality', 'low', 'Low', s.quality)}${opt('quality', 'medium', 'Medium', s.quality)}${opt('quality', 'high', 'High', s.quality)}</div>
       <div class="set-row"><span>Auto-push</span>${opt('autoPush', 'true', 'On', String(s.autoPush))}${opt('autoPush', 'false', 'Off', String(s.autoPush))}</div>
       <div class="set-row"><span>Sound</span>${opt('sound', 'true', 'On', String(s.sound))}${opt('sound', 'false', 'Off', String(s.sound))}</div>
+      <div class="set-row"><span>Music</span>${opt('music', 'true', 'On', String(s.music))}${opt('music', 'false', 'Off', String(s.music))}</div>
       <div class="set-row"><span>Motion</span>${opt('reducedMotion', 'false', 'Full', String(s.reducedMotion))}${opt('reducedMotion', 'true', 'Reduced', String(s.reducedMotion))}</div>
       <nav class="menu row">${btn('back', 'Done', 'autofocus data-back')}</nav>
     </div>`;

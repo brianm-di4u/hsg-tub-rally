@@ -206,8 +206,8 @@ export function useItem(race, track, k, back = false) {
 }
 
 function hitKart(race, o, k, gal) {
-  if (k.bubbleT > 0) return false;
-  const did = fumble(k, race.rng.items, gal);
+  if (k.bubbleT > 0 || k.out) return false;
+  const did = fumble(k, race.rng.items, gal * (race.hitMul || 1));
   o.dead = true;
   k.events.push({ type: 'hit', by: o.type, owner: o.owner, blocked: !did });
   const owner = race.karts[o.owner];

@@ -16,3 +16,6 @@ art-src/**/renders/
 /art-src/dem/
 # Build scratch
 tools/out/
+
+# Review captures (regenerated from screenshots; review record only)
+reviews/**/*.png

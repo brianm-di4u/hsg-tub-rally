@@ -1,0 +1,377 @@
+{
+ "id": "hs-mountain",
+ "name": "Hot Springs Mountain Drive",
+ "cup": "ouachita",
+ "note": "The 1880s carriage road from the end of Fountain Street: down along the hillside, up the switchbacks past the picnic area and the 1911 Pagoda to the Hot Springs Mountain Tower, out North Mountain Drive and back down the upper Fountain Street zigzags.",
+ "step": 2,
+ "laps": 3,
+ "route": {
+  "profile": "road1",
+  "prefer": "Fountain Street|North Mountain Drive|^$",
+  "via": [
+   {
+    "near": [
+     34.5188,
+     -93.04888
+    ],
+    "on": "Fountain Street",
+    "tol": 10
+   },
+   {
+    "near": [
+     34.51787,
+     -93.04977
+    ],
+    "tol": 15
+   },
+   {
+    "near": [
+     34.51463,
+     -93.0503
+    ],
+    "tol": 25
+   },
+   {
+    "near": [
+     34.5175,
+     -93.0458
+    ],
+    "on": "North Mountain Drive"
+   },
+   {
+    "near": [
+     34.5225,
+     -93.0418
+    ],
+    "on": "North Mountain Drive"
+   },
+   {
+    "near": [
+     34.5205,
+     -93.0465
+    ],
+    "on": "Fountain Street"
+   },
+   {
+    "near": [
+     34.5188,
+     -93.04888
+    ],
+    "on": "Fountain Street",
+    "tol": 10
+   }
+  ],
+  "pins": [
+   {
+    "from": [
+     34.51975,
+     -93.0479
+    ],
+    "to": [
+     34.5188,
+     -93.04888
+    ],
+    "label": "Fountain Street start straight (true scale)"
+   }
+  ],
+  "targetLength": 1050,
+  "minRadius": 17,
+  "gmax": 0.14,
+  "smooth": 40,
+  "ySmooth": 18,
+  "gradeWindow": 300
+ },
+ "polyline": "tracks/hs-mountain.route.json",
+ "byName": {
+  "Fountain Street": {
+   "width": 12,
+   "surface": "asphalt",
+   "verge": "grass",
+   "lim": 5,
+   "limType": "auto"
+  },
+  "North Mountain Drive": {
+   "width": 12,
+   "surface": "asphalt",
+   "verge": "gravel",
+   "lim": 5,
+   "limType": "auto"
+  },
+  "residential": {
+   "width": 12,
+   "surface": "asphalt",
+   "verge": "gravel",
+   "lim": 5,
+   "limType": "auto"
+  },
+  "*": {
+   "width": 12,
+   "surface": "asphalt",
+   "verge": "gravel",
+   "lim": 5,
+   "limType": "auto"
+  }
+ },
+ "terrain": {
+  "kind": "dem"
+ },
+ "zones": [
+  {
+   "type": "refill",
+   "at": [
+    0.058,
+    0.088
+   ],
+   "rate": 9,
+   "label": "Thermal spring runoff across the drive (spring below Tufa Terrace; full-width runoff is game)"
+  },
+  {
+   "type": "refill",
+   "at": [
+    0.862,
+    0.886
+   ],
+   "d": [
+    -7,
+    -1
+   ],
+   "rate": 9,
+   "label": "Fountain Street water buckets (game)"
+  },
+  {
+   "type": "items",
+   "at": [
+    0.43,
+    0.435
+   ],
+   "label": "Climb to the Pagoda"
+  },
+  {
+   "type": "items",
+   "at": [
+    0.575,
+    0.58
+   ],
+   "label": "North Mountain Drive"
+  },
+  {
+   "type": "items",
+   "at": [
+    0.93,
+    0.935
+   ],
+   "label": "Fountain Street straight"
+  },
+  {
+   "type": "judge",
+   "at": [
+    0.895,
+    0.9
+   ],
+   "d": [
+    1,
+    6
+   ],
+   "label": "Judge stand at the foot of the drive"
+  }
+ ],
+ "propsByName": [
+  {
+   "on": "residential",
+   "type": "pine",
+   "every": 9,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 2.5,
+   "scale": [
+    0.85,
+    1.3
+   ]
+  },
+  {
+   "on": "residential",
+   "type": "pine",
+   "every": 12,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 4.5,
+   "scale": [
+    0.9,
+    1.4
+   ]
+  },
+  {
+   "on": "residential",
+   "type": "oak",
+   "every": 19,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 3.5,
+   "scale": [
+    0.8,
+    1.2
+   ]
+  },
+  {
+   "on": "North Mountain Drive",
+   "type": "pine",
+   "every": 9,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 2.5,
+   "scale": [
+    0.85,
+    1.3
+   ]
+  },
+  {
+   "on": "North Mountain Drive",
+   "type": "pine",
+   "every": 12,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 4.5,
+   "scale": [
+    0.9,
+    1.4
+   ]
+  },
+  {
+   "on": "North Mountain Drive",
+   "type": "oak",
+   "every": 19,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 3.5,
+   "scale": [
+    0.8,
+    1.2
+   ]
+  },
+  {
+   "on": "Fountain Street",
+   "type": "pine",
+   "every": 9,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 2.5,
+   "scale": [
+    0.85,
+    1.3
+   ]
+  },
+  {
+   "on": "Fountain Street",
+   "type": "pine",
+   "every": 12,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 4.5,
+   "scale": [
+    0.9,
+    1.4
+   ]
+  },
+  {
+   "on": "Fountain Street",
+   "type": "oak",
+   "every": 19,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 3.5,
+   "scale": [
+    0.8,
+    1.2
+   ]
+  },
+  {
+   "on": "North Mountain Drive",
+   "type": "bench",
+   "every": 60,
+   "sides": [
+    -1
+   ],
+   "d": 1.5
+  },
+  {
+   "on": "Fountain Street",
+   "type": "lamp",
+   "every": 40,
+   "sides": [
+    1
+   ],
+   "d": 1.2
+  }
+ ],
+ "env": {
+  "palette": "ouachita-forest",
+  "sky": [
+   "#6FA8DC",
+   "#DDEFF5"
+  ],
+  "fog": [
+   90,
+   320
+  ],
+  "fogColor": "#C9DDD4",
+  "sun": [
+   0.4,
+   0.8,
+   0.45
+  ],
+  "time": "day",
+  "ridges": [
+   "#7C97A6",
+   "#4F6E58",
+   "#2F4A2C"
+  ],
+  "wallTex": "rock",
+  "groundTex": "grass",
+  "skyTex": "ridge-day"
+ },
+ "meta": {
+  "credits": "Roads \u00a9 OpenStreetMap contributors (ODbL); elevation USGS 3DEP",
+  "sources": "research/town-content.md \u00a74"
+ },
+ "start": {
+  "at": 0
+ },
+ "lapTarget": [
+  42,
+  62
+ ],
+ "minRadiusCheck": 12,
+ "landmarks": [
+  {
+   "id": "tower",
+   "model": "hs-tower",
+   "anchor": "hot-springs-mountain-tower",
+   "street": "North Mountain Drive",
+   "minGap": 8
+  },
+  {
+   "id": "pagoda",
+   "model": "pagoda",
+   "anchor": "pagoda",
+   "minGap": 4
+  }
+ ]
+}

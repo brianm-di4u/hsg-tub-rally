@@ -39,8 +39,8 @@
   {
    "name": "crowd",
    "src": "pilot/crowd-sprite.png",
-   "w": 128,
-   "h": 64,
+   "w": 96,
+   "h": 48,
    "fit": "contain",
    "keyWhite": 40,
    "trim": true,
@@ -154,6 +154,77 @@
    "pack": "row",
    "rgb555": true,
    "tileX": true
+  },
+  {
+   "name": "grass",
+   "src": "mtn/grass.png",
+   "w": 64,
+   "h": 64,
+   "pack": "core",
+   "rgb555": true
+  },
+  {
+   "name": "rock",
+   "src": "mtn/rock.png",
+   "w": 64,
+   "h": 64,
+   "pack": "core",
+   "rgb555": true
+  },
+  {
+   "name": "dirt",
+   "src": "mtn/dirt.png",
+   "w": 64,
+   "h": 64,
+   "pack": "core",
+   "rgb555": true
+  },
+  {
+   "name": "ridge-day",
+   "src": "mtn/ridge-panorama.png",
+   "w": 512,
+   "h": 128,
+   "pack": "core",
+   "rgb555": false,
+   "tileX": true,
+   "format": "webp"
+  },
+  {
+   "name": "ridge-dusk",
+   "src": "mtn/ridge-dusk.png",
+   "w": 512,
+   "h": 128,
+   "pack": "core",
+   "rgb555": false,
+   "tileX": true,
+   "format": "webp"
+  },
+  {
+   "name": "forest-floor",
+   "src": "mtn/forest-floor.png",
+   "w": 64,
+   "h": 64,
+   "pack": "mtn",
+   "rgb555": true
+  },
+  {
+   "name": "novaculite",
+   "src": "mtn/novaculite.png",
+   "w": 64,
+   "h": 64,
+   "pack": "mtn",
+   "rgb555": true
+  },
+  {
+   "name": "oak",
+   "src": "mtn/oak-sprite.png",
+   "w": 48,
+   "h": 48,
+   "fit": "contain",
+   "keyWhite": 40,
+   "trim": true,
+   "pack": "mtn",
+   "rgb555": true
   }
  ]
 }

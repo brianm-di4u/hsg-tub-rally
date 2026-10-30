@@ -1,7 +1,8 @@
 #!/usr/bin/env node
-// Blender GLB exports → base64 classic-script packs: assets/models-<pack>.js sets
-// (window.TR_MODELS ||= {})[name] = '<base64 glb>'. GLTFLoader.parse() reads them at runtime (file:// safe).
-// Pattern after hsg-baseball/tools/pack-models.mjs (Hot Springs Games, MIT).
+// Blender GLB exports → compact model packs (assets/models-<pack>.js). Each model is stored per material slot as
+// non-indexed triangles: positions as Int16 centimetres, UVs as Int16 (1/1024), vertex colours as sRGB bytes
+// (glTF COLOR_0 is linear; converted here). Flat normals are rebuilt at load, which is all an N64-style flat-shaded
+// model needs. Typically ~40% of the base64 GLB size. File:// safe (plain classic script, no fetch).
 //   node tools/pack-models.mjs
 import fs from 'node:fs';
 import path from 'node:path';
@@ -9,16 +10,73 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const spec = JSON.parse(fs.readFileSync(path.join(ROOT, 'art-src', 'models.json'), 'utf8'));
+
+function readGlb(buf) {
+  if (buf.readUInt32LE(0) !== 0x46546c67) throw new Error('not a GLB');
+  let off = 12, json = null, bin = null;
+  while (off < buf.length) {
+    const len = buf.readUInt32LE(off), type = buf.readUInt32LE(off + 4), data = buf.subarray(off + 8, off + 8 + len);
+    if (type === 0x4e4f534a) json = JSON.parse(data.toString('utf8')); else if (type === 0x004e4942) bin = data;
+    off += 8 + len;
+  }
+  return { json, bin };
+}
+const COMP = { 5120: [1, 'readInt8', 127], 5121: [1, 'readUInt8', 255], 5122: [2, 'readInt16LE', 32767], 5123: [2, 'readUInt16LE', 65535], 5125: [4, 'readUInt32LE', 0], 5126: [4, 'readFloatLE', 0] };
+const NCOMP = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4 };
+function accessor(g, i) {
+  const a = g.json.accessors[i], bv = g.json.bufferViews[a.bufferView], [size, fn, norm] = COMP[a.componentType], nc = NCOMP[a.type];
+  const stride = bv.byteStride || size * nc, base = (bv.byteOffset || 0) + (a.byteOffset || 0), out = [];
+  for (let k = 0; k < a.count; k++) {
+    const v = [];
+    for (let c = 0; c < nc; c++) { let x = g.bin[fn](base + k * stride + c * size); if (a.normalized && norm) x /= norm; v.push(x); }
+    out.push(v);
+  }
+  return out;
+}
+function nodeMatrix(n) {
+  // only translation/rotation/scale or identity are expected (README: identity transform); apply T·R·S
+  const t = n.translation || [0, 0, 0], r = n.rotation || [0, 0, 0, 1], s = n.scale || [1, 1, 1];
+  const [x, y, z, w] = r;
+  const R = [1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w), 2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w), 2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)];
+  return (p) => [R[0] * p[0] * s[0] + R[1] * p[1] * s[1] + R[2] * p[2] * s[2] + t[0], R[3] * p[0] * s[0] + R[4] * p[1] * s[1] + R[5] * p[2] * s[2] + t[1], R[6] * p[0] * s[0] + R[7] * p[1] * s[1] + R[8] * p[2] * s[2] + t[2]];
+}
+const b64 = (T, arr) => Buffer.from(T.from(arr).buffer).toString('base64');
+
+function compact(file) {
+  const g = readGlb(fs.readFileSync(file));
+  const slots = {};
+  for (const n of g.json.nodes || []) {
+    if (n.mesh == null) continue;
+    const M = nodeMatrix(n);
+    for (const pr of g.json.meshes[n.mesh].primitives) {
+      const name = pr.material != null ? g.json.materials[pr.material].name || 'trim' : 'trim';
+      const P = accessor(g, pr.attributes.POSITION).map(M);
+      const UV = pr.attributes.TEXCOORD_0 != null ? accessor(g, pr.attributes.TEXCOORD_0) : null;
+      const C = pr.attributes.COLOR_0 != null ? accessor(g, pr.attributes.COLOR_0) : null;
+      const I = pr.indices != null ? accessor(g, pr.indices).map((v) => v[0]) : P.map((_, i) => i);
+      const S = (slots[name] ||= { p: [], uv: [], c: [] });
+      for (const i of I) {
+        S.p.push(...P[i].map((v) => Math.round(v * 100)));
+        S.uv.push(...(UV ? UV[i].map((v) => Math.round(v * 1024)) : [0, 0]));
+        S.c.push(...(C ? C[i].slice(0, 3).map((v) => Math.round(Math.pow(Math.max(0, Math.min(1, v)), 1 / 2.2) * 255)) : [255, 255, 255]));
+      }
+    }
+  }
+  const out = {};
+  for (const [name, S] of Object.entries(slots)) out[name] = { n: S.p.length / 3, p: b64(Int16Array, S.p), uv: b64(Int16Array, S.uv), c: b64(Uint8Array, S.c) };
+  return out;
+}
+
 const packs = {};
 for (const it of spec.items) {
   const file = path.join(ROOT, 'art-src', it.src);
   if (!fs.existsSync(file)) { console.error('missing', it.src); process.exitCode = 1; continue; }
-  (packs[it.pack] ||= {})[it.name] = fs.readFileSync(file).toString('base64');
+  (packs[it.pack] ||= {})[it.name] = compact(file);
 }
 fs.mkdirSync(path.join(ROOT, 'assets'), { recursive: true });
 for (const [pack, models] of Object.entries(packs)) {
   const out = path.join(ROOT, 'assets', `models-${pack}.js`);
-  const body = Object.entries(models).map(([n, b]) => `M[${JSON.stringify(n)}]=${JSON.stringify(b)};`).join('\n');
-  fs.writeFileSync(out, `/* Spa City Tub Rally model pack "${pack}" (Blender scripts in art-src/blender, MIT). Generated by tools/pack-models.mjs. */\n(function(){var M=window.TR_MODELS=window.TR_MODELS||{};\n${body}\n})();\n`);
+  const body = Object.entries(models).map(([n, m]) => `M[${JSON.stringify(n)}]=${JSON.stringify(m)};`).join('\n');
+  fs.writeFileSync(out, `/* Spa City Tub Rally model pack "${pack}" (Blender scripts in art-src/blender, MIT). Generated by tools/pack-models.mjs. */\n(function(){var M=window.TR_MODELS2=window.TR_MODELS2||{};\n${body}\n})();\n`);
   console.log(path.relative(ROOT, out), Object.keys(models).join(', '), (fs.statSync(out).size / 1024).toFixed(1), 'KB');
 }

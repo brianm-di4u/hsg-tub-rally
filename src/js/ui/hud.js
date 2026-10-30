@@ -4,6 +4,7 @@
 import { pixelText } from './pixelfont.js';
 import { MIN_FINISH_GAL } from '../sim/water.js';
 import { TEAM_BY_ID } from '../data/teams.js';
+import { TASKS } from '../sim/rules-real.js';
 
 const ORD = ['', '1ST', '2ND', '3RD', '4TH', '5TH', '6TH', '7TH', '8TH'];
 const PLACE_FILL = [null, ['#FFF6C8', '#F2C230'], ['#F4F6FA', '#A9B4C2'], ['#FFE1C4', '#C8783C']];
@@ -21,15 +22,16 @@ export class Hud {
   constructor(root) {
     this.root = root;
     root.innerHTML = `
-      <div class="hud-tl"><canvas class="hud-lap" aria-hidden="true"></canvas><div class="hud-time" aria-hidden="true"></div></div>
+      <div class="hud-tl"><canvas class="hud-lap" aria-hidden="true"></canvas><div class="hud-time" aria-hidden="true"><canvas class="hud-timec"></canvas></div></div>
       <div class="hud-tr"><canvas class="hud-place" aria-hidden="true"></canvas></div>
       <div class="hud-item" aria-hidden="true"><div class="bubble"><canvas class="item-icon" width="48" height="48"></canvas></div><div class="tickets"><span class="tk-ico"></span><b class="tk-n">0</b></div></div>
       <div class="hud-bl"><canvas class="hud-water" width="150" height="96" aria-hidden="true"></canvas><div class="hud-pips" aria-hidden="true"></div></div>
       <canvas class="hud-map" width="150" height="150" aria-hidden="true"></canvas>
       <div class="hud-center"><canvas class="hud-count" aria-hidden="true"></canvas><div class="hud-call" role="status" aria-live="polite"></div></div>
+      <div class="hud-task" role="status" aria-live="assertive"><b class="t-name"></b><span class="t-how"></span><canvas class="t-meter" width="220" height="26" aria-hidden="true"></canvas></div>
       <div class="sr-only" aria-live="polite" id="hud-sr"></div>`;
     const q = (s) => root.querySelector(s);
-    this.el = { lap: q('.hud-lap'), time: q('.hud-time'), place: q('.hud-place'), water: q('.hud-water'), pips: q('.hud-pips'), map: q('.hud-map'), count: q('.hud-count'), call: q('.hud-call'), icon: q('.item-icon'), tk: q('.tk-n'), sr: q('#hud-sr'), item: q('.hud-item') };
+    this.el = { lap: q('.hud-lap'), time: q('.hud-time'), timeC: q('.hud-timec'), place: q('.hud-place'), water: q('.hud-water'), pips: q('.hud-pips'), map: q('.hud-map'), count: q('.hud-count'), call: q('.hud-call'), icon: q('.item-icon'), tk: q('.tk-n'), sr: q('#hud-sr'), item: q('.hud-item'), task: q('.hud-task'), tname: q('.t-name'), thow: q('.t-how'), tmeter: q('.t-meter') };
     this.el.pips.innerHTML = Object.keys(ITEM_ICONS).map((k) => `<span class="pip pip-${k}" title="${ITEM_NAMES[k]}"><i></i><em>${ITEM_NAMES[k].split(' ')[0]}</em></span>`).join('');
     this.last = {};
     this.callT = 0;
@@ -65,18 +67,18 @@ export class Hud {
     const ct = race.phase === 'countdown' ? (race.time + 3.2 < 1.1 ? 'READY' : race.time + 3.2 < 2.2 ? 'SET' : '') : race.time < 0.9 ? 'SCRUB!' : '';
     if (ct !== L.ct) {
       L.ct = ct;
-      if (ct) pixelText(ct, { scale: 9, canvas: el.count, fill: ct === 'SCRUB!' ? ['#E9FBFF', '#3FA8C0'] : ['#FFF6C8', '#F2A541'] });
+      if (ct) pixelText(ct, { scale: window.innerWidth < 600 ? 6 : 9, canvas: el.count, fill: ct === 'SCRUB!' ? ['#E9FBFF', '#3FA8C0'] : ['#FFF6C8', '#F2A541'] });
       el.count.style.display = ct ? 'block' : 'none';
       if (ct) el.sr.textContent = ct;
     }
     if (!me) return;
     // lap
     const lap = Math.max(1, Math.min(race.laps, me.lap || 1));
-    const lapTxt = `LAP ${lap}/${race.laps}`;
+    const lapTxt = race.row ? race.row.label.toUpperCase() : race.battle ? `${race.karts.filter((k) => !k.out).length} LEFT` : `LAP ${lap}/${race.laps}`;
     if (lapTxt !== L.lap) { L.lap = lapTxt; pixelText(lapTxt, { scale: 3, canvas: el.lap, fill: ['#FFFFFF', '#BFD7EA'] }); }
-    const t = race.phase === 'countdown' ? 0 : me.finished ? me.finishT : race.time;
+    const t = race.battle ? Math.max(0, race.battle.secs - Math.max(0, race.time)) : race.phase === 'countdown' ? 0 : me.finished ? me.finishT : race.time;
     const tt = fmtTime(t);
-    if (tt !== L.tt) { L.tt = tt; el.time.textContent = tt; }
+    if (tt !== L.tt) { L.tt = tt; pixelText(tt, { scale: 3, canvas: el.timeC, fill: ['#FFFFFF', '#BFD7EA'] }); el.time.setAttribute('aria-label', tt); }
     // place
     if (me.place !== L.place) {
       L.place = me.place;
@@ -97,8 +99,34 @@ export class Hud {
     if (me.tickets !== L.tk) { L.tk = me.tickets; el.tk.textContent = me.tickets; }
     // minimap with every tub (rivals as dots, you as an arrow)
     this.drawMap(race, me);
+    // Rules of the Row: the judges' task prompt and its meter
+    const tk = race.phase === 'done' ? null : me.task;
+    const tkey = tk ? tk.id : '';
+    if (tkey !== L.task) {
+      L.task = tkey;
+      el.task.classList.toggle('show', !!tk);
+      if (tk) { el.tname.textContent = TASKS[tk.id].name.toUpperCase() + '!'; el.thow.textContent = TASKS[tk.id].how; el.sr.textContent = TASKS[tk.id].name + ': ' + TASKS[tk.id].how; }
+    }
+    if (tk) this.drawTask(tk);
     // call-outs
     if (this.callT > 0) { this.callT -= dt; if (this.callT <= 0) el.call.className = 'hud-call'; }
+  }
+  drawTask(tk) {
+    const c = this.el.tmeter, g = c.getContext('2d'), W = c.width, H = c.height, def = TASKS[tk.id];
+    g.clearRect(0, 0, W, H);
+    g.fillStyle = 'rgba(16,20,34,0.8)'; g.fillRect(0, 0, W, H);
+    let f = 0;
+    if (def.kind === 'mash' || def.kind === 'alt') f = tk.n / def.need;
+    else if (def.kind === 'hold') f = tk.hold / def.secs;
+    else if (def.kind === 'auto') f = tk.t / def.secs;
+    if (def.kind === 'timing') {
+      g.fillStyle = '#3FA8C0'; g.fillRect(W * 0.4, 2, W * 0.2, H - 4); // the tub
+      g.fillStyle = '#F7B6CE'; g.fillRect(W * tk.marker - 6, 3, 12, H - 6); // the soap
+      g.strokeStyle = '#2A1A10'; g.lineWidth = 2; g.strokeRect(W * tk.marker - 6, 3, 12, H - 6);
+    } else {
+      g.fillStyle = '#F2A541'; g.fillRect(2, 2, (W - 4) * Math.min(1, f), H - 4);
+    }
+    g.strokeStyle = '#FFF6C8'; g.lineWidth = 2; g.strokeRect(1, 1, W - 2, H - 2);
   }
   drawWater(w) {
     const c = this.el.water, g = c.getContext('2d'), W = c.width, H = c.height;

@@ -9,12 +9,14 @@ textures, and silhouettes you can read at 320×240.
 art-src/blender/
   scripts/common.py              shared helpers (adapted from hsg-fishing, MIT)
   scripts/rowkit.py              Row palette, parts and the export/preview pipeline
-  scripts/contact_sheet.py       labelled 5 x 2 sheet of the 320x240 street views
+  scripts/landkit.py             mountain/downtown palette, rocks, lattice, logs, window grids
+  scripts/contact_sheet.py       labelled sheet of the 320x240 street views
   scripts/landmarks/<name>.py    one script per landmark
   export/<name>.glb              game asset (Y-up)
   <name>.blend                   saved scene, for inspection
   renders/<name>_*.png           previews (git-ignored)
   renders/row-sheet.png          contact sheet (git-ignored)
+  renders/landmarks2-sheet.png   contact sheet of the mountain + downtown set (git-ignored)
 ```
 
 ## Running a script
@@ -186,3 +188,49 @@ All 10 models load from `assets/models-row.js` (676 KB; run `node tools/pack-mod
 - Lamar is deliberately the plainest. Its stepped pediment barely shows, so it is identified by the red coping line and the broad arched porch.
 - Quapaw's shell gables and Hale's bell gable are small.
 - Text (names) and paterae become a few coloured pixels.
+
+## Mountain and downtown set (packs `mountain` and `downtown`)
+
+Five park landmarks (pack `mountain`) and three downtown buildings (pack `downtown`). They follow the Fordyce conventions and share `scripts/landkit.py`, which builds on `common.py` and `rowkit.py` without changing them (the Row GLBs and `assets/models-row.js` stay byte-identical). `landkit.py` adds the P1/P9/P5/P7 style-guide swatches and their derived shades, convex-hull rock blocks (`slab`, `boulder`, with per-face novaculite white / light grey / pink colours picked by a fixed integer hash, so there is still no randomness), tapered lattice legs and two-sided flat struts, n-sided logs with end-grain caps, and the Arlington window `grid`.
+
+Every docstring lists the facts used (research file and cited source) and every estimate; for most of these landmarks the research gives a name, date and material only, so **nearly every dimension is an estimate**. Each script was run twice with `--no-render` and the GLBs were byte-identical (and identical to the rendering run).
+
+Contact sheet: `... contact_sheet.py -- --cols 4 --names hs-tower,pagoda,wm-shelter,balanced-rock,goat-rock,medical-arts,army-navy,vapors --out art-src/blender/renders/landmarks2-sheet.png`.
+
+Packs (run `node tools/pack-models.mjs`): `assets/models-mountain.js` 74.8 KB, `assets/models-downtown.js` 67.1 KB.
+
+| Model | Tris / budget | GLB | Size used | Sources | Main estimates |
+|---|---|---|---|---|---|
+| `hs-tower` | 484 / 700 | 48 KB | 12 m deck head × 65.84 m (216 ft) | NPS / Wikipedia (216 ft lattice steel, observation deck, 1982–83); NPS deck 1,256 ft vs USGS ground 1,036 ft, so the decks sit at the very top; style-guide recipe (narrow trapezoid lattice, zigzag bracing, wider deck box, steel `#8C877C`); brief (open + enclosed decks, elevator core) | legs 9.2 m square at grade tapering to 5.2 m at 52.6 m; 8 zigzag panels; members 0.4–0.5 m (thicker than real, for readability); core 3.2 m; enclosed deck 52.6–57.9 m, open deck to 63.2 m, machine room to 65.84 m. **Origin = base centre** (square, any face can be front) |
+| `pagoda` | 326 / 400 | 37 KB | 8.6 m × 9.2 m | NPS scenic overlooks (Pagoda, J. G. Horn, 1911, on Hot Springs Mountain Drive); brief (open-sided rustic shelter, pagoda-like hipped roof) | everything: 6 m post square, stone platform and pier bases, timber posts and knee braces, bellcast two-pitch hip with upturned corners, lantern drum, upper tier, finial; nps-rustic colours (no colour source) |
+| `wm-shelter` | 250 / 300 | 24 KB | 7.6 m × 6.7 m | NPS (West Mountain Summit Loop overlook, 1924 shelter, picnic tables); HMdb (1924 shelters of native stone and logs with redwood shingle roofs); style-guide recipe (stone pillars, log beams with ring ends, steep shingle gable) | 6.0 × 4.4 m pillar grid, octagonal stone pillars 2.3 m, log plates and ties, 47° gable to 6.2 m, board gables, one picnic table |
+| `balanced-rock` | 156 / 300 | 23 KB | 10.9 × 6.6 × 6.2 m | NPS Sunset Trail (Sugarloaf section, novaculite outcrop); novaculite facts (white to light grey, also pink; forms ridges) | outcrop size and layout; 3 m pedestal; 4.4 m boulder perched on one contact point |
+| `goat-rock` | 240 / 300 | 34 KB | 19.3 × 10.8 × 8.1 m | NPS (Goat Rock Overlook on North Mountain); OSM overlook point; novaculite facts; style guide ("pale angular ridges", "jagged white zigzag ridge line") | outcrop size; front row of five fins to 6.8 m (plus peaks), stepping down to grade at the back; talus boulders |
+| `medical-arts` | 467 / 600 | 47 KB | 24 m frontage × 58.9 m | EoA (16 stories, Art Deco, Almand & Stuck, limestone bas-relief, bronze grillework above the doors, tallest in Arkansas 1930–60); style-guide recipe and hexes (limestone `#D8CFBD`, bronze `#7C5A2E`, gold `#D4AF37`) | 24 × 16 m slab; 6.0 m ground storey, 3.25 m floors; setbacks after floors 13 and 15, crown to 58.9 m (~193 ft); 7 front bays with light piers and dark bronze-toned spandrels |
+| `army-navy` | 648 / 900 | 61 KB | 118 m frontage × 49 m | EoA (1933, seven stories, fireproof brick and steel, ~$1.5M; Wikipedia: six stories — conflict); NRHP (105–425 Reserve St); "Army-Navy Hospital tower 1933"; NPS (seen from the West Mountain overlook) | **style and tower form come from the brief, not the research**; 3.6 m floors; 7-storey centre block and end pavilions, 6-storey wings, tower to 41.4 m with a tile pyramid to 47.5 m; cream brick and red tile (no colour source) |
+| `vapors` | 192 / 400 | 21 KB | 48 m frontage × 9.5 m | EoA (315 Park Ave, built 1959, opened 1960; coffee shop, Monte Carlo Room, theater restaurant with retractable stage); the style guide lists club exteriors as unsourced | **the whole exterior is generic**: low concrete front block with a turquoise roof fascia, stone-veneer wall and blade, glazed entrance, screen-block panel, trapezoid porte-cochère, taller showroom block behind. **No signage, lettering or logo** |
+
+**Decisions to know about**
+
+- **Origins.** The tower uses the base centre (requested). The two shelters use the centre of the front post or pillar line, and the rocks use the foot of their front (trail or view) face, all at grade with the front toward glTF +Z. Rocks and shelters keep the 0.5 m below-grade skirt.
+- **Material slots.** The rocks use only `wall` (rock faces, ready for a novaculite texture) and `trim` (shaded undersides). The tower's lattice, deck fascias and posts are `trim`; its core is `wall`. The West Mountain shelter has no `glass`.
+- **Army-Navy.** The research confirms "seven stories (EoA) / six (Wikipedia), brick and steel" and that there is a tower, nothing more. The Spanish Colonial Revival treatment (red tile hips, arched ground floor, arcaded belfry) follows the task brief and should be checked against a photo.
+- **Medical Arts spandrels** are dark bronze-toned so that the bays read as continuous dark strips between light piers (the style guide's "vertical piers as thin light stripes"). The spandrel material is an estimate.
+
+**Readability at 320×240** (street views, `renders/landmarks2-sheet.png`)
+
+**Reads well:**
+- Tower: a tall tapering lattice with a dark core and a glazed deck head.
+- Pagoda: the two flared tiers with upturned corners and a finial.
+- West Mountain shelter: a steep red-brown gable on four stone pillars.
+- Goat Rock: a pale, jagged, pink-flecked fin ridge.
+- Balanced Rock: the boulder on its neck.
+- Medical Arts: the light piers, dark bays and stepped crown.
+- Army-Navy: a wide cream mass with red hips, end pavilions and the central belfry tower.
+- Vapors: a low flat-roofed front with a turquoise fascia and a canopy on thin posts.
+
+**Weaker:**
+- Lattice members are about one pixel wide beyond about 100 m. Past that the tower reads as a dark column with a head.
+- Balanced Rock's base blocks look soft and blobby rather than bedded. The rock is small, so it needs a close camera.
+- The Medical Arts fan relief, grille and door are a few pixels.
+- The Vapors screen-block panel and veneer read only up close. The facade is generic by design.

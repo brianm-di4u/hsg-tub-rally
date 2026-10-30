@@ -1,0 +1,389 @@
+{
+ "id": "west-mountain",
+ "name": "West Mountain Summit",
+ "cup": "ouachita",
+ "note": "Up West Mountain Drive from the Prospect Avenue entrance, past the Row-view overlooks, around the switchback and south-west along the summit ridge to the Trap Mountains / Lake Hamilton overlook, then back down by the Sunset Trail and Mountain Top Trail (footpaths: game course).",
+ "step": 2,
+ "laps": 3,
+ "route": {
+  "profile": "any",
+  "prefer": "West Mountain Drive|Sunset Trail|Mountain Top Trail|Prospect Avenue",
+  "penalty": 4,
+  "via": [
+   {
+    "near": [
+     34.50476,
+     -93.06593
+    ],
+    "on": "Prospect Avenue",
+    "tol": 5
+   },
+   {
+    "near": [
+     34.50944,
+     -93.06139
+    ],
+    "on": "West Mountain Drive",
+    "tol": 10
+   },
+   {
+    "near": [
+     34.51275,
+     -93.05815
+    ],
+    "on": "West Mountain Drive",
+    "tol": 30
+   },
+   {
+    "near": [
+     34.51412,
+     -93.05666
+    ],
+    "on": "West Mountain Drive",
+    "tol": 30
+   },
+   {
+    "near": [
+     34.50873,
+     -93.06756
+    ],
+    "on": "West Mountain Drive",
+    "tol": 30
+   },
+   {
+    "near": [
+     34.50831,
+     -93.06824
+    ],
+    "tol": 5
+   },
+   {
+    "near": [
+     34.50792,
+     -93.07066
+    ],
+    "on": "Sunset Trail",
+    "tol": 5
+   },
+   {
+    "near": [
+     34.50478,
+     -93.06616
+    ],
+    "on": "Mountain Top Trail",
+    "tol": 5
+   },
+   {
+    "near": [
+     34.50476,
+     -93.06593
+    ],
+    "on": "Prospect Avenue",
+    "tol": 5
+   }
+  ],
+  "pins": [],
+  "targetLength": 1000,
+  "minRadius": 17,
+  "gmax": 0.15,
+  "smooth": 45,
+  "ySmooth": 18,
+  "gradeWindow": 150
+ },
+ "polyline": "tracks/west-mountain.route.json",
+ "byName": {
+  "West Mountain Drive": {
+   "width": 12,
+   "surface": "asphalt",
+   "verge": "gravel",
+   "lim": 5,
+   "limType": "auto"
+  },
+  "Sunset Trail": {
+   "width": 11,
+   "surface": "dirt",
+   "verge": "grass",
+   "lim": 5,
+   "limType": "auto"
+  },
+  "Mountain Top Trail": {
+   "width": 11,
+   "surface": "dirt",
+   "verge": "grass",
+   "lim": 5,
+   "limType": "auto"
+  },
+  "Prospect Avenue": {
+   "width": 12,
+   "surface": "asphalt",
+   "verge": "grass",
+   "lim": 5,
+   "limType": "auto"
+  },
+  "*": {
+   "width": 12,
+   "surface": "asphalt",
+   "verge": "gravel",
+   "lim": 5,
+   "limType": "auto"
+  }
+ },
+ "terrain": {
+  "kind": "dem"
+ },
+ "zones": [
+  {
+   "type": "refill",
+   "at": [
+    0.895,
+    0.918
+   ],
+   "rate": 9,
+   "label": "Summit picnic-shelter water barrels (game)"
+  },
+  {
+   "type": "refill",
+   "at": [
+    0.338,
+    0.363
+   ],
+   "d": [
+    1,
+    7
+   ],
+   "rate": 9,
+   "label": "Prospect Avenue entrance buckets (game)"
+  },
+  {
+   "type": "items",
+   "at": [
+    0.05,
+    0.055
+   ],
+   "label": "Summit ridge, past the Lake Hamilton overlook"
+  },
+  {
+   "type": "items",
+   "at": [
+    0.22,
+    0.225
+   ],
+   "label": "Mountain Top Trail"
+  },
+  {
+   "type": "items",
+   "at": [
+    0.45,
+    0.455
+   ],
+   "label": "West Mountain Drive climb"
+  },
+  {
+   "type": "items",
+   "at": [
+    0.83,
+    0.835
+   ],
+   "label": "Summit ridge"
+  },
+  {
+   "type": "judge",
+   "at": [
+    0.6,
+    0.605
+   ],
+   "d": [
+    1,
+    6
+   ],
+   "label": "Judge stand on the climb"
+  }
+ ],
+ "propsByName": [
+  {
+   "on": "West Mountain Drive",
+   "type": "pine",
+   "every": 9,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 2.5,
+   "scale": [
+    0.85,
+    1.3
+   ]
+  },
+  {
+   "on": "West Mountain Drive",
+   "type": "pine",
+   "every": 12,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 4.5,
+   "scale": [
+    0.9,
+    1.4
+   ]
+  },
+  {
+   "on": "West Mountain Drive",
+   "type": "oak",
+   "every": 19,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 3.5,
+   "scale": [
+    0.8,
+    1.2
+   ]
+  },
+  {
+   "on": "Sunset Trail",
+   "type": "pine",
+   "every": 9,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 2.5,
+   "scale": [
+    0.85,
+    1.3
+   ]
+  },
+  {
+   "on": "Sunset Trail",
+   "type": "pine",
+   "every": 12,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 4.5,
+   "scale": [
+    0.9,
+    1.4
+   ]
+  },
+  {
+   "on": "Sunset Trail",
+   "type": "oak",
+   "every": 19,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 3.5,
+   "scale": [
+    0.8,
+    1.2
+   ]
+  },
+  {
+   "on": "Mountain Top Trail",
+   "type": "pine",
+   "every": 9,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 2.5,
+   "scale": [
+    0.85,
+    1.3
+   ]
+  },
+  {
+   "on": "Mountain Top Trail",
+   "type": "pine",
+   "every": 12,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 4.5,
+   "scale": [
+    0.9,
+    1.4
+   ]
+  },
+  {
+   "on": "Mountain Top Trail",
+   "type": "oak",
+   "every": 19,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 3.5,
+   "scale": [
+    0.8,
+    1.2
+   ]
+  },
+  {
+   "on": "West Mountain Drive",
+   "type": "bench",
+   "every": 90,
+   "sides": [
+    1
+   ],
+   "d": 1.5
+  }
+ ],
+ "env": {
+  "palette": "nps-rustic",
+  "sky": [
+   "#6AA6D8",
+   "#E3F0F4"
+  ],
+  "fog": [
+   90,
+   330
+  ],
+  "fogColor": "#CFE0D8",
+  "sun": [
+   0.45,
+   0.78,
+   0.4
+  ],
+  "time": "day",
+  "ridges": [
+   "#8AA3B3",
+   "#5A7A62",
+   "#34503A"
+  ],
+  "wallTex": "rock",
+  "groundTex": "grass",
+  "skyTex": "ridge-day"
+ },
+ "meta": {
+  "credits": "Roads and trails \u00a9 OpenStreetMap contributors (ODbL); elevation USGS 3DEP",
+  "sources": "research/town-content.md \u00a74"
+ },
+ "start": {
+  "at": 0.65
+ },
+ "lapTarget": [
+  42,
+  62
+ ],
+ "minRadiusCheck": 12,
+ "landmarks": [
+  {
+   "id": "shelter",
+   "model": "wm-shelter",
+   "lonlat": [
+    -93.058145,
+    34.512754
+   ],
+   "minGap": 4,
+   "note": "position approximate: the 1924 shelter is not in OSM; placed at the second east-face overlook"
+  }
+ ]
+}

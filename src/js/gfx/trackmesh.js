@@ -74,7 +74,7 @@ export function buildTrackWorld(THREE, track, env = {}) {
       paint.quad(P(c0, c0.wr - 0.6, 0.02), P(c0, c0.wr - 0.4, 0.02), P(c1, c1.wr - 0.4, 0.02), P(c1, c1.wr - 0.6, 0.02), wht);
     }
     // start line: checker band at s≈0
-    if (i === 0) {
+    if (i === 0 && !env.noStartLine) {
       const paint = geoFor('paint', () => worldMat({}), ch);
       const cells = 10;
       for (let q = 0; q < cells; q++) for (let r = 0; r < 2; r++) {
@@ -106,9 +106,11 @@ export function buildTrackWorld(THREE, track, env = {}) {
       }
       // terrain from the edge out to 60 m along the cross-section offsets
       const offs = [0, ...track.xsOff];
+      const reach = a.reachL ? Math.min(side > 0 ? a.reachR[i] : a.reachL[i], side > 0 ? a.reachR[j] : a.reachL[j]) : 60;
       geo = geoFor('terrain', () => worldMat({ map: tex(env.groundTex || 'grass') }), ch);
       for (let m = 0; m < offs.length - 1; m++) {
-        const oA = Math.max(offs[m], 0), oB = offs[m + 1];
+        const oA = Math.max(offs[m], 0), oB = Math.min(offs[m + 1], Math.max(reach, (verge === VERGE.CURB ? 4.6 : 2)));
+        if (oB <= oA + 0.01) break;
         if (w0 + oB <= edge0 + 0.01) continue;
         const dA0 = side * Math.max(w0 + oA, edge0), dB0 = side * (w0 + oB), dA1 = side * Math.max(w1 + oA, edge1), dB1 = side * (w1 + oB);
         const yA0 = verge === VERGE.CURB && Math.abs(dA0) <= edge0 + 0.01 ? track.heightAt(c0, side * w0) + 0.16 : track.heightAt(c0, dA0);
@@ -122,8 +124,8 @@ export function buildTrackWorld(THREE, track, env = {}) {
       }
       // limits: barrier walls (where no building sits right behind) or guard rails
       if (limType === LIMIT.WALL && !env.noWalls) {
-        geo = geoFor('wall', () => worldMat({ map: tex('concrete') }), ch);
-        const h = env.wallH ?? 0.9;
+        geo = geoFor('wall', () => worldMat({ map: tex(env.wallTex || 'concrete') }), ch);
+        const h = env.wallH ?? (env.wallTex === 'rock' ? 3.2 : 0.9);
         const yb0 = track.heightAt(c0, side * lim0) - 0.3, yb1 = track.heightAt(c1, side * lim1) - 0.3;
         const inner0 = side * (lim0 + 0.15), inner1 = side * (lim1 + 0.15), outer0 = side * (lim0 + 0.6), outer1 = side * (lim1 + 0.6);
         ord(PF(c1, inner1, yb1), PF(c0, inner0, yb0), PF(c0, inner0, yb0 + h + 0.3), PF(c1, inner1, yb1 + h + 0.3), wallCol, [[s1 / 3, 0], [s0 / 3, 0], [s0 / 3, 0.4], [s1 / 3, 0.4]]);
@@ -141,9 +143,21 @@ export function buildTrackWorld(THREE, track, env = {}) {
     }
   }
   // --- buildings
+  const NEON = ['#FF4FA3', '#4FE3FF', '#FFE14F', '#7CFF6B', '#FF8A3D'].map(hex);
   for (const b of track.json.buildings || []) {
     const ch = Math.floor(nearestSample(track, b.fp[0][0], b.fp[0][1]) / CHUNK);
     buildBlock(geoFor, ch, b);
+    if (env.neon && b.style !== 'bathhouse') {
+      // a glowing band across the front at shop-sign height (generic colour strips; no lettering or logos)
+      const geo = geoFor('neon', () => worldMat({}), ch);
+      geo.light = null;
+      const fi = b.front ?? 0, A = b.fp[fi], B = b.fp[(fi + 1) % b.fp.length];
+      const len = Math.hypot(B[0] - A[0], B[1] - A[1]);
+      if (len > 4) {
+        const nx = -(B[1] - A[1]) / len * 0.08, nz = (B[0] - A[0]) / len * 0.08, y = b.base + 4.2, col = NEON[Math.floor(hash(Math.round(A[0] * 5 + A[1]), 4) * NEON.length)];
+        geo.quad([A[0] + nx, y, A[1] + nz], [B[0] + nx, y, B[1] + nz], [B[0] + nx, y + 0.45, B[1] + nz], [A[0] + nx, y + 0.45, A[1] + nz], col);
+      }
+    }
   }
   // --- props merged into chunks; billboards collected for instancing
   const boards = {};
@@ -152,6 +166,7 @@ export function buildTrackWorld(THREE, track, env = {}) {
     const sp = track.locate(p.x, p.z, p.s);
     const y = track.heightAt(track.at(sp.s), sp.d) + (Math.abs(sp.d) > track.at(sp.s).wl ? 0 : 0);
     if (kind === 'board') {
+      if ((env.boards ?? 1) < 1 && hash(Math.round(p.x * 7 + p.z * 3), 9) > env.boards) continue; // Low tier thins the billboards
       (boards[p.type] ||= []).push({ x: p.x, y, z: p.z, sc: p.sc || 1, yaw: p.yaw });
     } else {
       const ch = Math.floor(sp.s / step / CHUNK);
@@ -196,9 +211,9 @@ function buildBlock(geoFor, ch, b) {
     const A = fp[e], B = fp[(e + 1) % n];
     const len = Math.hypot(B[0] - A[0], B[1] - A[1]);
     const isFront = e === fi && len > 3;
-    const g = isFront ? front : plain;
-    const uv = isFront ? [[0, 0], [len / 5, 0], [len / 5, b.h / 5], [0, b.h / 5]] : undefined;
-    g.quad([A[0], y0, A[1]], [B[0], y0, B[1]], [B[0], y1, B[1]], [A[0], y1, A[1]], isFront ? (painted ? [1, 1, 1] : mix([1, 1, 1], wallC, 0.35)) : mul(wallC, 0.92), uv);
+    const uv = [[0, 0], [len / 5, 0], [len / 5, b.h / 5], [0, b.h / 5]];
+    const base = painted ? [1, 1, 1] : mix([1, 1, 1], wallC, 0.35);
+    front.quad([A[0], y0, A[1]], [B[0], y0, B[1]], [B[0], y1, B[1]], [A[0], y1, A[1]], isFront ? base : mul(base, 0.78), uv);
   }
   if (style === 'bathhouse' && n === 4) {
     const cx = fp.reduce((s, p) => s + p[0], 0) / 4, cz = fp.reduce((s, p) => s + p[1], 0) / 4;
@@ -246,8 +261,8 @@ function earClip(fp) {
 
 const BOARD = {
   pine: { tex: 'pine', w: 5.5, h: 13, tint: [1, 1, 1], sway: 0.02 },
-  oak: { tex: 'magnolia', w: 7, h: 9, tint: [0.92, 1, 0.85], sway: 0.02 },
-  magnolia: { tex: 'magnolia', w: 4.2, h: 7.5, tint: [1, 1, 1], sway: 0.015 },
+  oak: { tex: 'oak', w: 8, h: 8.5, tint: [1, 1, 1], sway: 0.02 },
+  magnolia: { tex: 'oak', w: 5.2, h: 6.8, tint: [0.62, 0.78, 0.66], sway: 0.015 },
   crowd: { tex: 'crowd', w: 7.5, h: 3.4, tint: [1, 1, 1], sway: 0.05 },
 };
 
@@ -264,8 +279,9 @@ function buildBillboards(THREE, boards) {
     list.forEach((p, i) => {
       pos.set([p.x, p.y - 0.2, p.z], i * 3);
       size.set([B.w * p.sc, B.h * p.sc], i * 2);
-      frame.set([0, 0, 1, 1], i * 4);
-      const v = 0.88 + 0.12 * hash(i, 5);
+      // half the instances mirrored, so rows of identical trees and crowds don't read as stamps
+      frame.set(hash(i, 11) < 0.5 ? [1, 0, 0, 1] : [0, 0, 1, 1], i * 4);
+      const v = 0.82 + 0.18 * hash(i, 5);
       tint.set([B.tint[0] * v, B.tint[1] * v, B.tint[2] * v], i * 3);
     });
     quad.setAttribute('iPos', new THREE.InstancedBufferAttribute(pos, 3));

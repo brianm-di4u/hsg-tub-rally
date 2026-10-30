@@ -93,6 +93,7 @@ export const PROC = {
     for (let i = 0; i < 5; i++) { const y = 6 + i * 9, w = 6 + i * 2.6; g.fillStyle = i % 2 ? '#2F4A2C' : '#24402A'; g.beginPath(); g.moveTo(16, y - 6); g.lineTo(16 + w, y + 9); g.lineTo(16 - w, y + 9); g.closePath(); g.fill(); }
     return c;
   },
+  oak() { return PROC.magnolia(); },
   magnolia() {
     const c = canvas(32, 64), g = c.getContext('2d'), r = makeRng(21);
     g.fillStyle = '#5A3E2A'; g.fillRect(14, 44, 4, 20);

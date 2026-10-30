@@ -82,7 +82,7 @@ function processInPage({ url, it }) {
       }
       g.putImageData(d, 0, 0);
     }
-    return out.toDataURL('image/png');
+    return it.format === 'webp' ? out.toDataURL('image/webp', 0.86) : out.toDataURL('image/png');
   })();
 }
 

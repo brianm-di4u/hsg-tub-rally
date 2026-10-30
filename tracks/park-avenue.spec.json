@@ -1,0 +1,333 @@
+{
+ "id": "park-avenue",
+ "name": "Park Avenue Nights",
+ "cup": "bathhouse",
+ "note": "From the Central/Park/Whittington Y by the Arlington north up Park Avenue past the Velda Rose (218) and the Vapors block (315; true scale), left on Glade Street and Amber Street along the hillside, then Cedar Street back down to the Y.",
+ "step": 2,
+ "laps": 3,
+ "route": {
+  "profile": "road1",
+  "prefer": "Park Avenue|Glade Street|Amber Street|Cedar Street|Whittington Avenue",
+  "via": [
+   {
+    "near": [
+     34.5195,
+     -93.0558
+    ],
+    "on": "Park Avenue"
+   },
+   {
+    "near": [
+     34.5225,
+     -93.0547
+    ],
+    "on": "Park Avenue"
+   },
+   {
+    "near": [
+     34.524,
+     -93.056
+    ],
+    "on": "Amber Street"
+   },
+   {
+    "near": [
+     34.5235,
+     -93.059
+    ],
+    "on": "Amber Street"
+   },
+   {
+    "near": [
+     34.5216,
+     -93.0589
+    ],
+    "on": "Cedar Street"
+   },
+   {
+    "near": [
+     34.5195,
+     -93.0558
+    ],
+    "on": "Park Avenue"
+   }
+  ],
+  "pins": [
+   {
+    "from": [
+     34.52,
+     -93.0557
+    ],
+    "to": [
+     34.522,
+     -93.055
+    ],
+    "label": "Park Avenue past the Velda Rose (218) and the Vapors block (315), true scale"
+   }
+  ],
+  "targetLength": 1000,
+  "minRadius": 15,
+  "gmax": 0.12,
+  "smooth": 12,
+  "ySmooth": 16,
+  "turnRadius": 70
+ },
+ "polyline": "tracks/park-avenue.route.json",
+ "byName": {
+  "Park Avenue": {
+   "width": 17,
+   "surface": "asphalt",
+   "verge": "curb",
+   "lim": 5.5
+  },
+  "Cedar Street": {
+   "width": 12,
+   "surface": "asphalt",
+   "verge": "curb",
+   "lim": 5,
+   "limType": "auto"
+  },
+  "Amber Street": {
+   "width": 12,
+   "surface": "asphalt",
+   "verge": "grass",
+   "lim": 5,
+   "limType": "auto"
+  },
+  "Glade Street": {
+   "width": 12,
+   "surface": "asphalt",
+   "verge": "grass",
+   "lim": 5,
+   "limType": "auto"
+  },
+  "*": {
+   "width": 14,
+   "surface": "asphalt",
+   "verge": "curb",
+   "lim": 5
+  }
+ },
+ "terrain": {
+  "kind": "dem"
+ },
+ "buildings": {
+  "source": "osm",
+  "maxDist": 70,
+  "skipNearAnchors": 24
+ },
+ "zones": [
+  {
+   "type": "crowd",
+   "on": "Park Avenue",
+   "d": [
+    -14,
+    14
+   ],
+   "rate": 0.28,
+   "label": "Park Avenue spectator blasters"
+  },
+  {
+   "type": "refill",
+   "at": [
+    0.808,
+    0.842
+   ],
+   "d": [
+    -7.5,
+    -1
+   ],
+   "rate": 9,
+   "label": "Fountain at the Y"
+  }
+ ],
+ "propsByName": [
+  {
+   "on": "Park Avenue",
+   "type": "lamp",
+   "every": 14,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 1.2
+  },
+  {
+   "on": "Park Avenue",
+   "type": "crowd",
+   "every": 9,
+   "sides": [
+    1
+   ],
+   "d": 3.2
+  },
+  {
+   "on": "Park Avenue",
+   "type": "crowd",
+   "every": 21,
+   "sides": [
+    -1
+   ],
+   "d": 2.2
+  },
+  {
+   "on": "Park Avenue",
+   "type": "magnolia",
+   "every": 12,
+   "sides": [
+    -1
+   ],
+   "d": 4.5,
+   "scale": [
+    0.9,
+    1.1
+   ]
+  },
+  {
+   "on": "Glade Street",
+   "type": "pine",
+   "every": 9,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 6,
+   "scale": [
+    0.9,
+    1.3
+   ]
+  },
+  {
+   "on": "Amber Street",
+   "type": "pine",
+   "every": 11,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 7,
+   "scale": [
+    0.9,
+    1.35
+   ]
+  },
+  {
+   "on": "Amber Street",
+   "type": "oak",
+   "every": 17,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 15,
+   "scale": [
+    0.9,
+    1.3
+   ]
+  },
+  {
+   "on": "Amber Street",
+   "type": "lamp",
+   "every": 30,
+   "sides": [
+    1
+   ],
+   "d": 1
+  },
+  {
+   "on": "Cedar Street",
+   "type": "oak",
+   "every": 12,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 6,
+   "scale": [
+    0.9,
+    1.25
+   ]
+  },
+  {
+   "on": "Cedar Street",
+   "type": "pine",
+   "every": 16,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 15,
+   "scale": [
+    0.9,
+    1.3
+   ]
+  },
+  {
+   "on": "Cedar Street",
+   "type": "lamp",
+   "every": 26,
+   "sides": [
+    1
+   ],
+   "d": 1
+  }
+ ],
+ "env": {
+  "palette": "deco-neon",
+  "time": "dusk",
+  "sky": [
+   "#2B2350",
+   "#E8875A"
+  ],
+  "fog": [
+   90,
+   330
+  ],
+  "fogColor": "#6B4E6E",
+  "sun": [
+   -0.55,
+   0.28,
+   0.35
+  ],
+  "ridges": [
+   "#4A3A62",
+   "#33304F",
+   "#232540"
+  ],
+  "neon": true,
+  "skyTex": "ridge-dusk",
+  "music": "swing",
+  "amb": 0.42,
+  "diff": 0.45
+ },
+ "meta": {
+  "credits": "Streets \u00a9 OpenStreetMap contributors (ODbL); elevation USGS 3DEP",
+  "sources": "research/town-content.md \u00a74; research/bathhouse-row-layout.md \u00a77; gangster-era-and-gambling.md (Vapors)"
+ },
+ "start": {
+  "at": 0.14
+ },
+ "lapTarget": [
+  42,
+  62
+ ],
+ "minRadiusCheck": 10,
+ "landmarks": [
+  {
+   "id": "vapors",
+   "model": "vapors",
+   "lonlat": [
+    -93.05451,
+    34.52153
+   ],
+   "street": "Park Avenue",
+   "note": "approximate position (not geocoded)"
+  },
+  {
+   "id": "arlington",
+   "model": "arlington",
+   "anchor": "arlington",
+   "minGap": 20
+  }
+ ]
+}

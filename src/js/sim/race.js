@@ -78,7 +78,8 @@ export function stepRace(race, track, inputs, dt = DT) {
       race.time = 0;
       race.karts.forEach((k, i) => {
         const t0 = race.pushAtGo[i];
-        if (t0 != null && t0 > -0.45) { k.boostT = 0.9; k.boostKind = 'start'; k.events.push({ type: 'boost', kind: 'start' }); }
+        if (k.whim) { k.boostT = 1.4; k.boostKind = 'whim'; k.events.push({ type: 'boost', kind: 'whim' }); }
+        else if (t0 != null && t0 > -0.45) { k.boostT = 0.9; k.boostKind = 'start'; k.events.push({ type: 'boost', kind: 'start' }); }
         else if (t0 != null && t0 < -1.6) { k.state = 'swap'; k.stateT = 0.7; }
         else if (!k.human && race.drivers[i] && race.rng.ai.next() < 0.45 * race.drivers[i].cls.aggro) { k.boostT = 0.7; k.boostKind = 'start'; }
       });
@@ -107,10 +108,16 @@ export function stepRace(race, track, inputs, dt = DT) {
     const prevS = k.s;
     stepKart(k, inp, track, dt, { capMul: drv ? capMul : 1 });
     k.lastInput = inp;
-    updateLaps(race, track, k, prevS);
+    if (!race.stepExtra) updateLaps(race, track, k, prevS);
   });
   collideKarts(race.karts, dt);
   if (!race.noItems) stepItems(race, track, inputs, dt);
+  if (race.stepExtra) {
+    // modes with their own rules (Rules of the Row): standings by distance, the mode decides when it ends
+    race.stepExtra(race, track, inputs, dt);
+    race.karts.slice().sort((a, b) => (b.finished ? 1e6 - b.finishT : b.rowDist || 0) - (a.finished ? 1e6 - a.finishT : a.rowDist || 0)).forEach((k, p) => { k.place = p + 1; });
+    return;
+  }
   // standings
   const ranked = race.karts.slice().sort((a, b) => {
     if (a.finished && b.finished) return a.finishT - b.finishT;

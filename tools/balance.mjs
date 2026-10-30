@@ -15,7 +15,10 @@ const arg = (k, d) => { const i = process.argv.indexOf('--' + k); return i >= 0 
 const T = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools', 'balance-targets.json'), 'utf8'));
 const trackArg = arg('track', 'all'), cls = arg('class', 'soak'), N = +arg('races', 40), items = arg('items', 'on') !== 'off';
 const dir = path.join(ROOT, 'data', 'tracks');
-const ids = trackArg === 'all' ? fs.readdirSync(dir).filter((f) => f.endsWith('.json') && f !== 'graybox.json').map((f) => f.slice(0, -5)) : [trackArg];
+const isArena = (id) => { const f = path.join(ROOT, 'tracks', id + '.spec.json'); return fs.existsSync(f) && JSON.parse(fs.readFileSync(f, 'utf8')).arena; };
+const ids = trackArg === 'all' ? fs.readdirSync(dir).filter((f) => f.endsWith('.json') && f !== 'graybox.json').map((f) => f.slice(0, -5)).filter((id) => !isArena(id)) : [trackArg];
+const allWins = { traditional: 0, modified: 0, stock: 0 };
+let allRaces = 0;
 const inR = (v, [a, b]) => v >= a && v <= b;
 let fails = 0;
 const report = {};
@@ -39,6 +42,7 @@ for (const id of ids) {
     const res = race.results;
     spreads.push(res[res.length - 1].time - res[0].time);
     wins[TEAMS.find((t) => t.id === res[0].team).div]++;
+    allWins[TEAMS.find((t) => t.id === res[0].team).div]++; allRaces++;
     for (const k of race.karts) {
       laps.push(...k.lapTimes.slice(1));
       if (!k.finished) continue;
@@ -59,7 +63,8 @@ for (const id of ids) {
     ['finishers under 10 gal', under10 / Math.max(1, finishers), T.under10Share],
     ['clean finishes', mean(clean), T.cleanShare],
     ...(items ? [['hits per race', mean(hits), T.hitsPerRace], ['fumbles per kart', mean(fumbles), T.fumblesPerKart]] : []),
-    ...Object.entries(wins).map(([d, w]) => [`win share ${d}`, w / N, T.divisionWinShare]),
+    // with several courses, division balance is judged on the total (below); one course alone is too noisy
+    ...Object.entries(wins).map(([d, w]) => [`win share ${d}`, w / N, ids.length > 1 ? [0, 1] : T.divisionWinShare]),
   ];
   console.log(`\n${id} · ${cls} · ${N} races · items ${items ? 'on' : 'off'}`);
   for (const [name, v, range, extra] of rows) {
@@ -69,6 +74,11 @@ for (const id of ids) {
   }
   console.log(`  · walls ${walls}, falls ${falls}, item uses ${JSON.stringify(uses)}`);
   report[id] = Object.fromEntries(rows.map(([n, v]) => [n, +v.toFixed(3)]));
+}
+if (ids.length > 1) {
+  console.log(`
+all courses · ${allRaces} races`);
+  for (const [d, w] of Object.entries(allWins)) { const v = w / allRaces, ok = inR(v, T.divisionWinShare); if (!ok) fails++; console.log(`  ${ok ? '✓' : '✗'} win share ${d.padEnd(12)} ${v.toFixed(3)}  target ${T.divisionWinShare.join('–')}`); }
 }
 fs.mkdirSync(path.join(ROOT, 'tools', 'out'), { recursive: true });
 fs.writeFileSync(path.join(ROOT, 'tools', 'out', 'balance.json'), JSON.stringify({ cls, N, items, report }, null, 1));

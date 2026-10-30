@@ -1,7 +1,7 @@
 // N64-style renderer: the WebGL canvas backing store is a low resolution (240 lines in Authentic mode) and CSS
 // stretches it to the window with the browser's bilinear filter, which gives the soft analogue-video look for
 // free. Colours stay in gamma space (no colour management, no tone mapping).
-import { initMaterials, setFog, setSun, setTime } from './n64mat.js';
+import { initMaterials, setFog, setSun, setTime, setLightTint } from './n64mat.js';
 
 export const RES_MODES = { authentic: 240, crisp: 480, native: 0 };
 
@@ -48,6 +48,7 @@ export class Renderer {
     const fog = env.fog || [90, 330];
     setFog(fogC, fog[0], fog[1]);
     if (env.sun) setSun(env.sun, env.amb, env.diff);
+    setLightTint(env.lightTint || (env.time === 'dusk' ? [1.0, 0.8, 0.86] : env.time === 'sunset' ? [1.0, 0.86, 0.78] : [1, 1, 1]));
     this.gl.setClearColor(new THREE.Color(fogC), 1);
     this.camera.far = fog[1] + 60;
     this.camera.updateProjectionMatrix();

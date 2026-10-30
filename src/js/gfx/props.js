@@ -45,6 +45,12 @@ export function buildProp(type, g, p, yaw, sc = 1) {
       for (const dx of [-1.4, 1.4]) g.cyl(T(dx, 0, 0.9), 0.06, 0.06, 2.5, 4, STEEL);
       break;
     }
+    case 'jug': { // the plaza's thermal-water jug fountain: a stone basin and a spout column
+      g.cyl([x, y, z], 3.2 * sc, 3.4 * sc, 0.7 * sc, 10, hex('#B9AE9A'), { top: hex('#5FB8D8') });
+      g.cyl([x, y + 0.7 * sc, z], 0.6 * sc, 0.5 * sc, 1.9 * sc, 8, hex('#9A968C'));
+      for (let i = 0; i < 4; i++) { const a = (i / 4) * Math.PI * 2; g.box([x + Math.sin(a) * 0.55 * sc - 0.08, y + 1.9 * sc, z + Math.cos(a) * 0.55 * sc - 0.08], [x + Math.sin(a) * 0.85 * sc + 0.08, y + 2.05 * sc, z + Math.cos(a) * 0.85 * sc + 0.08], hex('#8A6A3A')); }
+      break;
+    }
     case 'eagle': { // eagle on a limestone pylon (Row main entrance)
       g.obox(T(0, 1.1, 0), [0.45, 1.1, 0.45], hex('#D9D2C2'), yaw);
       g.obox(T(0, 2.45, 0), [0.6, 0.25, 0.25], hex('#8A6A3A'), yaw);

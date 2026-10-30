@@ -1,0 +1,842 @@
+{
+ "id": "goat-rock-gulpha",
+ "name": "Goat Rock & Gulpha Gorge",
+ "cup": "ouachita",
+ "note": "Compressed real loop with footpath links (game course): North Mountain Drive and the east side of the North Mountain Loop, the Goat Rock Trail past the Goat Rock overlook, the Gulpha Gorge Trail down to a ford of Gulpha Creek, the Gulpha Gorge Campground lanes, Gorge Road over Gulpha Creek again, then back up by East Grand Avenue, Coy Street, the Oertel and Short Cut trails and the Hot Springs Mountain Trail to the Pagoda.",
+ "step": 2,
+ "laps": 3,
+ "route": {
+  "profile": "any",
+  "prefer": "North Mountain|Goat Rock Trail|Gulpha Gorge Trail|Gorge Road|Oertel Trail|Short Cut Trail|^$",
+  "penalty": 2,
+  "via": [
+   {
+    "near": [
+     34.519563,
+     -93.042895
+    ],
+    "on": "North Mountain Drive",
+    "tol": 5
+   },
+   {
+    "near": [
+     34.52738,
+     -93.04038
+    ],
+    "on": "North Mountain Loop",
+    "tol": 10,
+    "profile": "road1"
+   },
+   {
+    "near": [
+     34.52693,
+     -93.0391
+    ],
+    "tol": 10
+   },
+   {
+    "near": [
+     34.52558,
+     -93.03646
+    ],
+    "tol": 10
+   },
+   {
+    "near": [
+     34.52235,
+     -93.03497
+    ],
+    "tol": 10,
+    "profile": "road1"
+   },
+   {
+    "near": [
+     34.51549,
+     -93.04113
+    ],
+    "tol": 10,
+    "profile": "road1"
+   },
+   {
+    "near": [
+     34.5147,
+     -93.049
+    ],
+    "on": "Short Cut Trail"
+   },
+   {
+    "near": [
+     34.517503,
+     -93.045024
+    ],
+    "on": "North Mountain Drive",
+    "tol": 5
+   },
+   {
+    "near": [
+     34.519563,
+     -93.042895
+    ],
+    "on": "North Mountain Drive",
+    "tol": 5,
+    "profile": "road1"
+   }
+  ],
+  "pins": [
+   {
+    "from": [
+     34.518687,
+     -93.043894
+    ],
+    "to": [
+     34.519563,
+     -93.042895
+    ],
+    "label": "North Mountain Drive start straight (true scale)"
+   }
+  ],
+  "targetLength": 1050,
+  "minRadius": 17,
+  "gmax": 0.14,
+  "smooth": 80,
+  "ySmooth": 18,
+  "gradeWindow": 300
+ },
+ "polyline": "tracks/goat-rock-gulpha.route.json",
+ "byName": {
+  "North Mountain Drive": {
+   "width": 12,
+   "surface": "asphalt",
+   "verge": "gravel",
+   "lim": 5,
+   "limType": "auto"
+  },
+  "North Mountain Loop": {
+   "width": 12,
+   "surface": "asphalt",
+   "verge": "gravel",
+   "lim": 5,
+   "limType": "auto"
+  },
+  "residential": {
+   "width": 12,
+   "surface": "asphalt",
+   "verge": "gravel",
+   "lim": 5,
+   "limType": "auto"
+  },
+  "Gorge Road": {
+   "width": 12,
+   "surface": "asphalt",
+   "verge": "grass",
+   "lim": 5,
+   "limType": "auto"
+  },
+  "East Grand Avenue": {
+   "width": 14,
+   "surface": "asphalt",
+   "verge": "curb",
+   "lim": 5,
+   "limType": "auto"
+  },
+  "motorway_link": {
+   "width": 12,
+   "surface": "asphalt",
+   "verge": "curb",
+   "lim": 5,
+   "limType": "auto"
+  },
+  "Coy Street": {
+   "width": 11,
+   "surface": "asphalt",
+   "verge": "grass",
+   "lim": 5,
+   "limType": "auto"
+  },
+  "Goat Rock Trail": {
+   "width": 11,
+   "surface": "dirt",
+   "verge": "grass",
+   "lim": 5,
+   "limType": "auto"
+  },
+  "Gulpha Gorge Trail": {
+   "width": 11,
+   "surface": "dirt",
+   "verge": "grass",
+   "lim": 5,
+   "limType": "auto"
+  },
+  "Oertel Trail": {
+   "width": 11,
+   "surface": "dirt",
+   "verge": "grass",
+   "lim": 5,
+   "limType": "auto"
+  },
+  "Short Cut Trail": {
+   "width": 11,
+   "surface": "dirt",
+   "verge": "grass",
+   "lim": 5,
+   "limType": "auto"
+  },
+  "Hot Springs Mountain Trail": {
+   "width": 11,
+   "surface": "dirt",
+   "verge": "grass",
+   "lim": 5,
+   "limType": "auto"
+  },
+  "footway": {
+   "width": 11,
+   "surface": "dirt",
+   "verge": "grass",
+   "lim": 5,
+   "limType": "auto"
+  },
+  "*": {
+   "width": 12,
+   "surface": "asphalt",
+   "verge": "gravel",
+   "lim": 5,
+   "limType": "auto"
+  }
+ },
+ "terrain": {
+  "kind": "dem"
+ },
+ "zones": [
+  {
+   "type": "ford",
+   "at": [
+    0.393,
+    0.409
+   ],
+   "rate": 9,
+   "label": "Gulpha Creek ford on the Gulpha Gorge Trail"
+  },
+  {
+   "type": "crowd",
+   "at": [
+    0.41,
+    0.445
+   ],
+   "d": [
+    -12,
+    12
+   ],
+   "rate": 0.4,
+   "label": "Campers with water blasters (game)"
+  },
+  {
+   "type": "ford",
+   "at": [
+    0.443,
+    0.459
+   ],
+   "rate": 9,
+   "label": "Gulpha Creek at the Gorge Road bridge (a bridge in real life; ford is game)"
+  },
+  {
+   "type": "items",
+   "at": [
+    0.06,
+    0.065
+   ],
+   "label": "North Mountain Drive"
+  },
+  {
+   "type": "items",
+   "at": [
+    0.24,
+    0.245
+   ],
+   "label": "Goat Rock Trail"
+  },
+  {
+   "type": "items",
+   "at": [
+    0.53,
+    0.535
+   ],
+   "label": "East Grand Avenue"
+  },
+  {
+   "type": "items",
+   "at": [
+    0.72,
+    0.725
+   ],
+   "label": "Oertel Trail"
+  },
+  {
+   "type": "judge",
+   "at": [
+    0.93,
+    0.935
+   ],
+   "d": [
+    1,
+    6
+   ],
+   "label": "Judge stand on North Mountain Drive"
+  }
+ ],
+ "propsByName": [
+  {
+   "on": "North Mountain Drive",
+   "type": "pine",
+   "every": 9,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 2.5,
+   "scale": [
+    0.85,
+    1.3
+   ]
+  },
+  {
+   "on": "North Mountain Drive",
+   "type": "pine",
+   "every": 12,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 5,
+   "scale": [
+    0.9,
+    1.4
+   ]
+  },
+  {
+   "on": "North Mountain Drive",
+   "type": "oak",
+   "every": 17,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 3.5,
+   "scale": [
+    0.8,
+    1.2
+   ]
+  },
+  {
+   "on": "North Mountain Loop",
+   "type": "pine",
+   "every": 9,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 2.5,
+   "scale": [
+    0.85,
+    1.3
+   ]
+  },
+  {
+   "on": "North Mountain Loop",
+   "type": "pine",
+   "every": 12,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 5,
+   "scale": [
+    0.9,
+    1.4
+   ]
+  },
+  {
+   "on": "North Mountain Loop",
+   "type": "oak",
+   "every": 17,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 3.5,
+   "scale": [
+    0.8,
+    1.2
+   ]
+  },
+  {
+   "on": "residential",
+   "type": "pine",
+   "every": 9,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 2.5,
+   "scale": [
+    0.85,
+    1.3
+   ]
+  },
+  {
+   "on": "residential",
+   "type": "pine",
+   "every": 12,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 5,
+   "scale": [
+    0.9,
+    1.4
+   ]
+  },
+  {
+   "on": "residential",
+   "type": "oak",
+   "every": 17,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 3.5,
+   "scale": [
+    0.8,
+    1.2
+   ]
+  },
+  {
+   "on": "Goat Rock Trail",
+   "type": "pine",
+   "every": 9,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 2.5,
+   "scale": [
+    0.85,
+    1.3
+   ]
+  },
+  {
+   "on": "Goat Rock Trail",
+   "type": "pine",
+   "every": 12,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 5,
+   "scale": [
+    0.9,
+    1.4
+   ]
+  },
+  {
+   "on": "Goat Rock Trail",
+   "type": "oak",
+   "every": 17,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 3.5,
+   "scale": [
+    0.8,
+    1.2
+   ]
+  },
+  {
+   "on": "Gulpha Gorge Trail",
+   "type": "pine",
+   "every": 9,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 2.5,
+   "scale": [
+    0.85,
+    1.3
+   ]
+  },
+  {
+   "on": "Gulpha Gorge Trail",
+   "type": "pine",
+   "every": 12,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 5,
+   "scale": [
+    0.9,
+    1.4
+   ]
+  },
+  {
+   "on": "Gulpha Gorge Trail",
+   "type": "oak",
+   "every": 17,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 3.5,
+   "scale": [
+    0.8,
+    1.2
+   ]
+  },
+  {
+   "on": "Gorge Road",
+   "type": "pine",
+   "every": 9,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 2.5,
+   "scale": [
+    0.85,
+    1.3
+   ]
+  },
+  {
+   "on": "Gorge Road",
+   "type": "pine",
+   "every": 12,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 5,
+   "scale": [
+    0.9,
+    1.4
+   ]
+  },
+  {
+   "on": "Gorge Road",
+   "type": "oak",
+   "every": 17,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 3.5,
+   "scale": [
+    0.8,
+    1.2
+   ]
+  },
+  {
+   "on": "Oertel Trail",
+   "type": "pine",
+   "every": 9,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 2.5,
+   "scale": [
+    0.85,
+    1.3
+   ]
+  },
+  {
+   "on": "Oertel Trail",
+   "type": "pine",
+   "every": 12,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 5,
+   "scale": [
+    0.9,
+    1.4
+   ]
+  },
+  {
+   "on": "Oertel Trail",
+   "type": "oak",
+   "every": 17,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 3.5,
+   "scale": [
+    0.8,
+    1.2
+   ]
+  },
+  {
+   "on": "Short Cut Trail",
+   "type": "pine",
+   "every": 9,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 2.5,
+   "scale": [
+    0.85,
+    1.3
+   ]
+  },
+  {
+   "on": "Short Cut Trail",
+   "type": "pine",
+   "every": 12,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 5,
+   "scale": [
+    0.9,
+    1.4
+   ]
+  },
+  {
+   "on": "Short Cut Trail",
+   "type": "oak",
+   "every": 17,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 3.5,
+   "scale": [
+    0.8,
+    1.2
+   ]
+  },
+  {
+   "on": "Hot Springs Mountain Trail",
+   "type": "pine",
+   "every": 9,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 2.5,
+   "scale": [
+    0.85,
+    1.3
+   ]
+  },
+  {
+   "on": "Hot Springs Mountain Trail",
+   "type": "pine",
+   "every": 12,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 5,
+   "scale": [
+    0.9,
+    1.4
+   ]
+  },
+  {
+   "on": "Hot Springs Mountain Trail",
+   "type": "oak",
+   "every": 17,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 3.5,
+   "scale": [
+    0.8,
+    1.2
+   ]
+  },
+  {
+   "on": "footway",
+   "type": "pine",
+   "every": 9,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 2.5,
+   "scale": [
+    0.85,
+    1.3
+   ]
+  },
+  {
+   "on": "footway",
+   "type": "pine",
+   "every": 12,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 5,
+   "scale": [
+    0.9,
+    1.4
+   ]
+  },
+  {
+   "on": "footway",
+   "type": "oak",
+   "every": 17,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 3.5,
+   "scale": [
+    0.8,
+    1.2
+   ]
+  },
+  {
+   "on": "Coy Street",
+   "type": "pine",
+   "every": 9,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 2.5,
+   "scale": [
+    0.85,
+    1.3
+   ]
+  },
+  {
+   "on": "Coy Street",
+   "type": "pine",
+   "every": 12,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 5,
+   "scale": [
+    0.9,
+    1.4
+   ]
+  },
+  {
+   "on": "Coy Street",
+   "type": "oak",
+   "every": 17,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 3.5,
+   "scale": [
+    0.8,
+    1.2
+   ]
+  },
+  {
+   "on": "East Grand Avenue",
+   "type": "lamp",
+   "every": 30,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 1.2
+  },
+  {
+   "on": "East Grand Avenue",
+   "type": "oak",
+   "every": 20,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 6,
+   "scale": [
+    0.8,
+    1.1
+   ]
+  },
+  {
+   "on": "residential",
+   "type": "bench",
+   "every": 40,
+   "sides": [
+    1
+   ],
+   "d": 1.5
+  }
+ ],
+ "env": {
+  "palette": "ouachita-forest",
+  "time": "day",
+  "sky": [
+   "#6FA8DC",
+   "#DDEFF5"
+  ],
+  "fog": [
+   85,
+   310
+  ],
+  "fogColor": "#C6DCCF",
+  "sun": [
+   0.35,
+   0.8,
+   0.48
+  ],
+  "ridges": [
+   "#7C97A6",
+   "#4F6E58",
+   "#2F4A2C"
+  ],
+  "skyTex": "ridge-day",
+  "wallTex": "rock",
+  "groundTex": "forest-floor"
+ },
+ "meta": {
+  "credits": "Roads and trails \u00a9 OpenStreetMap contributors (ODbL); elevation USGS 3DEP",
+  "sources": "research/town-content.md \u00a74"
+ },
+ "start": {
+  "at": 0
+ },
+ "lapTarget": [
+  42,
+  62
+ ],
+ "minRadiusCheck": 12,
+ "landmarks": [
+  {
+   "id": "goat-rock",
+   "model": "goat-rock",
+   "anchor": "goat-rock-overlook",
+   "street": "Goat Rock Trail",
+   "minGap": 4
+  },
+  {
+   "id": "pagoda",
+   "model": "pagoda",
+   "anchor": "pagoda",
+   "minGap": 4
+  },
+  {
+   "id": "tower",
+   "model": "hs-tower",
+   "anchor": "hot-springs-mountain-tower",
+   "minGap": 8
+  }
+ ]
+}

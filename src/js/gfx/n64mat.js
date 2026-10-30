@@ -9,7 +9,7 @@ const T = () => window.THREE;
 
 export const FOG = { color: [0.79, 0.87, 0.91], near: 90, far: 330 };
 export const SUN = { dir: [0.4, 0.8, 0.3], amb: 0.55, diff: 0.6 };
-const shared = { uFogColor: null, uFogNear: null, uFogFar: null, uSun: null, uAmb: null, uDiff: null, uTime: null };
+const shared = { uFogColor: null, uFogNear: null, uFogFar: null, uSun: null, uAmb: null, uDiff: null, uTime: null, uLightTint: null };
 
 export function initMaterials() {
   const THREE = T();
@@ -21,7 +21,9 @@ export function initMaterials() {
   shared.uAmb = { value: SUN.amb };
   shared.uDiff = { value: SUN.diff };
   shared.uTime = { value: 0 };
+  shared.uLightTint = { value: new THREE.Color(1, 1, 1) };
 }
+export function setLightTint(rgb) { if (shared.uLightTint) shared.uLightTint.value.setRGB(rgb[0], rgb[1], rgb[2]); }
 export function setFog(color, near, far) {
   shared.uFogColor.value.set(color);
   shared.uFogNear.value = near;
@@ -54,7 +56,7 @@ function base(opts, vertMain, extraV = '', extraUniforms = {}) {
     map: { value: opts.map || null }, uAlphaTest: { value: opts.alphaTest || 0 },
     uTint: { value: new THREE.Color(opts.tint || '#ffffff') }, uBright: { value: opts.bright ?? 1 }, uAlpha: { value: opts.alpha ?? 1 },
     uFogColor: shared.uFogColor, uFogNear: shared.uFogNear, uFogFar: shared.uFogFar,
-    uSun: shared.uSun, uAmb: shared.uAmb, uDiff: shared.uDiff, uTime: shared.uTime, ...extraUniforms,
+    uSun: shared.uSun, uAmb: shared.uAmb, uDiff: shared.uDiff, uTime: shared.uTime, uLightTint: shared.uLightTint, ...extraUniforms,
   };
   const vertexShader = `
     attribute vec3 color;
@@ -66,11 +68,11 @@ function base(opts, vertMain, extraV = '', extraUniforms = {}) {
       ${vertMain}
     }`;
   const fragmentShader = `
-    uniform sampler2D map; uniform float uAlphaTest; uniform vec3 uTint; uniform float uBright; uniform float uAlpha;
+    uniform sampler2D map; uniform float uAlphaTest; uniform vec3 uTint; uniform float uBright; uniform float uAlpha; uniform vec3 uLightTint;
     varying vec3 vColor; varying vec2 vUv;
     ${FOG_F}
     void main() {
-      vec4 c = vec4(vColor * uTint * uBright, 1.0);
+      vec4 c = vec4(vColor * uTint * uBright * uLightTint, 1.0);
       #ifdef USE_MAP
         vec4 t = texture2D(map, vUv);
         c *= t;
@@ -117,7 +119,7 @@ export function partMat(opts = {}) {
     mat4 pm = uParts[int(aPart + 0.5)];
     vec4 wp = modelMatrix * pm * vec4(position, 1.0);
     vec3 n = normalize(mat3(modelMatrix) * mat3(pm) * normal);
-    vColor = color * lightOf(n) + uFlash; vUv = uv;
+    vColor = color * (lightOf(n) * 0.8 + 0.28) + uFlash; vUv = uv;
     vec4 mv = viewMatrix * wp;
     ${FOG_V_MAIN}
     gl_Position = projectionMatrix * mv;`, `${LIGHT_V}
@@ -138,9 +140,12 @@ export function billboardMat(opts = {}) {
     vColor = iTint; vUv = vec2(mix(iFrame.x, iFrame.z, uv.x), mix(iFrame.y, iFrame.w, uv.y));
     vec4 mv = viewMatrix * vec4(wp, 1.0);
     ${FOG_V_MAIN}
+    vNear = clamp((-(viewMatrix * vec4(iPos, 1.0)).z - 5.0) / 4.0, 0.0, 1.0); // per instance, so a near tree vanishes whole
     gl_Position = projectionMatrix * mv;`, `
     attribute vec3 iPos; attribute vec2 iSize; attribute vec4 iFrame; attribute vec3 iTint;
-    uniform float uSway;`, { uSway: { value: opts.sway ?? 0 } });
+    uniform float uSway; varying float vNear;`, { uSway: { value: opts.sway ?? 0 } });
+  m.fragmentShader = m.fragmentShader.replace('varying vec3 vColor; varying vec2 vUv;', 'varying vec3 vColor; varying vec2 vUv; varying float vNear;')
+    .replace('#ifdef ALPHA_TEST', 'if (vNear < 0.5) discard;\n      #ifdef ALPHA_TEST');
   return m;
 }
 

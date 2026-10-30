@@ -1,0 +1,524 @@
+{
+ "id": "bridge-street",
+ "name": "Bridge Street Bash",
+ "cup": "bathhouse",
+ "note": "Central Avenue south from Reserve Street past Hill Wheatley Plaza (the tubs are judged here), Bridge Street (famously the shortest street; true scale), Malvern Avenue toward the Pleasant Street district, Creek Street, Broadway Terrace past the Hot Springs Creek outfall, Market Street back across Central, Quapaw and Prospect Avenues, then Exchange Street and Interior Court back to Central.",
+ "step": 2,
+ "laps": 3,
+ "route": {
+  "profile": "road1",
+  "prefer": "Central Avenue|Bridge Street|Malvern Avenue|Creek Street|Broadway Terrace|Market Street|Quapaw Avenue|Prospect Avenue|Exchange Street|Interior Court",
+  "via": [
+   {
+    "near": [
+     34.5113,
+     -93.05402
+    ],
+    "on": "Central Avenue"
+   },
+   {
+    "near": [
+     34.5095,
+     -93.05403
+    ],
+    "on": "Central Avenue"
+   },
+   {
+    "near": [
+     34.509453,
+     -93.053439
+    ],
+    "on": "Bridge Street"
+   },
+   {
+    "near": [
+     34.50732,
+     -93.05044
+    ],
+    "on": "Malvern Avenue"
+   },
+   {
+    "near": [
+     34.507,
+     -93.0508
+    ],
+    "on": "Creek Street"
+   },
+   {
+    "near": [
+     34.50733,
+     -93.05191
+    ],
+    "on": "Broadway Terrace"
+   },
+   {
+    "near": [
+     34.5076,
+     -93.0538
+    ],
+    "on": "Market Street"
+   },
+   {
+    "near": [
+     34.50795,
+     -93.0556
+    ],
+    "on": "Market Street"
+   },
+   {
+    "near": [
+     34.5095,
+     -93.0565
+    ],
+    "on": "Quapaw Avenue"
+   },
+   {
+    "near": [
+     34.5104,
+     -93.055
+    ],
+    "on": "Prospect Avenue"
+   },
+   {
+    "near": [
+     34.511,
+     -93.05487
+    ],
+    "on": "Exchange Street"
+   },
+   {
+    "near": [
+     34.51163,
+     -93.0547
+    ],
+    "on": "Interior Court"
+   },
+   {
+    "near": [
+     34.5113,
+     -93.05402
+    ],
+    "on": "Central Avenue"
+   }
+  ],
+  "pins": [
+   {
+    "from": [
+     34.51162,
+     -93.05402
+    ],
+    "to": [
+     34.5104,
+     -93.05403
+    ],
+    "label": "Central Avenue from Reserve/Interior Court past Hill Wheatley Plaza (true scale; start straight)"
+   },
+   {
+    "from": [
+     34.509445,
+     -93.054034
+    ],
+    "to": [
+     34.509453,
+     -93.053439
+    ],
+    "label": "Bridge Street, Central to Malvern (true scale)"
+   },
+   {
+    "from": [
+     34.50732,
+     -93.05044
+    ],
+    "to": [
+     34.50673,
+     -93.05106
+    ],
+    "label": "Creek Street, Malvern to Broadway Terrace (true scale)"
+   },
+   {
+    "from": [
+     34.50737,
+     -93.05198
+    ],
+    "to": [
+     34.50752,
+     -93.05336
+    ],
+    "label": "Market Street around the Transportation Depot (true scale)"
+   }
+  ],
+  "targetLength": 1020,
+  "minRadius": 17,
+  "gmax": 0.12,
+  "smooth": 10,
+  "ySmooth": 14
+ },
+ "polyline": "tracks/bridge-street.route.json",
+ "byName": {
+  "Central Avenue": {
+   "width": 18,
+   "surface": "asphalt",
+   "verge": "curb",
+   "lim": 5
+  },
+  "Bridge Street": {
+   "width": 15,
+   "surface": "asphalt",
+   "verge": "curb",
+   "lim": 5
+  },
+  "Malvern Avenue": {
+   "width": 15,
+   "surface": "asphalt",
+   "verge": "curb",
+   "lim": 5
+  },
+  "Creek Street": {
+   "width": 14,
+   "surface": "asphalt",
+   "verge": "curb",
+   "lim": 5
+  },
+  "Exchange Street": {
+   "width": 13,
+   "surface": "asphalt",
+   "verge": "curb",
+   "lim": 5
+  },
+  "Interior Court": {
+   "width": 13,
+   "surface": "asphalt",
+   "verge": "curb",
+   "lim": 5
+  },
+  "Prospect Avenue": {
+   "width": 13,
+   "surface": "asphalt",
+   "verge": "curb",
+   "lim": 5
+  },
+  "*": {
+   "width": 12,
+   "surface": "asphalt",
+   "verge": "curb",
+   "lim": 5
+  }
+ },
+ "terrain": {
+  "kind": "dem"
+ },
+ "buildings": {
+  "source": "osm",
+  "maxDist": 60,
+  "skipNearAnchors": 24
+ },
+ "zones": [
+  {
+   "type": "crowd",
+   "on": "Central Avenue",
+   "d": [
+    -14,
+    14
+   ],
+   "rate": 0.3,
+   "label": "Spectator blasters"
+  },
+  {
+   "type": "crowd",
+   "on": "Bridge Street",
+   "d": [
+    -12,
+    12
+   ],
+   "rate": 1,
+   "label": "Shortest-street parade crowd"
+  },
+  {
+   "type": "crowd",
+   "on": "Malvern Avenue",
+   "d": [
+    -12,
+    12
+   ],
+   "rate": 0.35,
+   "label": "Malvern Avenue crowd"
+  },
+  {
+   "type": "crowd",
+   "on": "Market Street",
+   "d": [
+    -12,
+    12
+   ],
+   "rate": 0.25,
+   "label": "Market Street crowd"
+  },
+  {
+   "type": "crowd",
+   "on": "Exchange Street",
+   "d": [
+    -12,
+    12
+   ],
+   "rate": 0.3,
+   "label": "Exchange Street crowd"
+  },
+  {
+   "type": "refill",
+   "anchor": "hill-wheatley-plaza",
+   "len": 36,
+   "rate": 9,
+   "label": "Hill Wheatley Plaza jug fountain"
+  },
+  {
+   "type": "refill",
+   "at": [
+    0.316,
+    0.354
+   ],
+   "d": [
+    -7.5,
+    -1
+   ],
+   "rate": 9,
+   "label": "Hot Springs Creek outfall (the creek leaves its culvert here)"
+  }
+ ],
+ "propsByName": [
+  {
+   "on": "Central Avenue",
+   "type": "lamp",
+   "every": 15,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 1.2
+  },
+  {
+   "on": "Central Avenue",
+   "type": "magnolia",
+   "every": 9,
+   "sides": [
+    1
+   ],
+   "d": 3.6,
+   "scale": [
+    0.95,
+    1.15
+   ]
+  },
+  {
+   "on": "Central Avenue",
+   "type": "crowd",
+   "every": 8,
+   "sides": [
+    -1
+   ],
+   "d": 3.2
+  },
+  {
+   "on": "Bridge Street",
+   "type": "flag",
+   "every": 6,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 0.9
+  },
+  {
+   "on": "Bridge Street",
+   "type": "crowd",
+   "every": 5,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 2.6
+  },
+  {
+   "on": "Malvern Avenue",
+   "type": "lamp",
+   "every": 20,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 1.2
+  },
+  {
+   "on": "Malvern Avenue",
+   "type": "oak",
+   "every": 13,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 6.5,
+   "scale": [
+    0.9,
+    1.2
+   ]
+  },
+  {
+   "on": "Creek Street",
+   "type": "oak",
+   "every": 10,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 5,
+   "scale": [
+    0.85,
+    1.2
+   ]
+  },
+  {
+   "on": "Broadway Terrace",
+   "type": "oak",
+   "every": 12,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 5,
+   "scale": [
+    0.85,
+    1.2
+   ]
+  },
+  {
+   "on": "Market Street",
+   "type": "lamp",
+   "every": 18,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 1.1
+  },
+  {
+   "on": "Quapaw Avenue",
+   "type": "oak",
+   "every": 12,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 5,
+   "scale": [
+    0.85,
+    1.15
+   ]
+  },
+  {
+   "on": "Prospect Avenue",
+   "type": "oak",
+   "every": 12,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 5,
+   "scale": [
+    0.85,
+    1.15
+   ]
+  },
+  {
+   "on": "Exchange Street",
+   "type": "lamp",
+   "every": 14,
+   "sides": [
+    -1,
+    1
+   ],
+   "d": 1.1
+  },
+  {
+   "on": "Exchange Street",
+   "type": "crowd",
+   "every": 9,
+   "sides": [
+    1
+   ],
+   "d": 3
+  },
+  {
+   "on": "Interior Court",
+   "type": "bench",
+   "every": 10,
+   "sides": [
+    1
+   ],
+   "d": 1.5
+  }
+ ],
+ "env": {
+  "palette": "lake-life",
+  "sky": [
+   "#6FA9DC",
+   "#E4EEF2"
+  ],
+  "fog": [
+   110,
+   360
+  ],
+  "fogColor": "#D6E2E6",
+  "sun": [
+   0.4,
+   0.8,
+   0.45
+  ],
+  "time": "day",
+  "ridges": [
+   "#8AA2B2",
+   "#647F6A",
+   "#41604A"
+  ],
+  "skyTex": "ridge-day"
+ },
+ "meta": {
+  "credits": "Streets \u00a9 OpenStreetMap contributors (ODbL); elevation USGS 3DEP",
+  "sources": "research/town-content.md \u00a74; research/bathhouse-row-layout.md \u00a77"
+ },
+ "start": {
+  "at": 0.06
+ },
+ "lapTarget": [
+  42,
+  62
+ ],
+ "minRadiusCheck": 10,
+ "landmarks": [
+  {
+   "id": "admin",
+   "model": "admin",
+   "lonlat": [
+    -93.053596,
+    34.511935
+   ],
+   "street": "Central Avenue"
+  },
+  {
+   "id": "lamar",
+   "model": "lamar",
+   "anchor": "bathhouse-lamar",
+   "facades": {
+    "wall": "lamar-bay"
+   },
+   "street": "Central Avenue"
+  },
+  {
+   "id": "buckstaff",
+   "model": "buckstaff",
+   "anchor": "bathhouse-buckstaff",
+   "facades": {
+    "wall": "buckstaff-bay"
+   },
+   "street": "Central Avenue"
+  }
+ ]
+}

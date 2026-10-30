@@ -108,6 +108,26 @@ export class Fx {
         buildProp('flag', g, [q.x, track.heightAt(cc, side * w), q.z], yaw, 1);
       }
     }
+    // Rules of the Row: blue feather flags on both sides of every judge stop, a judge booth on the left
+    for (const st of (race.row && race.row.stops) || []) {
+      const c = track.at(st.s), yaw = Math.atan2(c.tx, c.tz);
+      for (const side of [-1, 1]) for (const ds of [-st.len / 2, st.len / 2]) {
+        const cc = track.at(st.s + ds), w = side > 0 ? cc.wr : cc.wl, q = track.point(st.s + ds, side * (w + 0.4));
+        buildProp('flag', g, [q.x, track.heightAt(cc, side * w), q.z], yaw, 1);
+      }
+      const paint = hex('#F4F1EA');
+      for (const ds of [-st.len / 2, st.len / 2]) {
+        const ca = track.at(st.s + ds), cb = track.at(st.s + ds + 0.6);
+        const P = (cc, d) => { const p = track.point(cc === ca ? st.s + ds : st.s + ds + 0.6, d); return [p.x, track.heightAt(cc, d) + 0.04, p.z]; };
+        g.quad(P(ca, -ca.wl), P(ca, ca.wr), P(cb, cb.wr), P(cb, -cb.wl), paint);
+      }
+      const pj = track.point(st.s, -(c.wl + 3.4));
+      buildProp('judge', g, [pj.x, track.heightAt(c, -(c.wl + 3.4)), pj.z], yaw + Math.PI / 2, 1);
+    }
+    if (race.row) { // finish line cones across Central at the Exchange Street crosswalk
+      const c = track.at(race.row.s1), yaw = Math.atan2(c.tx, c.tz);
+      for (let d = -c.wl + 1; d <= c.wr - 1; d += 2.4) { const q = track.point(race.row.s1, d); buildProp('cone', g, [q.x, track.heightAt(c, d), q.z], yaw, 1); }
+    }
     if (g.count) { this.static = new T.Mesh(g.build(T), worldMat({})); this.group.add(this.static); }
     this.bobT = 0;
   }

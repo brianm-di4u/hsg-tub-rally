@@ -27,7 +27,8 @@ canvas[data-pixel], .hud canvas { image-rendering: pixelated; }
 @keyframes pop { from { transform: scale(0.6); } to { transform: scale(1); } }
 .hud-bl { position: absolute; left: max(10px, env(safe-area-inset-left)); bottom: 10px; transform: scale(var(--hud-scale)); transform-origin: bottom left; }
 .hud-pips { display: flex; gap: 4px; margin-top: 4px; }
-.pip { display: flex; flex-direction: column; align-items: center; width: 34px; font: 700 10px/1.1 var(--font-ui); color: #fff; text-shadow: 1px 1px 0 var(--ink); }
+.pip { display: flex; flex-direction: column; align-items: center; width: 38px; font: 700 11px/1.1 var(--font-ui); color: #fff; text-shadow: 1px 1px 0 var(--ink), -1px -1px 0 var(--ink); }
+.pip em { font-style: normal; }
 .pip i { width: 22px; height: 18px; border: 2px solid var(--ink); border-radius: 5px; margin-bottom: 2px; }
 .pip-towel i { background: repeating-linear-gradient(0deg, #F4F1EA 0 4px, #C8322A 4px 6px); }
 .pip-mat i { background: repeating-linear-gradient(90deg, #3FA8C0 0 3px, #2A7F95 3px 6px); }
@@ -154,3 +155,38 @@ kbd { display: inline-block; padding: 0 5px; border: 2px solid var(--ink); borde
   .tcard { min-height: 56px; padding: 6px; }
   .stats { grid-template-columns: 1fr; }
 }
+
+/* ---------- Rules of the Row ---------- */
+.hud-task { position: absolute; left: 50%; top: 22%; transform: translateX(-50%) scale(0.9); opacity: 0; transition: opacity 0.12s, transform 0.12s; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 16px; border-radius: 14px; background: rgba(30,78,121,0.9); border: 3px solid var(--ink); max-width: 92vw; text-align: center; }
+.hud-task.show { opacity: 1; transform: translateX(-50%) scale(1); }
+.hud-task .t-name { font: 900 26px var(--font-deco); color: #FFF6C8; letter-spacing: 1px; }
+.hud-task .t-how { font: 700 16px var(--font-ui); color: #fff; }
+.hud-task .t-meter { width: 220px; height: 26px; image-rendering: pixelated; }
+.bracket { list-style: none; padding-left: 0; }
+.bracket li { margin: 4px 0; }
+.dq { color: #FFE0DA; background: #8C2418; border-radius: 4px; padding: 1px 5px; font-size: 12px; }
+.award-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; width: min(420px, 90vw); }
+.award-list li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 12px; border-radius: 10px; background: rgba(0,0,0,0.25); font-weight: 700; }
+.award-list li b { color: var(--gold); }
+@media (prefers-reduced-motion: reduce) { .hud-task { transition: none; } }
+.ccard .fact { font-style: italic; font-size: 13px; line-height: 1.3; color: #3A2E22; }
+.ccard:not(.postcard) .fact { color: var(--mist); }
+
+/* review fixes: portrait phones keep the team clear of the controls; steering hint away from the gauge */
+@media (max-aspect-ratio: 4/5) {
+  .hud-center { top: 25%; } /* below the gauge and item pips */
+  .hud-bl { left: max(8px, env(safe-area-inset-left)); bottom: auto; top: 64px; transform: scale(0.8); transform-origin: top left; }
+  .hud-map { top: auto; bottom: 150px; left: auto; right: max(10px, env(safe-area-inset-right)); width: 84px; height: 84px; }
+}
+@media (pointer: coarse) and (max-aspect-ratio: 4/5) {
+  .t-btns { grid-template-columns: 70px 70px; gap: 8px; bottom: 12px; }
+  .tb { width: 70px; height: 56px; font-size: 14px; }
+  .t-steer { top: 55%; }
+  .t-steer em, .t-steer-knob { bottom: 70px; }
+  .t-steer em { bottom: 50px; }
+  .hud-bl { bottom: auto; }
+}
+
+.hud-timec { height: 21px; width: auto; image-rendering: pixelated; }
+.hud-item:not(.has) .bubble { opacity: 0.55; }
+@media (max-width: 520px) { .rtable { font-size: 12px; } .rtable th, .rtable td { padding: 4px 4px; } .sw { display: none; } }
