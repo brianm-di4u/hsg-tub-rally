@@ -121,3 +121,14 @@ a plain-box version beyond 22 m), opaque tub water, no shadow map, the lighter s
     proxy slows by about the same fixed amount.
   - **What happens next:** loop 9 goes to review with its perf gate recorded as failed for this reason. The gate is
     re-run once the machine is idle.
+- **Loop 10: three full perf-gate runs.**
+  - **Run 1:** failed 2 of 52 (mid-phone row 28.6 ms, dusk 27.8 ms). The website worktree's `astro dev` server was
+    stopped part-way through this run, with the user's OK.
+  - **Run 2:** failed 2 of 52 (SwiftShader row 44.1 fps / p95 43.1 ms, dusk p95 40.5 ms). Another session had started
+    a full `npm test` run whose headless Chrome used about 3.4 cores. Back-to-back runs during that window had loop 8
+    and loop 10 within noise of each other (row 37.0–37.2 vs 34.0–40.6 fps).
+  - **Run 3:** passed 52 of 52, after that test run exited (1% CPU before the run). Mid-phone row 17.4 ms; SwiftShader
+    row 52.3 fps, p95 37.1 ms.
+  - On the idle machine the loop-8 and loop-10 builds also measured the same back to back (medium phone row 0.83 vs
+    0.84 ms).
+  - The loop-9 failures were the same machine load, not the build.

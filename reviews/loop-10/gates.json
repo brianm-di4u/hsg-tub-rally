@@ -1,0 +1,13 @@
+{
+  "perf": {
+    "pass": true,
+    "checked": 52,
+    "failed": []
+  },
+  "fidelity": null,
+  "ip": {
+    "pass": true,
+    "note": "developer check: silhouettes unchanged; only tub/trim colours and effects changed; no LEGO name or logo; critics re-check"
+  },
+  "perfNote": "Passed 52/52 on the third full run with the machine idle; runs 1-2 failed under load from other sessions (an astro dev server, then another session's npm test). See reviews/PERF.md."
+}

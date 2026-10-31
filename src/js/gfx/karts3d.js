@@ -513,13 +513,15 @@ export class KartView {
     // (narrowed a little so the tilted sheet stays inside the rim; flattened to nothing when empty)
     const ws = fill > 0.02 ? 0.92 : 0.0001;
     // and keeps moving after a push, a stop or a turn: a damped spring driven by the tub's acceleration and turn
-    const sl = this.slosh, tX = Math.max(-0.2, Math.min(0.2, this.acc * 0.012)), tZ = Math.max(-0.2, Math.min(0.2, -k.yawRate * Math.abs(v) * 0.012));
+    const sl = this.slosh, tX = Math.max(-0.3, Math.min(0.3, this.acc * 0.03)), tZ = Math.max(-0.3, Math.min(0.3, -k.yawRate * Math.abs(v) * 0.03));
+    if (k.state === 'circle' && this.prevState !== 'circle') { sl[1] += 4.5; sl[3] -= 3.5; }
+    this.prevState = k.state;
     if (dt > 0) {
       const h = Math.min(dt, 1 / 30);
       sl[1] += ((tX - sl[0]) * 70 - sl[1] * 4.5) * h; sl[0] += sl[1] * h;
       sl[3] += ((tZ - sl[2]) * 70 - sl[3] * 4.5) * h; sl[2] += sl[3] * h;
     }
-    const wx = Math.max(-0.28, Math.min(0.28, -w.tf * 1.3 + sl[0])), wz = Math.max(-0.28, Math.min(0.28, w.tr * 1.3 + sl[2]));
+    const wx = Math.max(-0.34, Math.min(0.34, -w.tf * 1.8 + sl[0])), wz = Math.max(-0.34, Math.min(0.34, w.tr * 1.8 + sl[2]));
     this.setPart(WATER, 0, wy + Math.sin(time * 9 + k.id) * Math.min(0.03, (Math.abs(sl[1]) + Math.abs(sl[3])) * 0.02), 0, wx, 0, wz, ws, 1, ws);
     if (this.charge) {
       const ch = k.drift ? k.charge || 0 : 0, w = Math.min(1, ch / 0.85), h = Math.max(0, Math.min(1, (ch - 0.85) / 1.05)), u = this.charge.material.uniforms;

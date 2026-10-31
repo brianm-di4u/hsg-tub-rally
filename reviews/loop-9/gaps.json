@@ -1,0 +1,201 @@
+[
+  {
+    "id": "G-oot-tub-teal",
+    "category": "readability",
+    "expectedGain": 0.25,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS2",
+    "evidence": [
+      "crops/high/R04-kart_3",
+      "ab/crop-R04-kart_3",
+      "high/desktop/R12",
+      "high/desktop/R07",
+      "high/desktop/R02"
+    ],
+    "benchmark": "drive-3",
+    "fix": "The logged teal tub never rendered: the Out-of-Towners' body is purple (hue 257-281 deg) with a teal rim (180 deg), against a teal-body, yellow-rim swatch (47,179,166). Apply teal to the tub body material and yellow to the trim. Test: crops/high/R04-kart_3 body hue 165-185 deg; the player tub in high/desktop/R12 is teal.",
+    "priority": 0.375,
+    "selected": true
+  },
+  {
+    "id": "G-row-panes-misregistered",
+    "category": "scenery",
+    "expectedGain": 0.25,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS4",
+    "evidence": [
+      "high/desktop/R16",
+      "ab/high-desktop-R16"
+    ],
+    "benchmark": "worlds-1",
+    "fix": "Regression: flat panes float over painted arches and bare brick on the R16 Row landmark. Skip upright panes on any landmark whose facade art paints its ground floor (as for the Quapaw), or snap panes to a per-landmark bay list. Test: in high/desktop/R16 no pane overlaps bare brick or a painted arch outline.",
+    "priority": 0.375,
+    "selected": true
+  },
+  {
+    "id": "G-hot-steam-blend",
+    "category": "animation",
+    "expectedGain": 0.25,
+    "severity": 2,
+    "effort": "S",
+    "workstream": "WS3",
+    "evidence": [
+      "high/desktop/R17"
+    ],
+    "benchmark": "drive-3",
+    "fix": "Give hot-steam particles an additive or opaque warm-white material so they stop taking the ground colour (now (162,142,117) on red brick). Test: the R17 steam region's mean L is at least 200 with RGB channels within 20 of each other.",
+    "priority": 0.375,
+    "selected": true
+  },
+  {
+    "id": "G-dusk-lamp-pools",
+    "category": "lighting",
+    "expectedGain": 0.25,
+    "severity": 2,
+    "effort": "S",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R07",
+      "low/desktop/R07"
+    ],
+    "benchmark": "worlds-4",
+    "fix": "On dusk and sunset courses, add a warm additive ellipse decal (r about 3 m) under each lamp. Test: along the R07 left curb, road L within 2 m of each lamp base is at least 1.25x the road L midway between lamps (now 67-77 beside the x~350 lamp vs 160-173 between lamps).",
+    "priority": 0.375,
+    "selected": true
+  },
+  {
+    "id": "G-callout-dock",
+    "category": "readability",
+    "expectedGain": 0.25,
+    "severity": 2,
+    "effort": "S",
+    "workstream": "WS6",
+    "evidence": [
+      "high/desktop/R15",
+      "high/desktop/R16",
+      "high/desktop/R19"
+    ],
+    "benchmark": "drive-3",
+    "fix": "Dock transient call-outs under the place tile or in the lower third, and fade them to 60% after 0.5 s. Test: in R15, R16, R17 and R19 on every viewport, no call-out rectangle overlaps the central 30% of the width within 60 px of the horizon.",
+    "priority": 0.375,
+    "selected": true
+  },
+  {
+    "id": "G-tree-spacing",
+    "category": "scenery",
+    "expectedGain": 0.25,
+    "severity": 2,
+    "effort": "S",
+    "workstream": "WS5",
+    "evidence": [
+      "high/desktop/R08",
+      "high/desktop/R10"
+    ],
+    "benchmark": "worlds-1",
+    "fix": "Place trees at a minimum spacing equal to the sum of their canopy radii across species (Poisson-disc), or merge close pairs into one built assembly. Test: no plate of one tree passes through another tree's canopy in high/desktop/R08 or R10.",
+    "priority": 0.375,
+    "selected": true
+  },
+  {
+    "id": "G-water-slosh",
+    "category": "animation",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS3",
+    "evidence": [
+      "strips/high/R14",
+      "strips/high/R15"
+    ],
+    "benchmark": "drive-3",
+    "fix": "Tilt and bob each tub's water plane from longitudinal and lateral acceleration and from hits, with spring damping. Test: the waterline angle differs by at least 5 deg between frames 1 and 5 of strips/high/R14, and between frames 1 and 3 of R15.",
+    "priority": 0.375,
+    "selected": true
+  },
+  {
+    "id": "G-slide-kerb-lamppost",
+    "category": "animation",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS3",
+    "evidence": [
+      "strips/high/R14",
+      "ab/strip-R14"
+    ],
+    "benchmark": "drive-3",
+    "fix": "Give kerbs and lamp posts a visible collision response (bump or stop, camera kick, call-out) and clamp chase-camera yaw lag so the road ahead stays in frame. Test: in strips/high/R14 the player's ring never overlaps pavement or a post, and frame 8 shows the road centreline.",
+    "priority": 0.375,
+    "selected": false
+  },
+  {
+    "id": "G-ao-crevices",
+    "category": "lighting",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R06",
+      "high/desktop/R09",
+      "crops/high/R03-kart_1"
+    ],
+    "benchmark": "builders-journey/bj-1.jpg",
+    "fix": "SSAO on high, or baked vertex AO on placed buildings and rock assemblies (foundations, under ledges, between slabs). Test: the band where the Arlington's arcade meets the terrace in high/desktop/R06 is at least 20% darker than the facade 2 m above; Goat Rock slab crevices in R09 are at least 25% darker than the adjacent lit faces.",
+    "priority": 0.375,
+    "selected": false
+  },
+  {
+    "id": "G-far-rings-flat",
+    "category": "scenery",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS4",
+    "evidence": [
+      "high/desktop/R09",
+      "high/desktop/R13",
+      "high/desktop/R17"
+    ],
+    "benchmark": "worlds-4",
+    "fix": "The far rings are flat, low-contrast stepped cut-outs ((171,190,198) in R09). The haze hue already matches the sky; the problem is value. Give each ring lit tops and shadowed risers, and darker tree silhouettes. Test: in R09 and R13, the far-ring face/riser L ratio is at least 1.15 and the tree silhouettes are at least 12% darker than their faces.",
+    "priority": 0.375,
+    "selected": false
+  },
+  {
+    "id": "G-ford-glazing",
+    "category": "materials",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R19",
+      "high/desktop/R05"
+    ],
+    "benchmark": "builders-journey/bj-3.jpg",
+    "fix": "Make the Gulpha ford a translucent tinted surface over a visible studded creek bed (now opaque blue tile); replace the diagonal streak bands on the shop glazing with a vertical sky-to-ground gradient and bevelled frames. Test: creek-bed studs are visible through the water in high/desktop/R19, and no diagonal band crosses any R05 shop pane.",
+    "priority": 0.375,
+    "selected": false
+  },
+  {
+    "id": "G-box-buildings",
+    "category": "materials",
+    "expectedGain": 0.75,
+    "severity": 3,
+    "effort": "L",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R06",
+      "high/desktop/R13",
+      "high/desktop/R05"
+    ],
+    "benchmark": "worlds-1",
+    "fix": "BIG LEVER for this loop. Buildings are textured boxes with flat roof planes and no corner bevels; this is what holds materials below worlds-1. Rebuild the roofs from stepped slope-brick courses with ridge tiles (Arlington, Fordyce, downtown) and add bevelled corner quoins and lintel parts with specular edges; keep the existing seam and relief textures. Test: at least 6 roof courses with alternating light/dark edges show in high/desktop/R06, and a highlight runs along the building corners in the high/desktop/R13 zoom.",
+    "priority": 0.281,
+    "bigLever": true,
+    "selected": true
+  }
+]

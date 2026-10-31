@@ -1,0 +1,7 @@
+{
+  "loop": 10,
+  "set": "review-loop-10",
+  "against": "review-loop-9",
+  "newSide": "B",
+  "pairs": 83
+}

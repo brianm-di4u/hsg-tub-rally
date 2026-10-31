@@ -126,12 +126,14 @@ export function buildBrickFlora(THREE, boards, track, opts = {}) {
   const lists = { magnolia: boards.magnolia };
   [lists.oak, lists.maple] = split('oak');
   [lists.pine, lists.spruce] = split('pine');
+  // trees of every kind thin against each other, so no two canopies grow through one another
+  const placed = [];
   for (const kind of ['oak', 'maple', 'magnolia', 'pine', 'spruce']) {
     let list = lists[kind];
     if (!list || !list.length) continue;
     {
       const Tk = TREES[kind], r0 = Math.max(...Tk.layers.map(([x, , z, w]) => Math.hypot(x, z) + w)), kept = [];
-      for (const p of list) { const r = r0 * (p.sc || 1); if (kept.every((o) => Math.hypot(o.x - p.x, o.z - p.z) > (r + r0 * (o.sc || 1)) * 0.62)) kept.push(p); }
+      for (const p of list) { const r = r0 * (p.sc || 1); if (placed.every((o) => Math.hypot(o.x - p.x, o.z - p.z) > (r + o.r) * 0.62)) { kept.push(p); placed.push({ x: p.x, z: p.z, r }); } }
       list = kept;
     }
     const geo = treeGeo(THREE, kind), T = TREES[kind];

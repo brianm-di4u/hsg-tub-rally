@@ -677,12 +677,12 @@ function drawAttract(dt) {
     // on wide screens the menu panel sits on the left, so aim left of the tub to show it on the right; on tall
     // (portrait) screens the panel fills the bottom, so step back and aim below the tub to lift it into the top third
     const aspect = App.renderer.size.w / App.renderer.size.h, wide = aspect > 1.3 ? 1 : 0, tall = aspect < 0.8 ? 1 : 0;
-    const back = 5.5 + tall * 3.2;
+    const back = 5.5 + tall * 4.2;
     cam.position.set(pc.x - pc.tz * 3.2 - pc.tx * back, pc.y + 2.6 + tall * 0.6, pc.z + pc.tx * 3.2 - pc.tz * back);
     const lx = -(pp.z - cam.position.z), lz = pp.x - cam.position.x, ll = Math.hypot(lx, lz) || 1;
     // very wide (phone landscape) screens: aim further left so the tub sits in the right third, clear of the panel
     const aimL = aspect > 1.9 ? 3.9 : 2.6;
-    cam.lookAt(pp.x - (lx / ll) * aimL * wide, pp.y + 0.9 - tall * 4.4, pp.z - (lz / ll) * aimL * wide);
+    cam.lookAt(pp.x - (lx / ll) * aimL * wide, pp.y + 0.9 - tall * 6.2, pp.z - (lz / ll) * aimL * wide);
   } else App.footBlobs.set([]);
   if (App.camOverride) { const o = App.camOverride; cam.position.set(o.pos[0], o.pos[1], o.pos[2]); cam.lookAt(o.target[0], o.target[1], o.target[2]); }
   if (cam.fov !== App.renderer.baseFov) { cam.fov = App.renderer.baseFov; cam.updateProjectionMatrix(); }

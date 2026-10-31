@@ -70,7 +70,7 @@ export class SSAO {
     this.samples = opts.samples ?? 4;
     this.strength = opts.strength ?? 0.75;
     this.radius = opts.radius ?? 0.4;
-    this.fadeFar = opts.fadeFar ?? 70;
+    this.fadeFar = opts.fadeFar ?? 150;
     // cosine-weighted hemisphere kernel, denser near the centre (fixed, so captures repeat exactly)
     const kernel = [];
     for (let i = 0; i < 8; i++) {

@@ -136,7 +136,7 @@ export function buildSky(THREE, env = {}) {
           float stand = 0.45 + 0.55 * smoothstep(-0.35, 0.45, sin(vI.x * 0.021 + row * 0.35) * sin(vI.x * 0.0071 + 1.3));
           float crown = (1.0 - smoothstep(hw - aa, hw + aa, dx)) * step(id, 0.82 * stand * smoothstep(2.0, 5.0, depth));
           // the hazier the ring, the fainter its crowns (a far ring stays a soft blue-green, not snow-flecked)
-          float k = 1.0 - 0.6 * vI.w;
+          float k = 1.0 - 0.3 * vI.w;
           c *= mix(1.0, (fu < 0.5 ? 0.86 : 0.74) * (0.94 + 0.12 * id2), crown * k);
           c = mix(c, uHaze, clamp((depth - 10.0) / 70.0, 0.0, 1.0) * 0.3);
         }

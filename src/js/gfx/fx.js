@@ -48,7 +48,7 @@ export class Fx {
         float diff = 0.6 + 0.4 * max(dot(n, vec3(-0.42, 0.56, 0.71)), 0.0);
         float spec = pow(max(dot(n, vec3(-0.33, 0.5, 0.8)), 0.0), 28.0);
         vec3 c = vC * diff * (1.0 - 0.3 * smoothstep(0.7, 1.0, r2)) + vec3(0.85 * spec);
-        gl_FragColor = vec4(c + vec3(0.12) * smoothstep(0.6, 1.0, r2), mix(0.5, 0.85, smoothstep(0.5, 1.0, r2))); }`,
+        gl_FragColor = vec4(c + vec3(0.12) * smoothstep(0.6, 1.0, r2), mix(0.82, 0.95, smoothstep(0.5, 1.0, r2))); }`,
       transparent: true, depthWrite: false,
     });
     this.points = new THREE.Points(g, pm); this.points.frustumCulled = false;
@@ -232,7 +232,7 @@ export class Fx {
       }
       // boost trail from the rear wheels, coloured by its kind: hot steam orange, warm steam white, hose blue
       if ((k.boostT > 0 || k.hoseT > 0) && !reduced) {
-        const bc = k.hoseT > 0 ? [0.6, 0.85, 1] : k.boostKind === 'hot' ? [1, 0.82, 0.66] : [0.96, 0.96, 0.98];
+        const bc = k.hoseT > 0 ? [0.6, 0.85, 1] : k.boostKind === 'hot' ? [1, 0.96, 0.92] : [0.96, 0.96, 0.98];
         for (const sgn of [-1, 1]) this.burst(k.x - fx * 0.8 + fz * 0.5 * sgn, k.y + 0.35, k.z - fz * 0.8 - fx * 0.5 * sgn, 2, bc, { speed: 0.5, up: 1.1, size: 0.28, life: 0.5, grav: -1.2, vx: -fx * 2.2, vz: -fz * 2.2, spread: 0.12, grow: 2.6 });
       }
       if (k.sprayT > 0) this.burst(k.x + fx * 1.4, k.y + 1.0, k.z + fz * 1.4, 3, [0.5, 0.8, 1], { speed: 0.5, up: 1.2, size: 0.16, life: 0.5, grav: 9, vx: fx * 16 + Math.sin(k.yaw) * 0, vz: fz * 16, spread: 0.2 });
@@ -241,7 +241,7 @@ export class Fx {
     this.emitAge = 0; this.emitShift = null;
     for (const { k, e } of events) {
       if (e.type === 'hit' || e.type === 'fumble') this.burst(k.x, k.y + 1.1, k.z, reduced ? 4 : 8, [0.62, 0.86, 0.97], { speed: 4.5, up: 5, size: 0.12, life: 0.45 }); // small and brief, so the crew stays in view
-      if (e.type === 'boost' && (e.kind === 'hot' || e.kind === 'warm')) { const bf = Math.sin(k.yaw), bz = Math.cos(k.yaw); this.burst(k.x - bf * 0.9, k.y + 0.4, k.z - bz * 0.9, reduced ? 6 : 16, e.kind === 'hot' ? [1, 0.8, 0.62] : [0.97, 0.98, 1], { speed: 2.4, up: 2.2, size: 0.3, life: 0.55, grav: -0.6 }); }
+      if (e.type === 'boost' && (e.kind === 'hot' || e.kind === 'warm')) { const bf = Math.sin(k.yaw), bz = Math.cos(k.yaw); this.burst(k.x - bf * 0.9, k.y + 0.4, k.z - bz * 0.9, reduced ? 6 : 16, e.kind === 'hot' ? [1, 0.95, 0.9] : [0.97, 0.98, 1], { speed: 2.4, up: 2.2, size: 0.3, life: 0.55, grav: -0.6 }); }
       if (e.type === 'pickup') this.burst(k.x, k.y + 1.6, k.z, 10, [0.9, 0.8, 1], { speed: 2, up: 2, size: 0.18, life: 0.5, grav: 0 });
       if (e.type === 'ticket') this.burst(k.x, k.y + 1.4, k.z, 5, [0.95, 0.76, 0.19], { speed: 1.5, up: 2, size: 0.15, life: 0.4, grav: 2 });
       if (e.type === 'bribe') this.burst(k.x, k.y + 1.6, k.z, 14, [0.95, 0.76, 0.19], { speed: 3, up: 4, size: 0.2, life: 0.8 });

@@ -87,7 +87,8 @@ export function installHooks(App, api) {
         }
         case 'clearSave': App.save.best = {}; App.save.ghosts = {}; return true;
         // review captures (tools/shots-gpu.mjs): freeze the render clock at ms, or release it with null
-        case 'clock': { const was = App.clock; App.clock = args[0] == null ? null : args[0] / 1000; if (App.clock != null && was == null) App.time = App.clock; return true; }
+        // (CSS transitions and animations run on wall-clock time, so they hold still too while the clock is frozen)
+        case 'clock': { const was = App.clock; App.clock = args[0] == null ? null : args[0] / 1000; if (App.clock != null && was == null) App.time = App.clock; document.body.classList.toggle('clock-frozen', App.clock != null); return true; }
         // close review camera on a target ('player', 'kart:N', 'preview', 'landmark:id', 'at:s,d,h'):
         // act('camLook', target, widthM, pitch, yaw); yaw 0 looks at the target's front. act('camLook', null) releases.
         case 'camLook': {

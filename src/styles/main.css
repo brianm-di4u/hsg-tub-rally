@@ -434,3 +434,13 @@ body[data-screen="results"] .touch, body[data-screen="standings"] .touch, body[d
 .hud-item .tk-l { font-size: 12px; }
 .hud-item { padding-top: 12px; } /* the orb sits below the tile's stud row */
 .hud-bl .hud-pips { padding-top: 10px; } /* the item tray's icons sit below its stud row */
+/* loop 10: label contrast on team cards: the selected card's division line is dark on its light fill (4.5:1+), and a
+   locked card is dimmed less, with a brighter "locked" label (3:1+) */
+.tcard.sel small { color: #0B1E30; }
+.tcard[aria-disabled="true"] { opacity: 0.75; }
+.tcard .lk { opacity: 1; color: #C9D6E2; }
+/* loop 10: call-outs and the judge-task panel dock just under the top HUD row, clear of the road's vanishing point */
+@media (min-height: 501px) and (min-aspect-ratio: 1/1) { .hud-center { top: 124px; } .hud-task { top: 122px; } }
+@media (max-height: 500px) and (min-aspect-ratio: 1/1) { .hud-task { top: 100px; } }
+/* review captures freeze the render clock; the HUD's CSS transitions and animations jump to their end state with it */
+body.clock-frozen *, body.clock-frozen *::before, body.clock-frozen *::after { transition: none !important; animation: none !important; }

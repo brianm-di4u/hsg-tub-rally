@@ -9,6 +9,8 @@
 const PART = { body: 0, wheel_0: 1, wheel_1: 2, wheel_2: 3, wheel_3: 4, flag: 5, duck: 6, cap_torso: 7, cap_head: 8, cap_arm_l: 9, cap_arm_r: 10, water: 23 };
 for (let i = 0; i < 4; i++) Object.assign(PART, { [`att${i}_torso`]: 11 + i * 3, [`att${i}_leg_l`]: 12 + i * 3, [`att${i}_leg_r`]: 13 + i * 3 });
 
+import { TEAM_BY_ID } from '../data/teams.js';
+
 let pack = null, buf = null, atlas = null, loading = null;
 const views = new Map();
 
@@ -61,7 +63,12 @@ export function buildCrewGeo(THREE, teamId, lod) {
   const L = pack && pack.lods[lod], T = pack && pack.teams[teamId], list = L && L.teams[teamId];
   if (!list || !T) return null;
   // bath water a clearer, deeper blue than the export's pale cyan, so a full tub reads as full
-  const slots = pack.slots.map((s) => (s === 'water' ? hexLin('#3F9FD8') : T.palette[s] ? hexLin(T.palette[s]) : null)), items = {};
+  // the tub and its trim follow the team data (teams.js), so a team recoloured there is recoloured in the race too; a
+  // rim exported in the trim colour follows the trim
+  const C = (TEAM_BY_ID[teamId] || {}).colors || {}, pal = { ...T.palette };
+  if (C.tub) pal.tub = C.tub;
+  if (C.trim) { if (pal.rim && pal.rim === pal.trim) pal.rim = C.trim; pal.trim = C.trim; }
+  const slots = pack.slots.map((s) => (s === 'water' ? hexLin('#3F9FD8') : pal[s] ? hexLin(pal[s]) : null)), items = {};
   for (const [k, h] of Object.entries(T.items)) items[k] = hexLin(h);
   const [ex, ey] = pack.empty, grey = hexLin('#9A9A9A');
   const nodes = list.map(([pi, mk]) => ({ place: L.places[pi], m: meshView(lod, mk) }));

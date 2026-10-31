@@ -333,7 +333,8 @@ const FRAG_MAIN = `
         // the pane mirrors more of the sky at a glancing angle
         float fr = pow(1.0 - max(dot(Ng, V), 0.0), 2.0);
         c = mix(c, uHemiSky * 0.9, min(0.75, 0.12 + 0.22 * sy + 0.35 * fr));
-        c += uHemiSky * 0.18 * smoothstep(0.0, 0.06, st) * (1.0 - smoothstep(0.14, 0.24, st));
+        // a soft sky glint across each pane rather than a hard painted stripe
+        c += uHemiSky * 0.07 * smoothstep(0.0, 0.12, st) * (1.0 - smoothstep(0.1, 0.32, st));
         #ifdef BEVEL
           // set back behind its frame: the lintel shades the top of the pane and the jambs its sides
           if (vEdge.z > 0.0) {

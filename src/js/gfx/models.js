@@ -17,8 +17,9 @@ function dec(b64, T) {
 export function hasModel(name) { return !!(window.TR_MODELS2 && window.TR_MODELS2[name]); }
 
 // Resolves to a template Group; cloneModel() places copies (geometry is shared).
-// facade art that paints the ground-floor windows too (the modelled panes there would double them)
-const ART_GROUND_FLOOR = new Set(['quapaw']);
+// painted-facade landmarks whose art leaves the ground floor plain, so their modelled shop windows line up (checked
+// in close views); every other painted facade paints its ground-floor openings too, and keeps no upright panes
+const KEEP_GROUND_PANES = new Set(['fordyce', 'superior', 'ozark', 'buckstaff']);
 export function loadModel(name, opts = {}) {
   if (built[name]) return Promise.resolve(built[name]);
   const THREE = window.THREE;
@@ -50,7 +51,7 @@ export function loadModel(name, opts = {}) {
       let y0 = Infinity; for (let i = 1; i < n * 3; i += 3) y0 = Math.min(y0, pos[i]);
       for (let t = 0; t < n; t += 3) {
         const top = Math.max(pos[t * 3 + 1], pos[t * 3 + 4], pos[t * 3 + 7]);
-        if (Math.abs(nor[t * 3 + 1]) > 0.3 || (top < y0 + 4.6 && !ART_GROUND_FLOOR.has(name))) keep.push(t, t + 1, t + 2);
+        if (Math.abs(nor[t * 3 + 1]) > 0.3 || (top < y0 + 4.6 && KEEP_GROUND_PANES.has(name))) keep.push(t, t + 1, t + 2);
       }
       if (!keep.length) continue;
       g.setIndex(keep);
