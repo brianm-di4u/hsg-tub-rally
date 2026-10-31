@@ -50,18 +50,18 @@ export function buildSky(THREE, env = {}) {
   // tree line on the silhouette, hazier toward each hill's foot. They reach below the ground so no band shows where
   // the terrain ends.
   const ridgeCols = env.ridges || ['#7F9AB0', '#5F7F6E', '#40604A'], seed = env.ridgeSeed || 3;
-  const LAYERS = [[352, 0.6, 14, 58], [334, 0.42, 8, 46], [316, 0.24, 4, 36]]; // radius, haze, valley floor, hump height
+  const LAYERS = [[352, 0.6, 14, 58], [334, 0.42, 8, 46], [316, 0.24, 4, 36], [296, 0.14, 0, 16]]; // radius, haze, valley floor, hump height (the last: foothills)
   const rpos = [], rcol = [], rinf = [], N = (env.boards ?? 1) < 1 ? 120 : 180, STEP = 6, BOT = -60; // Low: 3° columns
   const sunXZ = [sd[0] / sl, sd[2] / sl];
   const rnd = (i, k) => (((i * 2654435761) ^ (k * 2246822519)) >>> 0) / 4294967296;
   LAYERS.forEach(([R2, haze, floor, hump], li) => {
-    const c0 = hex(ridgeCols[li]), c = [0, 1, 2].map((k) => c0[k] + (B[k] - c0[k]) * haze), lip = c.map((v) => Math.min(1, v * 1.12 + 0.03));
+    const c0 = hex(ridgeCols[Math.min(li, ridgeCols.length - 1)]).map((v) => (li > 2 ? v * 0.9 : v)), c = [0, 1, 2].map((k) => c0[k] + (B[k] - c0[k]) * haze), lip = c.map((v) => Math.min(1, v * 1.12 + 0.03));
     // humps: 14–20 per ring at seeded azimuths, each a rounded cap of its own width and height; a ring is the
     // highest hump over each column, so neighbours overlap into saddles and valleys
     const humps = [], nh = 14 + Math.floor(rnd(seed, li + 1) * 7);
     for (let k = 0; k < nh; k++) humps.push([((k + 0.15 + rnd(seed * 31 + k, li) * 0.7) / nh) * Math.PI * 2, 0.12 + rnd(k, seed + li * 7) * 0.22, hump * (0.45 + 0.55 * rnd(k * 3 + 1, seed + li))]);
     // env.peaks: [azimuth, half-width (rad), height (m)] mountains that rise above the rest (the nearer rings most)
-    for (const [az, w, ht] of env.peaks || []) humps.push([az, w * 0.8, hump * 0.4 + ht * [0.55, 0.8, 1][li]]);
+    for (const [az, w, ht] of env.peaks || []) humps.push([az, w * 0.8, hump * 0.4 + ht * [0.55, 0.8, 1, 0.25][li]]);
     const height = (a) => {
       let h = floor;
       for (const [az, w, ht] of humps) { const d = Math.atan2(Math.sin(a - az), Math.cos(a - az)) / w; if (Math.abs(d) < 1) h = Math.max(h, floor + ht * Math.pow(1 - d * d, 0.75)); }
@@ -140,6 +140,8 @@ export function buildSky(THREE, env = {}) {
           c *= mix(1.0, (fu < 0.5 ? 0.86 : 0.74) * (0.94 + 0.12 * id2), crown * k);
           c = mix(c, uHaze, clamp((depth - 10.0) / 70.0, 0.0, 1.0) * 0.3);
         }
+        // never brighter than the sky at the horizon behind it (hazed far ledges otherwise read as white ghosts)
+        c = min(c, uHaze * 0.86);
         gl_FragColor = vec4(c, 1.0);
       }`,
     side: THREE.DoubleSide, depthWrite: false }));

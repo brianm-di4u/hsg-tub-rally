@@ -43,7 +43,7 @@ export const TEAMS = [
     colors: { tub: '#F07F22', trim: '#2C3A2E', shirt: '#7DBB3C', hat: '#F07F22', cap: '#2C3A2E', skin: '#E0AA80', flag: '#7DBB3C' },
     emblem: 'wheel', hat: 'bike-helmet', perk: { grip: 1.03 }, unlocked: true },
   { id: 'out-of-towners', name: 'The Out-of-Towners', div: 'modified', archetype: 'Tie-dye visitors from Texas', captain: 'Starla Lonestar',
-    colors: { tub: '#9B4DCA', trim: '#47C7B6', shirt: '#E84E8A', hat: '#47C7B6', cap: '#F5D547', skin: '#B57C55', flag: '#F5D547' },
+    colors: { tub: '#2FB3A6', trim: '#9B4DCA', shirt: '#E84E8A', hat: '#47C7B6', cap: '#F5D547', skin: '#B57C55', flag: '#F5D547' },
     emblem: 'antenna', hat: 'antenna', perk: { turn: 1.03 }, unlocked: true },
   { id: 'silks-stirrups', name: 'Silks & Stirrups', div: 'modified', archetype: 'Jockey silks', captain: 'Jo "Photo Finish" Furlong',
     colors: { tub: '#E8E8E8', trim: '#D6226E', shirt: '#D6226E', hat: '#2FA84F', cap: '#2FA84F', skin: '#E9BE98', flag: '#2FA84F' },

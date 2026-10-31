@@ -66,7 +66,7 @@ export function installHooks(App, api) {
       const r = App.race, k = r && r.player >= 0 ? r.karts[r.player] : null;
       switch (name) {
         case 'input': App.held = args[0] || null; return true; // held player input for following steps
-        case 'hit': if (k) return fumble(k, r.rng.items, args[0] ?? 3); return false;
+        case 'hit': if (k) { const ok = fumble(k, r.rng.items, args[0] ?? 3); api.kartEvents(k); return ok; } return false;
         case 'water': if (k) { k.water.gal = Math.max(0, Math.min(k.water.cap, args[0])); return true; } return false;
         case 'teleport': if (k) { teleport(App, k, args[0], args[1] ?? 0); return true; } return false;
         case 'skipCountdown': if (r && r.phase === 'countdown') { r.time = -DT; api.stepOnce(); } return summary();

@@ -101,3 +101,23 @@ a plain-box version beyond 22 m), opaque tub water, no shadow map, the lighter s
   heads and caps (about 216 triangles a figure instead of 24, times several hundred spectators, drawn twice on
   High for the shadow pass). This was a real regression, not noise: the heads went back to boxes and the gates
   were re-run.
+- **Loop 9: two full gate runs, both failing 5 of 52 checks.** Mid-phone estimates failed on two courses: the row at
+  30.5 and 30.2 ms, dusk at 28.5 and 27.9 ms, against a 25 ms limit. The SwiftShader p95 failed on three: the row at
+  44.1 and 45.1 ms, the mountain at 42.0 and 43.2 ms, dusk at 42.9 and 40.1 ms, against a 40 ms limit.
+  - **Not caused by the build.** I re-measured the committed loop-8 build (6fe5e17) from a scratch copy, back to back
+    with loop 9 on the same machine:
+
+    | Measure | Loop 8 | Loop 9 |
+    |---|---|---|
+    | Medium phone task time, row | 1.21 ms | 1.22 ms |
+    | Medium phone task time, battle | 0.83 ms | 0.83 ms |
+    | SwiftShader low p95, row | 42.0 ms | 43.1 ms |
+    | SwiftShader low p95, dusk | 41.7 ms | 40.1 ms |
+
+    Loop 8 passed its own gate earlier at 0.67 ms on the row, so it fails today too. Removing loop 9's new foothill
+    ring changed nothing (1.22 against 1.23 ms).
+  - **Cause:** shared-machine load. An `astro dev` server from another worktree (`.claude/worktrees/website`, running
+    since Oct 29) is spinning a CPU core: 234,949 CPU-seconds, 31% total CPU load at the time. Every CPU-inclusive
+    proxy slows by about the same fixed amount.
+  - **What happens next:** loop 9 goes to review with its perf gate recorded as failed for this reason. The gate is
+    re-run once the machine is idle.

@@ -14,6 +14,7 @@ import { crewReady, buildCrewGeo, crewAtlas, crewPivots } from './crew3d.js';
 import { TEAM_BY_ID, TEAMS, DIVISIONS } from '../data/teams.js';
 
 // part indices
+const PLAYER_GOLD = '#FFC92E';
 const BODY = 0, WHEEL = [1, 2, 3, 4], FLAG = 5, DUCK = 6, CAP_T = 7, CAP_H = 8, CAP_LA = 9, CAP_RA = 10, WATER = 23;
 const ATT = [[11, 12, 13], [14, 15, 16], [17, 18, 19], [20, 21, 22]]; // [torso, left leg, right leg]
 // attendant rest positions (x, z) in kart space: forward is +z, the kart's right is -x
@@ -388,7 +389,8 @@ export class KartView {
   showMarker(teamId) {
     const THREE = this.THREE, C = TEAM_BY_ID[teamId].colors;
     const g = new THREE.ConeGeometry(0.17, 0.28, 4); g.rotateX(Math.PI); g.rotateY(Math.PI / 4);
-    this.marker = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: new THREE.Color(C.flag), fog: false }));
+    // the player's arrow and ring are one fixed gold whatever the team, so no rival's ring can outshine them
+    this.marker = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: new THREE.Color(PLAYER_GOLD), fog: false }));
     const edge = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.36, 4).rotateX(Math.PI).rotateY(Math.PI / 4), new THREE.MeshBasicMaterial({ color: 0x1e1b18, side: THREE.BackSide, fog: false }));
     this.marker.add(edge);
     this.marker.position.set(0, 2.2, 0);
@@ -400,7 +402,9 @@ export class KartView {
   showRing(teamId, rival = false, bright = false) {
     const THREE = this.THREE, C = TEAM_BY_ID[teamId].colors;
     const ringMat = (color, opacity) => new THREE.MeshBasicMaterial({ color, transparent: true, opacity, depthWrite: false, fog: false, polygonOffset: true, polygonOffsetFactor: -2 });
-    const ring = new THREE.Mesh(new THREE.RingGeometry(rival ? (bright ? 0.84 : 0.86) : 0.84, rival ? (bright ? 0.92 : 0.9) : 0.94, 48).rotateX(-Math.PI / 2), ringMat(new THREE.Color(C.flag), rival ? (bright ? 0.9 : 0.6) : 0.95));
+    // (a rival's ring is its flag colour washed 40% toward grey, so no rival ring outshines the player's)
+    const rc = new THREE.Color(rival ? C.flag : PLAYER_GOLD); if (rival) rc.lerp(new THREE.Color(0x8a8f96), 0.4);
+    const ring = new THREE.Mesh(new THREE.RingGeometry(rival ? (bright ? 0.85 : 0.87) : 0.82, rival ? (bright ? 0.91 : 0.9) : 0.96, 48).rotateX(-Math.PI / 2), ringMat(rc, rival ? (bright ? 0.85 : 0.55) : 0.97));
     ring.position.y = 0.01; ring.renderOrder = 3;
     if (!rival) { const outline = new THREE.Mesh(new THREE.RingGeometry(0.8, 0.98, 48).rotateX(-Math.PI / 2), ringMat(0x1e1b18, 0.55)); outline.position.y = 0.01; outline.renderOrder = 2; this.shadow.add(outline); }
     this.shadow.add(ring);

@@ -17,6 +17,8 @@ function dec(b64, T) {
 export function hasModel(name) { return !!(window.TR_MODELS2 && window.TR_MODELS2[name]); }
 
 // Resolves to a template Group; cloneModel() places copies (geometry is shared).
+// facade art that paints the ground-floor windows too (the modelled panes there would double them)
+const ART_GROUND_FLOOR = new Set(['quapaw']);
 export function loadModel(name, opts = {}) {
   if (built[name]) return Promise.resolve(built[name]);
   const THREE = window.THREE;
@@ -40,11 +42,16 @@ export function loadModel(name, opts = {}) {
     g.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
     g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
     g.setAttribute('color', new THREE.BufferAttribute(col, 3));
-    // a building whose facade art paints its windows keeps only its sloped glass (lanterns, skylights): the
-    // modelled upright panes stood proud of the painted openings, half a bay out of register
+    // a building whose facade art paints its upper windows keeps its sloped glass (lanterns, skylights) and its
+    // ground-floor shop windows (the art leaves that storey plain brick); the modelled upright panes higher up stood
+    // proud of the painted openings, half a bay out of register
     if (slot === 'glass' && opts.facades && Object.values(opts.facades).some((f) => f && hasArt(f))) {
       const keep = [];
-      for (let t = 0; t < n; t += 3) if (Math.abs(nor[t * 3 + 1]) > 0.3) keep.push(t, t + 1, t + 2);
+      let y0 = Infinity; for (let i = 1; i < n * 3; i += 3) y0 = Math.min(y0, pos[i]);
+      for (let t = 0; t < n; t += 3) {
+        const top = Math.max(pos[t * 3 + 1], pos[t * 3 + 4], pos[t * 3 + 7]);
+        if (Math.abs(nor[t * 3 + 1]) > 0.3 || (top < y0 + 4.6 && !ART_GROUND_FLOOR.has(name))) keep.push(t, t + 1, t + 2);
+      }
       if (!keep.length) continue;
       g.setIndex(keep);
     }

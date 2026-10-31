@@ -1,0 +1,143 @@
+{
+  "loop": 8,
+  "scores": {
+    "characters": 7,
+    "materials": 6.5,
+    "scenery": 6.5,
+    "lighting": 6.5,
+    "animation": 6.5,
+    "ui": 7,
+    "typography": 7,
+    "readability": 6.5,
+    "mobile": 7,
+    "authenticity": 7
+  },
+  "judged": {
+    "characters": 7,
+    "materials": 6.5,
+    "scenery": 6.5,
+    "lighting": 6.5,
+    "animation": 6,
+    "ui": 7,
+    "typography": 7,
+    "readability": 6.5,
+    "mobile": 7,
+    "authenticity": 6.5
+  },
+  "total": 67.5,
+  "best": 67.5,
+  "held": [
+    "animation 6→6.5 (A/B tie/tie)",
+    "authenticity 6.5→7 (A/B new/new)"
+  ],
+  "ab": {
+    "characters": [
+      "new",
+      "new"
+    ],
+    "materials": [
+      "new",
+      "new"
+    ],
+    "scenery": [
+      "new",
+      "new"
+    ],
+    "lighting": [
+      "new",
+      "new"
+    ],
+    "animation": [
+      "tie",
+      "tie"
+    ],
+    "ui": [
+      "new",
+      "new"
+    ],
+    "typography": [
+      "new",
+      "tie"
+    ],
+    "readability": [
+      "new",
+      "new"
+    ],
+    "mobile": [
+      "new",
+      "new"
+    ],
+    "authenticity": [
+      "new",
+      "new"
+    ]
+  },
+  "measured": {
+    "perf": true,
+    "fidelity": null,
+    "ip": true
+  },
+  "critics": {
+    "critic-claude": {
+      "characters": 7,
+      "materials": 6.5,
+      "scenery": 6.5,
+      "lighting": 6.5,
+      "animation": 6,
+      "ui": 7,
+      "typography": 6.5,
+      "readability": 6.5,
+      "mobile": 7,
+      "authenticity": 6.5
+    },
+    "critic-codex": {
+      "characters": 7,
+      "materials": 6.5,
+      "scenery": 6,
+      "lighting": 6.5,
+      "animation": 6.5,
+      "ui": 7,
+      "typography": 6.5,
+      "readability": 7,
+      "mobile": 6.5,
+      "authenticity": 7
+    },
+    "prosecutor": {
+      "characters": 6.5,
+      "materials": 6,
+      "scenery": 6,
+      "lighting": 6,
+      "animation": 5.5,
+      "ui": 6.5,
+      "typography": 6.5,
+      "readability": 6,
+      "mobile": 6.5,
+      "authenticity": 6.5
+    },
+    "advocate": {
+      "characters": 7.5,
+      "materials": 7,
+      "scenery": 6.5,
+      "lighting": 6.5,
+      "animation": 6.5,
+      "ui": 7,
+      "typography": 7,
+      "readability": 7,
+      "mobile": 7,
+      "authenticity": 7
+    }
+  },
+  "gates": {
+    "characters": 7,
+    "materials": 7,
+    "scenery": 7,
+    "lighting": 7,
+    "animation": 7,
+    "ui": 7,
+    "typography": 7,
+    "readability": 7,
+    "mobile": 7,
+    "authenticity": 6
+  },
+  "verdict": "continue"
+}

@@ -1,0 +1,19 @@
+{
+  "perf": {
+    "pass": false,
+    "checked": 52,
+    "failed": [
+      "mid phone (assumed ~25x below an RTX 5060) row: est. 30.2 ms from 1.21 ms × 25 (≤ 25)",
+      "mid phone (assumed ~25x below an RTX 5060) dusk: est. 27.9 ms from 1.12 ms × 25 (≤ 25)",
+      "floor (SwiftShader) row: 51.3 fps (≥ 45), p95 45.1 ms (≤ 40); 1.81× the baseline frame time",
+      "floor (SwiftShader) mountain: 53.7 fps (≥ 45), p95 43.2 ms (≤ 40); 1.8× the baseline frame time",
+      "floor (SwiftShader) dusk: 54.6 fps (≥ 45), p95 40.1 ms (≤ 40); 2.03× the baseline frame time"
+    ]
+  },
+  "fidelity": null,
+  "ip": {
+    "pass": true,
+    "note": "developer check: silhouettes unchanged; player marker gold, team colours only; no LEGO name or logo; critics re-check"
+  },
+  "perfNote": "Failed 47/52 in two full runs; the committed loop-8 build measures the same on this machine today (medium phone row 1.21 vs 1.22 ms; SwiftShader row p95 42.0 vs 43.1 ms), so the failure is machine load (a runaway dev server from another worktree), not this build. See reviews/PERF.md."
+}

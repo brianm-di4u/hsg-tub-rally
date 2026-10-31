@@ -235,8 +235,8 @@ const FRAG_MAIN = `
     #endif
     float ao = 1.0, gloss = uGloss, lit = 0.0;
     #ifdef FOOT_AO
-      // placed models stand on their origin: walls darken over the bottom 1.3 m where they meet the ground
-      ao *= mix(0.6, 1.0, smoothstep(0.0, 1.3, vFootY));
+      // placed models stand on their origin: walls darken over the bottom 1.8 m where they meet the ground
+      ao *= mix(0.5, 1.0, smoothstep(0.0, 1.8, vFootY));
     #endif
     #ifdef PAT_STUDS
       // baseplate studs on upward faces: tilt the normal on each stud's bevel ring, darken the plate around its
@@ -304,7 +304,7 @@ const FRAG_MAIN = `
         // relief: near its edges each brick's normal tilts out (up at its top, down at its foot, along the wall at
         // its ends), so the courses answer the sun instead of being drawn on; fades where a brick is a few pixels
         { vec2 bs = vec2(uPat.y, ${BRICK.brick.toFixed(3)}), q = fract(m / bs) * bs, fm = fwidth(m);
-          float rv = 1.0 - smoothstep(0.03, 0.09, max(fm.x, fm.y)), bw = clamp(max(fm.x, fm.y) * 1.5, 0.045, 0.09);
+          float rv = 1.0 - smoothstep(0.02, 0.055, max(fm.x, fm.y)), bw = clamp(max(fm.x, fm.y) * 1.5, 0.045, 0.09);
           vec2 rr = (1.0 - smoothstep(0.0, bw, bs - q)) - (1.0 - smoothstep(0.0, bw, q));
           vec3 side = normalize(cross(vec3(0.0, 1.0, 0.0), Ng) + 1e-5);
           side *= sign(dot(side, dFdx(vWorld)) * dFdx(m.x) + dot(side, dFdy(vWorld)) * dFdy(m.x) + 1e-9);

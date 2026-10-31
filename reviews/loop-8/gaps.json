@@ -1,0 +1,204 @@
+[
+  {
+    "id": "G-impact-camera-kick",
+    "category": "animation",
+    "expectedGain": 0.5,
+    "severity": 4,
+    "effort": "S",
+    "workstream": "WS3",
+    "evidence": [
+      "strips/high/R15",
+      "ab/strip-R15"
+    ],
+    "benchmark": "2k-drive/drive-3.jpg",
+    "fix": "Neither build shows the logged ~4 deg dip: first confirm the fumble/impact path calls it, then apply the pitch dip at full strength within 1-2 sim ticks of contact, easing out over ~0.4 s, plus a 3-5 deg FOV punch (stateless). Test: in strips/high/R15 the far band (x150-330, y30-110 of each 480x300 frame) shifts >=10 px vertically between frame 1 and frame 2 or 3 (now <=1 px; sky edge <=3 px).",
+    "priority": 0.75,
+    "selected": true
+  },
+  {
+    "id": "G-steam-plume",
+    "category": "animation",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS3",
+    "evidence": [
+      "strips/high/R14",
+      "high/desktop/R17",
+      "high/mobile/R17"
+    ],
+    "benchmark": "2k-drive/drive-3.jpg",
+    "fix": "Merges G-slide-steam-rise, G-action-effects (steam) and G-boost-steam-read. Emit slide steam at the rear wheel contact points with visible upward speed (the logged >=1.6 m/s), 2x growth over life and alpha fading to 0; render boost steam as white beads with a warm tint in a trailing plume, not a clump of opaque orange spheres at the stern. Test: R14 frames 5-8 puffs sit above the tub-rim line and link back to the wheels; R17 boost particles span >=3x the stern width and fade at the tail.",
+    "priority": 0.75,
+    "selected": true
+  },
+  {
+    "id": "G-horizon-haze-clamp",
+    "category": "lighting",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R04",
+      "high/desktop/R06",
+      "high/desktop/R03",
+      "ab/high-desktop-R04"
+    ],
+    "benchmark": "worlds/worlds-4.jpg",
+    "fix": "Merges G-horizon-ghost-tiers and G-horizon-haze-over-sky. Fog the hill ring toward the sky's horizon colour and clamp so no ring pixel exceeds the sky luminance in its row; remove the lit top/lip highlight on the farthest terrace. Test: in high/desktop/R04 x540-860, y120-200 no pixel is more than 8 levels above the row's sky (now 2795 px; peak (225,252,255) at (771,193)); no pale blocks at R06 x370-440,y230-310 and x910-1040,y240-310, or R03 x540-760,y130-220.",
+    "priority": 0.75,
+    "selected": true
+  },
+  {
+    "id": "G-player-marker-salience",
+    "category": "readability",
+    "expectedGain": 0.4,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS6",
+    "evidence": [
+      "high/desktop/R11",
+      "high/mobile/R08",
+      "high/mobile/R07"
+    ],
+    "benchmark": "2k-drive/drive-3.jpg",
+    "fix": "Player-only ring style (thicker, dark outline, one fixed colour regardless of team) with thinner desaturated rival rings; raise the arrow so it never overlaps another crew and add a short drop line to the player's tub. Test: in R11 the player's ring is the most saturated ring on screen (now a rival's yellow ring outshines the player's white ring); in mobile R08 and R07 the arrow overlaps no rival crew.",
+    "priority": 0.6,
+    "selected": true
+  },
+  {
+    "id": "G-wall-base-occlusion",
+    "category": "lighting",
+    "expectedGain": 0.3,
+    "severity": 2,
+    "effort": "S",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R05",
+      "high/desktop/R13"
+    ],
+    "benchmark": "builders-journey/bj-3.jpg",
+    "fix": "Add a soft dark gradient decal (~0.5 m tall, ~35% darkening at the contact line) along every building, wall and booth base where it meets the ground, or bake vertex AO into landmark meshes. Test: at x=1000 in high/desktop/R05 the last 30 px of wall above the lawn darken >=25% (now ~15% over ~10 px).",
+    "priority": 0.45,
+    "selected": true
+  },
+  {
+    "id": "G-landscape-team-cards",
+    "category": "mobile",
+    "expectedGain": 0.3,
+    "severity": 2,
+    "effort": "S",
+    "workstream": "WS6",
+    "evidence": [
+      "high/landscape/R02",
+      "high/mobile/R02"
+    ],
+    "benchmark": "2k-drive/drive-2.jpg",
+    "fix": "Merges G-phone-density and G-portrait-select-margin. In landscape never hyphen-break team names (shrink to fit, max 2 lines), put division and lock state on one icon row, narrow the preview; in portrait apply the logged 16 px bottom margin to the outer frame including its shadow plate. Test: every card in high/landscape/R02 is <=2 text lines and 'The Out-of-Towners' has no hyphen break; high/mobile/R02 has >=32 device px below the shadow plate (now 8).",
+    "priority": 0.3,
+    "selected": true
+  },
+  {
+    "id": "G-ford-water",
+    "category": "materials",
+    "expectedGain": 0.3,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R19"
+    ],
+    "benchmark": "builders-journey/bj-2.jpg",
+    "fix": "Make the ford a translucent water plate (~60% opaque) with scrolling specular ripples and a splash wake under crossing tubs; keep the new edge lines. Test: in R19 the tile grid under the water is visibly softened, a highlight band shows, and a splash appears under the crossing rival.",
+    "priority": 0.225,
+    "selected": true
+  },
+  {
+    "id": "G-sunset-sun-and-rim",
+    "category": "lighting",
+    "expectedGain": 0.3,
+    "severity": 2,
+    "effort": "M",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R11"
+    ],
+    "benchmark": "worlds/worlds-4.jpg",
+    "fix": "Horizon glow already exists; add a sun disc with a stateless glow in the sky dome along the key direction and a warm rim term on foliage and figures at sunset and dusk. Test: sun or sun glow in frame in R11, and crowns facing it show a lit edge >=1.5x the crown interior luminance.",
+    "priority": 0.225,
+    "selected": false
+  },
+  {
+    "id": "G-pack-separation",
+    "category": "readability",
+    "expectedGain": 0.3,
+    "severity": 2,
+    "effort": "M",
+    "workstream": "WS2",
+    "evidence": [
+      "high/desktop/R07",
+      "high/desktop/R08",
+      "high/mobile/R07"
+    ],
+    "benchmark": "2k-drive/drive-3.jpg",
+    "fix": "Tubs already fly flags: scale them with distance so each stays >=12 px tall at 1280x800, give rival rings a dark outline, and raise the chase camera ~0.5 m in packs. Test: every rival tub countable (flag or ring) in R07 and R08.",
+    "priority": 0.225,
+    "selected": false
+  },
+  {
+    "id": "G-event-banner-placement",
+    "category": "ui",
+    "expectedGain": 0.2,
+    "severity": 2,
+    "effort": "S",
+    "workstream": "WS6",
+    "evidence": [
+      "high/desktop/R16",
+      "strips/high/R16",
+      "high/desktop/R19",
+      "high/landscape/R17"
+    ],
+    "benchmark": "2k-drive/drive-3.jpg",
+    "fix": "After 1 s collapse event banners to a slim ribbon (<=60 px tall on desktop) docked under the item tile. Test: from frame 3 of strips/high/R16, and in R19 and high/landscape/R17, the banner does not overlap the road between the horizon and the player's tub (now 340x125 px centred at x470-810, y178-300 in R16).",
+    "priority": 0.2,
+    "selected": false
+  },
+  {
+    "id": "G-ridgeline-horizon",
+    "category": "scenery",
+    "expectedGain": 0.5,
+    "severity": 4,
+    "effort": "L",
+    "workstream": "WS4",
+    "evidence": [
+      "high/desktop/R06",
+      "high/desktop/R09",
+      "high/desktop/R12",
+      "high/desktop/R17",
+      "high/desktop/R04"
+    ],
+    "benchmark": "2k-drive/drive-5.jpg",
+    "fix": "BIG LEVER (scenery; also authenticity, materials, lighting). Merges G-environment and G-mountain-ridgelines. Replace the near-vertical terraced decal wall with long rounded Ouachita-like ridgelines built from stepped sloped plates, foothill steps grading down to the playable ground, modelled conifer clusters only on the near ridge, and a different ridge silhouette per course. Test: in high/desktop/R06 the lawn rises to the hills through at least two foothill steps with no face taller than 60 px (now a wall at x0-330, y240-520); unlabelled R06, R09, R12 and R17 horizons can be told apart.",
+    "priority": 0.188,
+    "bigLever": true,
+    "selected": true
+  },
+  {
+    "id": "G-facade-relief",
+    "category": "materials",
+    "expectedGain": 0.4,
+    "severity": 3,
+    "effort": "L",
+    "workstream": "WS4",
+    "evidence": [
+      "high/desktop/R05",
+      "high/desktop/R06",
+      "crops/high/R04-kart_3"
+    ],
+    "benchmark": "worlds/worlds-1.jpg",
+    "fix": "Merges G-facade-relief, G-facades and G-facade-specular-sparkle. On the Fordyce, the Arlington and the Row bathhouses replace the blurry painted window/ornament panels with openings recessed one plate behind the wall, modelled tile surrounds and printed ornament tiles at the brick texture's resolution; keep the existing sills, marquee and plinth; add specular anti-aliasing on bevel normals. Test: recessed openings visible from the R05 and R06 cameras, no painted window panel left on those facades, and the isolated sparkles at (880,366) and (986,370) in R05 gone.",
+    "priority": 0.15,
+    "selected": false
+  }
+]

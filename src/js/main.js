@@ -91,7 +91,7 @@ async function boot() {
   App.audioState = audioState;
   initTouch($('#touch-steer'), { push: $('#t-push'), brake: $('#t-brake'), hop: $('#t-hop'), item: $('#t-item') });
   window.addEventListener('resize', () => App.renderer.resize());
-  installHooks(App, { startRace, gotoTitle, setScene, stepOnce, onMenu, perfLab, labStats: () => labStats(window.THREE) });
+  installHooks(App, { startRace, gotoTitle, setScene, stepOnce, kartEvents, onMenu, perfLab, labStats: () => labStats(window.THREE) });
   // the title screen sits over a slow flyover of the first course
   await ensureTrack(builtIds()[0] || 'bathhouse-row');
   loadCourse(builtIds()[0] || 'bathhouse-row');
@@ -473,6 +473,31 @@ function showTrophy() {
 }
 
 // One fixed simulation tick for the current race.
+// sounds, call-outs and camera shake from the player's sim events this step
+function playerFeedback(me) {
+  for (const e of me.events) {
+    const snd = { boost: 'boost', fumble: 'hit', wall: 'bump', bump: 'bump', pickup: 'pickup', ticket: 'ticket', bribe: 'whistle', judge: 'whistle', taskDone: 'cheer', blocked: 'snap', drained: 'splash' }[e.type];
+    if (snd) sfx(snd, e.type === 'drained');
+    if (e.type === 'use') sfx({ duck: 'quack', towel: 'snap', blaster: 'splash', hose: 'splash', jet: 'steam', jet3: 'steam', bubble: 'pickup' }[e.item] || 'menu');
+    if (e.type === 'boost') { App.hud.flash(e.kind === 'hot' ? 'HOT STEAM!' : e.kind === 'start' ? 'GREAT START!' : 'WARM STEAM', 'boost', 1); App.cam.punch = e.kind === 'hot' ? 6 : 4; App.cam.shake = Math.max(App.cam.shake, 0.25); }
+    else if (e.type === 'fumble') { App.hud.flash('Dropped the ' + (e.item || 'item') + '! Circle the tub!', 'bad', 1.6); App.cam.shake = 0.8; App.views[me.id].flash = 1; }
+    else if (e.type === 'wall' && e.v > 7) App.cam.shake = Math.min(1, e.v / 14);
+    else if (e.type === 'land' && e.v > 7) App.cam.shake = 0.4;
+    else if (e.type === 'hit') { App.cam.shake = 0.7; App.cam.punch = 3; }
+    else if (e.type === 'bump') App.cam.shake = Math.max(App.cam.shake, 0.35);
+    else if (e.type === 'fall') App.hud.flash('Over the edge! The refs will tow you back', 'bad', 2);
+    else if (e.type === 'bribe') App.hud.flash('Bribe accepted: HEAD START!', 'boost', 1.4);
+    else if (e.type === 'blocked') App.hud.flash('Blocked by your loofah!', 'lap', 1);
+    else if (e.type === 'scored') App.hud.flash('Splash! Got one!', 'lap', 0.9);
+    else if (e.type === 'sprayed') App.hud.flash('Getting soaked!', 'bad', 0.8);
+  }
+}
+// test hooks that act on a kart outside a sim step (act('hit')) hand its events to the frame here, as a step would
+function kartEvents(k) {
+  for (const e of k.events) App.frameEvents.push({ k, e });
+  if (App.race && App.race.karts[App.race.player] === k) playerFeedback(k);
+}
+
 function stepOnce() {
   const r = App.race;
   if (!r) return;
@@ -492,22 +517,7 @@ function stepOnce() {
     if (tPrev < -1.0 && r.time >= -1.0) sfx('ready');
     if (r.phase === 'race' && r.time <= DT * 1.01) sfx('go');
   }
-  if (me) for (const e of me.events) {
-    const snd = { boost: 'boost', fumble: 'hit', wall: 'bump', bump: 'bump', pickup: 'pickup', ticket: 'ticket', bribe: 'whistle', judge: 'whistle', taskDone: 'cheer', blocked: 'snap', drained: 'splash' }[e.type];
-    if (snd) sfx(snd, e.type === 'drained');
-    if (e.type === 'use') sfx({ duck: 'quack', towel: 'snap', blaster: 'splash', hose: 'splash', jet: 'steam', jet3: 'steam', bubble: 'pickup' }[e.item] || 'menu');
-    if (e.type === 'boost') { App.hud.flash(e.kind === 'hot' ? 'HOT STEAM!' : e.kind === 'start' ? 'GREAT START!' : 'WARM STEAM', 'boost', 1); App.cam.punch = e.kind === 'hot' ? 6 : 4; App.cam.shake = Math.max(App.cam.shake, 0.25); }
-    else if (e.type === 'fumble') { App.hud.flash('Dropped the ' + (e.item || 'item') + '! Circle the tub!', 'bad', 1.6); App.cam.shake = 0.8; App.views[me.id].flash = 1; }
-    else if (e.type === 'wall' && e.v > 7) App.cam.shake = Math.min(1, e.v / 14);
-    else if (e.type === 'land' && e.v > 7) App.cam.shake = 0.4;
-    else if (e.type === 'hit') { App.cam.shake = 0.7; App.cam.punch = 3; }
-    else if (e.type === 'bump') App.cam.shake = Math.max(App.cam.shake, 0.35);
-    else if (e.type === 'fall') App.hud.flash('Over the edge! The refs will tow you back', 'bad', 2);
-    else if (e.type === 'bribe') App.hud.flash('Bribe accepted: HEAD START!', 'boost', 1.4);
-    else if (e.type === 'blocked') App.hud.flash('Blocked by your loofah!', 'lap', 1);
-    else if (e.type === 'scored') App.hud.flash('Splash! Got one!', 'lap', 0.9);
-    else if (e.type === 'sprayed') App.hud.flash('Getting soaked!', 'bad', 0.8);
-  }
+  if (me) playerFeedback(me);
   for (const e of r.events) {
     if (me && e.kart === me.id && e.type === 'lap') sfx(e.lap > r.laps ? 'finish' : 'lap');
     if (me && e.kart === me.id && e.type === 'lap') App.hud.flash(e.lap === r.laps ? 'FINAL LAP!' : e.lap > r.laps ? 'FINISH!' : `LAP ${e.lap}`, 'lap', 1.4);
@@ -618,7 +628,7 @@ function drawRace(r, alpha, dt) {
   const lookBack = INPUT.back || (INPUT.pad && INPUT.pad.back);
   if (App.camPose) {
     App.cam.update(App.camPose.k, App.camPose.pose, dt || 1 / 60, {
-      lookBack, time: App.time, reducedMotion: App.reducedMotion, baseFov: App.renderer.baseFov, portrait: App.renderer.size.h > App.renderer.size.w,
+      fxDt: dt, lookBack, time: App.time, reducedMotion: App.reducedMotion, baseFov: App.renderer.baseFov, portrait: App.renderer.size.h > App.renderer.size.w,
       groundAt: (x, z) => tr.surface(x, z, App.camPose.k.s).h,
     });
   }

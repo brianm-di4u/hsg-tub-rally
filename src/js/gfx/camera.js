@@ -20,8 +20,11 @@ export class ChaseCam {
     const v = Math.abs(k.vf);
     const targetYaw = pose.yaw + (k.drift ? k.drift * 0.28 : 0) + (back < 0 ? Math.PI : 0);
     const portrait = opts.portrait ? 1 : 0;
-    const dist = 6.3 + Math.min(1.5, v * 0.06) + (k.boostT > 0 ? 0.8 : 0) + portrait * 1.6;
-    const height = 2.9 + Math.min(0.6, v * 0.02) + portrait * 1.6;
+    // in a tight turn the camera rises (up to 0.9 m) and tucks in a little, so the tubs queued through a hairpin show
+    // above the crews in front of them
+    const turn = Math.min(1, Math.abs(k.yawRate || 0) * 0.8);
+    const dist = 6.3 + Math.min(1.5, v * 0.06) + (k.boostT > 0 ? 0.8 : 0) + portrait * 1.6 - turn * 0.3;
+    const height = 2.9 + Math.min(0.6, v * 0.02) + portrait * 1.6 + turn * 0.9;
     const snapped = !this.init;
     if (snapped) { this.yaw = targetYaw; this.dist = dist; this.height = height; this.x = pose.x; this.y = pose.y; this.z = pose.z; this.liftY = undefined; this.init = true; }
     this.yaw = dampAngle(this.yaw, targetYaw, opts.lookBack ? 30 : 5.5, dt);
@@ -42,21 +45,23 @@ export class ChaseCam {
       }
       this.liftY = damp(this.liftY ?? cy, cy, 8, dt); cy = Math.max(cy, this.liftY);
     }
-    this.shake = Math.max(0, this.shake - dt * 3);
+    // shake and punch decay on the frame's real time (fxDt): a frozen review clock holds them, like every other effect
+    const fxDt = opts.fxDt ?? dt;
+    this.shake = Math.max(0, this.shake - fxDt * 3);
     const sh = opts.reducedMotion ? 0 : this.shake;
     const t = opts.time || 0;
     this.cam.position.set(cx + Math.sin(t * 47) * sh * 0.15, cy + Math.sin(t * 61) * sh * 0.12, cz);
     const look = 6 + portrait * 2;
     this.cam.lookAt(this.x + fx * look, this.y + 0.9 - portrait * 1.6, this.z + fz * look);
-    // impacts jolt the view: a dip of up to ~4 degrees that eases out with the shake, plus a small ring
-    if (sh > 0) this.cam.rotateX(-sh * sh * 0.07 + sh * 0.012 * Math.cos(t * 29));
+    // impacts jolt the view: a dip of up to ~5.6 degrees that eases out with the shake, plus a small ring
+    if (sh > 0) this.cam.rotateX(-sh * sh * 0.098 + sh * 0.012 * Math.cos(t * 29));
     // lean into a power slide: up to 2.5 degrees of roll
     this.roll = snapped ? 0 : damp(this.roll, opts.reducedMotion ? 0 : (k.drift || 0) * 0.044, 6, dt);
     if (this.roll) this.cam.rotateZ(this.roll);
     const fovT = (opts.baseFov || 62) + (k.boostT > 0 && !opts.reducedMotion ? 7 : 0) + Math.min(6, v * 0.18);
     this.fovKick = snapped ? fovT : damp(this.fovKick, fovT, 4, dt);
     // punch: a quick FOV kick (degrees) on slide releases and hits, gone in about 0.25 s
-    this.punch = snapped ? 0 : Math.max(0, this.punch - dt * 20);
+    this.punch = snapped ? 0 : Math.max(0, this.punch - fxDt * 20);
     const fov = this.fovKick + (opts.reducedMotion ? 0 : this.punch);
     if (Math.abs(this.cam.fov - fov) > 0.05) { this.cam.fov = fov; this.cam.updateProjectionMatrix(); }
   }

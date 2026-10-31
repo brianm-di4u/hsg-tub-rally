@@ -409,4 +409,28 @@ body[data-screen="results"] .touch, body[data-screen="standings"] .touch, body[d
 /* loop 8: HUD tiles carry the menus' stud row along their top edge */
 .hud-tl, .hud-tr, .hud-item, .hud-map, .hud-water, .hud-bl .hud-pips { background-image: radial-gradient(circle 4px at 50% 55%, rgba(255,255,255,0.22) 0 70%, transparent 76%); background-size: 16px 9px; background-position: center 2px; background-repeat: repeat-x; }
 @media (max-height: 500px) and (min-aspect-ratio: 1/1) { .hud-center { top: 104px; } }
-@media (max-aspect-ratio: 4/5) { .scr-teams { padding-bottom: calc(env(safe-area-inset-bottom) + 16px); } }
+@media (max-aspect-ratio: 4/5) { .scr-teams { padding-bottom: calc(env(safe-area-inset-bottom) + 28px); } } /* the panel frame hangs ~12 px below its box */
+/* loop 9: a locked team says so on its own line (no orphaned bullet); phone results keep the team swatches, one
+   line per row, with the clean finish as a check mark */
+.tcard .lk { display: block; font-style: normal; opacity: 0.85; }
+@media (max-width: 520px) {
+  .sw { display: inline-block; width: 9px; height: 9px; margin-right: 4px; border-width: 1px; }
+  .rtable td { white-space: nowrap; }
+  .rtable td:nth-child(2) { white-space: normal; }
+  .rtable .clean { font-size: 0; padding: 0 3px; }
+  .rtable .clean::after { content: '\2713'; font-size: 13px; color: #8EE07A; }
+}
+/* loop 9: phone landscape team select: three columns of name-only cards (the division shows in the details beside
+   them), names kept whole across their hyphens */
+@media (max-height: 500px) and (min-aspect-ratio: 1/1) {
+  .scr-teams .panel.teams > .team-grid { grid-template-columns: repeat(3, 1fr); }
+  .scr-teams .team-grid .tcard b { font-size: 11px; }
+  .scr-teams .team-grid .tcard small { font-size: 0; }
+  .scr-teams .team-grid .tcard small .lk { font-size: 9px; }
+}
+/* loop 9: on a desktop-sized window the HUD tiles grow 15% (labels were small at 1280 × 800), and the ticket label
+   is a size up */
+@media (min-width: 1100px) and (min-height: 700px) { :root { --hud-scale: 1.15; } }
+.hud-item .tk-l { font-size: 12px; }
+.hud-item { padding-top: 12px; } /* the orb sits below the tile's stud row */
+.hud-bl .hud-pips { padding-top: 10px; } /* the item tray's icons sit below its stud row */

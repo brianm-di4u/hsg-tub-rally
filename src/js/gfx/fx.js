@@ -154,6 +154,8 @@ export class Fx {
   burst(x, y, z, n, col, opts = {}) {
     const spd = opts.speed ?? 3, up = opts.up ?? 3, size = opts.size ?? 0.18, life = opts.life ?? 0.7, grav = opts.grav ?? 14;
     const r = opts.rng || this.rand || Math.random;
+    const sh = this.emitShift, age = this.emitAge || 0;
+    if (sh) { x += sh[0]; z += sh[1]; }
     for (let i = 0; i < n; i++) {
       const k = this.next; this.next = (this.next + 1) % MAXP;
       this.pp[k * 3] = x + (r() - 0.5) * (opts.spread ?? 0.4); this.pp[k * 3 + 1] = y; this.pp[k * 3 + 2] = z + (r() - 0.5) * (opts.spread ?? 0.4);
@@ -162,6 +164,11 @@ export class Fx {
       this.pc[k * 3] = col[0]; this.pc[k * 3 + 1] = col[1]; this.pc[k * 3 + 2] = col[2];
       this.ps[k] = this.ps0[k] = size * (0.7 + r() * 0.6); this.life[k] = life * (0.6 + r() * 0.5); this.maxLife[k] = this.life[k]; this.grav[k] = grav;
       this.grow[k] = opts.grow ?? (grav < 0 ? 1.6 : 0);
+      if (age > 0) { // emitted earlier in a long frame: already on its way
+        this.life[k] -= age;
+        this.pp[k * 3] += this.pv[k * 3] * age; this.pp[k * 3 + 1] += this.pv[k * 3 + 1] * age - 0.5 * grav * age * age; this.pp[k * 3 + 2] += this.pv[k * 3 + 2] * age;
+        this.pv[k * 3 + 1] -= grav * age;
+      }
     }
   }
   update(race, track, dt, time, reduced, events = []) {
@@ -206,6 +213,10 @@ export class Fx {
       // particles from the tub
       const fx = Math.sin(k.yaw), fz = Math.cos(k.yaw);
       for (let rr = 0; rr < reps; rr++) {
+      // a long frame's emissions are spread back along the tub's path and pre-aged, oldest first, so they lay a
+      // trail instead of one clump at the tub
+      const age = ((reps - 1 - rr) / reps) * dt;
+      this.emitAge = age; this.emitShift = age > 0 ? [-fx * k.vf * age, -fz * k.vf * age] : null;
       if (k.water.spillFx > 0.05 && !reduced) this.burst(k.x, k.y + 1.0, k.z, Math.ceil(k.water.spillFx * 3), [0.55, 0.82, 0.95], { speed: 2.5, up: 3, size: 0.2, life: 0.6 });
       // power slide: wheel spray while charging, then steam that grows and warms with each stage
       if (k.drift) {
@@ -214,19 +225,23 @@ export class Fx {
         // (0.85 s) and to hot orange by the hot tier (1.9 s), so the build-up shows before a tier is reached
         const st = k.stage || 0, ch = k.charge || 0, w = Math.min(1, ch / 0.85), h = Math.max(0, Math.min(1, (ch - 0.85) / 1.05));
         const col = [0.72 + 0.25 * w + 0.03 * h, 0.87 + 0.11 * w - 0.43 * h, 0.98 + 0.02 * w - 0.58 * h];
-        for (const sgn of [-1, 1]) this.burst(k.x - fx * 0.7 + fz * 0.55 * sgn, k.y + 0.15, k.z - fz * 0.7 - fx * 0.55 * sgn, 2 + st, col, { speed: 0.7 + st * 0.4, up: st || w > 0.7 ? 1.6 + st * 0.5 : 0.9 + w * 0.6, size: 0.22 + w * 0.08 + st * 0.1, life: 0.3 + w * 0.15 + st * 0.15, grav: st || w > 0.7 ? -1.5 : 6, vx: fz * sgn * 1.8 - fx * (st || w > 0.7 ? 1.4 : 0.4), vz: -fx * sgn * 1.8 - fz * (st || w > 0.7 ? 1.4 : 0.4), spread: 0.15 });
+        // steam (from the warm tier's build-up on) leaves the rear wheels with a small outward push, drifts back and
+        // climbs into a swelling column; the early water spray arcs out and falls close to the tub
+        const steam = st || w > 0.7, out = steam ? 0.5 : 1.2;
+        for (const sgn of [-1, 1]) this.burst(k.x - fx * 0.75 + fz * 0.5 * sgn, k.y + 0.25, k.z - fz * 0.75 - fx * 0.5 * sgn, 2 + st, col, { speed: steam ? 0.3 : 0.7, up: steam ? 1.3 + w * 0.5 + st * 0.3 : 0.9 + w * 0.6, size: 0.22 + w * 0.08 + st * 0.1, life: steam ? 0.6 + st * 0.1 : 0.3 + w * 0.15, grav: steam ? -1.8 : 6, grow: steam ? 2.2 : 0, vx: fz * sgn * out - fx * (steam ? 0.9 : 0.4), vz: -fx * sgn * out - fz * (steam ? 0.9 : 0.4), spread: 0.1 });
       }
       // boost trail from the rear wheels, coloured by its kind: hot steam orange, warm steam white, hose blue
       if ((k.boostT > 0 || k.hoseT > 0) && !reduced) {
-        const bc = k.hoseT > 0 ? [0.6, 0.85, 1] : k.boostKind === 'hot' ? [1, 0.58, 0.28] : [0.96, 0.96, 0.98];
+        const bc = k.hoseT > 0 ? [0.6, 0.85, 1] : k.boostKind === 'hot' ? [1, 0.82, 0.66] : [0.96, 0.96, 0.98];
         for (const sgn of [-1, 1]) this.burst(k.x - fx * 0.8 + fz * 0.5 * sgn, k.y + 0.35, k.z - fz * 0.8 - fx * 0.5 * sgn, 2, bc, { speed: 0.5, up: 1.1, size: 0.28, life: 0.5, grav: -1.2, vx: -fx * 2.2, vz: -fz * 2.2, spread: 0.12, grow: 2.6 });
       }
       if (k.sprayT > 0) this.burst(k.x + fx * 1.4, k.y + 1.0, k.z + fz * 1.4, 3, [0.5, 0.8, 1], { speed: 0.5, up: 1.2, size: 0.16, life: 0.5, grav: 9, vx: fx * 16 + Math.sin(k.yaw) * 0, vz: fz * 16, spread: 0.2 });
       }
     }
+    this.emitAge = 0; this.emitShift = null;
     for (const { k, e } of events) {
       if (e.type === 'hit' || e.type === 'fumble') this.burst(k.x, k.y + 1.1, k.z, reduced ? 4 : 8, [0.62, 0.86, 0.97], { speed: 4.5, up: 5, size: 0.12, life: 0.45 }); // small and brief, so the crew stays in view
-      if (e.type === 'boost' && (e.kind === 'hot' || e.kind === 'warm')) { const bf = Math.sin(k.yaw), bz = Math.cos(k.yaw); this.burst(k.x - bf * 0.9, k.y + 0.4, k.z - bz * 0.9, reduced ? 6 : 16, e.kind === 'hot' ? [1, 0.55, 0.25] : [0.97, 0.98, 1], { speed: 2.4, up: 2.2, size: 0.3, life: 0.55, grav: -0.6 }); }
+      if (e.type === 'boost' && (e.kind === 'hot' || e.kind === 'warm')) { const bf = Math.sin(k.yaw), bz = Math.cos(k.yaw); this.burst(k.x - bf * 0.9, k.y + 0.4, k.z - bz * 0.9, reduced ? 6 : 16, e.kind === 'hot' ? [1, 0.8, 0.62] : [0.97, 0.98, 1], { speed: 2.4, up: 2.2, size: 0.3, life: 0.55, grav: -0.6 }); }
       if (e.type === 'pickup') this.burst(k.x, k.y + 1.6, k.z, 10, [0.9, 0.8, 1], { speed: 2, up: 2, size: 0.18, life: 0.5, grav: 0 });
       if (e.type === 'ticket') this.burst(k.x, k.y + 1.4, k.z, 5, [0.95, 0.76, 0.19], { speed: 1.5, up: 2, size: 0.15, life: 0.4, grav: 2 });
       if (e.type === 'bribe') this.burst(k.x, k.y + 1.6, k.z, 14, [0.95, 0.76, 0.19], { speed: 3, up: 4, size: 0.2, life: 0.8 });
