@@ -361,7 +361,9 @@ export class KartView {
     this.mesh.matrixAutoUpdate = false;
     // see-through water on the same part palette
     // (opaque on Low: blending costs more than it shows at that size)
-    const wm = partMat(clearWater || opts.ghost ? { transparent: true, alpha: opts.ghost ? 0.3 : 0.72, depthWrite: false, gloss: 0.95 } : { gloss: 0.95 });
+    // (a moderate gloss: at 0.95 the sheet mirrored the sky at chase angles and read as an empty white tub)
+    // double-sided: the exported sheet faces down, so one-sided it was culled from above and every tub looked empty
+    const wm = partMat({ side: THREE.DoubleSide, ...(clearWater || opts.ghost ? { transparent: true, alpha: opts.ghost ? 0.3 : 0.86, depthWrite: false, gloss: 0.55 } : { gloss: 0.55 }) });
     wm.uniforms.uParts = this.mat.uniforms.uParts; wm.uniforms.uFade = this.mat.uniforms.uFade; // the water steps aside with its tub
     this.water = new THREE.Mesh(near.water, wm);
     this.water.frustumCulled = false;
@@ -390,12 +392,17 @@ export class KartView {
     this.marker.add(edge);
     this.marker.position.set(0, 2.2, 0);
     this.mesh.add(this.marker);
-    // the ring rides on the contact-shadow plane (an ellipse through its 1.3 × 1.9 m scale)
+    this.showRing(teamId);
+  }
+  // a team-colour ring on the contact-shadow plane (an ellipse through its 1.3 × 1.9 m scale): bold and outlined for
+  // the player; rivals get a slim, fainter one so their tubs read through the crews ahead in a pack
+  showRing(teamId, rival = false) {
+    const THREE = this.THREE, C = TEAM_BY_ID[teamId].colors;
     const ringMat = (color, opacity) => new THREE.MeshBasicMaterial({ color, transparent: true, opacity, depthWrite: false, fog: false, polygonOffset: true, polygonOffsetFactor: -2 });
-    const outline = new THREE.Mesh(new THREE.RingGeometry(0.8, 0.98, 48).rotateX(-Math.PI / 2), ringMat(0x1e1b18, 0.55));
-    const ring = new THREE.Mesh(new THREE.RingGeometry(0.84, 0.94, 48).rotateX(-Math.PI / 2), ringMat(new THREE.Color(C.flag), 0.95));
-    outline.position.y = ring.position.y = 0.01; outline.renderOrder = 2; ring.renderOrder = 3;
-    this.shadow.add(outline, ring);
+    const ring = new THREE.Mesh(new THREE.RingGeometry(rival ? 0.86 : 0.84, rival ? 0.9 : 0.94, 48).rotateX(-Math.PI / 2), ringMat(new THREE.Color(C.flag), rival ? 0.6 : 0.95));
+    ring.position.y = 0.01; ring.renderOrder = 3;
+    if (!rival) { const outline = new THREE.Mesh(new THREE.RingGeometry(0.8, 0.98, 48).rotateX(-Math.PI / 2), ringMat(0x1e1b18, 0.55)); outline.position.y = 0.01; outline.renderOrder = 2; this.shadow.add(outline); }
+    this.shadow.add(ring);
   }
   setPart(i, x, y, z, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) {
     const t = this.tmp;
@@ -484,7 +491,9 @@ export class KartView {
     const w = k.water, fill = w.cap ? w.gal / w.cap : 0;
     const wy = 0.5 + P.water * fill;
     // the water sheet tilts with the slosh state (exaggerated: at play size a true-to-sim tilt doesn't read)
-    this.setPart(WATER, 0, wy, 0, -w.tf * 2.0, 0, w.tr * 2.0, 1, 1, fill > 0.02 ? 0.95 : 0.0001);
+    // (narrowed a little so the tilted sheet stays inside the rim; flattened to nothing when empty)
+    const ws = fill > 0.02 ? 0.92 : 0.0001;
+    this.setPart(WATER, 0, wy, 0, -w.tf * 1.3, 0, w.tr * 1.3, ws, 1, ws);
     // the marker stays upright whatever the tub's lean and drift: undo the body rotation, then spin about the vertical
     if (this.marker) { this.marker.position.y = 2.2 + Math.sin(time * 3) * 0.08; this.marker.quaternion.copy(this.tmp.body).invert().multiply(this.tmp.spin.setFromAxisAngle(this.tmp.up, time * 1.5)); }
     // hit flash

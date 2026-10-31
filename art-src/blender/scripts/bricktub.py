@@ -2,7 +2,8 @@
 
 Phase 4 of the brick-toy campaign. The Gold Master tub (goldmaster.py) rebuilt with brickkit knobs and the
 same `detail` levels as brickfig.py:
-    full      rolled rim, enamel, studded chassis, claw feet or moulded skirt, tyres with grooves and lugs
+    full      rolled-rim tube, stripe tile, base seam groove, enamel, studded chassis, claw feet or moulded skirt,
+              tyres with grooves and lugs
     no-micro  low-sided shell (the band kept as faces), plain chassis, posts or a skirt, prism wheels
     blocks    the fewest faces that keep the silhouette and the team colours
 
@@ -28,6 +29,8 @@ from brickfig import rb, bx, cyl_, sph, shade_hex, I4  # noqa: E402
 TUB_C = 0.44                    # half-length of the stadium plan's centre line
 ROLL = (0.432, 1.018, 0.026)    # rolled rim: centre (d, z) and radius
 BOWL_NA, RIM_NA = 16, 56        # full detail: segments per rounded end of the bowl and of the rolled-rim tube
+STRIPE = (0.70, 0.80)           # team stripe band (z); at full detail a raised tile on each straight side
+SEAM_Z = 0.50                   # full detail: mould seam groove where the bowl meets its base ring
 CHASSIS_TOP = 0.356
 WHEELS = [[0.56, 0.3, 0.6], [-0.56, 0.3, 0.6], [0.56, 0.3, -0.6], [-0.56, 0.3, -0.6]]   # game space; 0 = front left
 FLAG_BASE = (-0.3, 1.0, -0.72)  # game space
@@ -93,16 +96,21 @@ def tub_profile(kn, detail):
         return prof
     lo = kn.curve_segs < 3
     prof = [(0.24, 0.42), (0.286, 0.427), (0.303, 0.436)] if not lo else [(0.24, 0.42), (0.303, 0.436)]
-    outer = (0.45, 0.52, 0.60, 0.70, 0.75, 0.80, 0.88, 0.95, 0.985) if not lo else (0.47, 0.60, 0.70, 0.80, 0.92, 0.985)
-    prof += [(d_out(z), z) for z in outer]
-    prof += [_on_roll(235), _on_roll(225, 0.014), _on_roll(195, 0.014), _on_roll(190)]
+    outer = (0.45, SEAM_Z, 0.60, 0.70, 0.75, 0.80, 0.88, 0.95, 0.985) if not lo else (SEAM_Z, 0.60, 0.70, 0.80, 0.92, 0.985)
+    for z in outer:
+        if z == SEAM_Z:                     # V groove, 8 mm deep: the seam between the base ring and the bowl
+            prof += [(d_out(z - 0.005), z - 0.005), (d_out(z) - 0.008, z), (d_out(z + 0.005), z + 0.005)]
+        else:
+            prof.append((d_out(z), z))
+    prof += [_on_roll(235), _on_roll(212, 0.014), _on_roll(190)]
     inner =(0.96, 0.90, 0.80, 0.70, 0.62, 0.56) if not lo else (0.92, 0.78, 0.62)
     prof += [(d_in(z), z) for z in inner]
     prof += [(0.27, 0.53), (0.245, 0.522), (0.22, 0.52)] if not lo else [(0.25, 0.522), (0.22, 0.52)]
     return prof
 
 
-def _tub_mat(cols, rim=True):
+def _tub_mat(cols, rim=True, band=True):
+    """Shell colours. rim/band False at full detail, where the rim tube and the stripe tile are own parts."""
     def f(c, n):
         dd = abs(c.x) if abs(c.y) <= TUB_C else math.hypot(c.x, abs(c.y) - TUB_C)
         rad = Vector((c.x, 0.0 if abs(c.y) <= TUB_C else c.y - math.copysign(TUB_C, c.y), 0))
@@ -111,7 +119,7 @@ def _tub_mat(cols, rim=True):
             return cols.get('rim', cols['trim'])
         if n.dot(rad) < -0.05 or (n.z > 0.5 and c.z > 0.5):
             return ENAMEL
-        if 0.70 <= c.z <= 0.80 and abs(c.y) <= TUB_C + 0.01:
+        if band and STRIPE[0] <= c.z <= STRIPE[1] and abs(c.y) <= TUB_C + 0.01:
             return cols['flag']
         return cols['tub']
     return f
@@ -124,9 +132,36 @@ def shell(p, kn, detail, cols):
     vs = list(bm.verts)
     bm_cap(bm, vs[:n], False)
     bm_cap(bm, vs[-n:], True)
-    p.add(bm, None, _tub_mat(cols, rim=detail != 'full'), recalc=True)
+    p.add(bm, None, _tub_mat(cols, rim=detail != 'full', band=detail != 'full'), recalc=True)
     if detail == 'full':
         rim(p, kn, cols)
+        stripe_tile(p, kn, cols)
+
+
+def stripe_tile(p, kn, cols, t=0.012, L=0.40, ch=0.004):
+    """The team stripe as a separate raised tile on each straight side of the bowl: t proud of the wall, its
+    edges chamfered, its outline a part seam. The back face hides in the wall."""
+    z0, z1 = STRIPE
+    mids = [z0 + (z1 - z0) * k / kn.curve_segs for k in range(1, kn.curve_segs)]
+    prof = [(d_out(z0) - 0.004, z0), (d_out(z0) + t - ch, z0), (d_out(z0 + ch) + t, z0 + ch)]
+    prof += [(d_out(z) + t, z) for z in mids]
+    prof += [(d_out(z1 - ch) + t, z1 - ch), (d_out(z1) + t - ch, z1), (d_out(z1) - 0.004, z1)]
+    n = len(prof)
+    for s in (1, -1):
+        bm = _new_bm()
+        cl = _cls(bm)
+        rows = [[bm.verts.new((s * d, y, z)) for y in (-L, L)] for d, z in prof]
+        g, prev = 0, None
+        for i in range(n):
+            j = (i + 1) % n
+            dv = Vector((prof[j][0] - prof[i][0], prof[j][1] - prof[i][1]))
+            if prev is None or math.degrees(prev.angle(dv)) > 35.0:
+                g += 1
+            prev = dv
+            bm.faces.new([rows[i][0], rows[j][0], rows[j][1], rows[i][1]])[cl] = g
+        bm_cap(bm, [r[0] for r in rows], False)
+        bm_cap(bm, [r[1] for r in rows], True)
+        p.add(bm, None, cols['flag'], recalc=True)
 
 
 def rim(p, kn, cols):
@@ -328,11 +363,11 @@ def water(p, c):
     kn, detail = c.kn, c.detail
     wz = WATER_Z
     dw = d_in(wz) - 0.003
-    if detail == 'full':
-        bm, vr = bm_loft([stadium(dw * f, wz, kn, detail) for f in (0.25, 0.5, 0.75, 1.0)], group=1, closed=True)
+    if detail == 'full':                    # rings wound to face up (+Z), like the centre cap
+        bm, vr = bm_loft([stadium(dw * f, wz, kn, detail) for f in (0.25, 0.5, 0.75, 1.0)], group=1, closed=True,
+                         flip=True)
         bm_cap(bm, vr[0], True)
-        bm_loft_flat = bm
-        p.add(bm_loft_flat, None, 'water/water')
+        p.add(bm, None, 'water/water')
         return
     bm = _new_bm()
     vs = [bm.verts.new(q) for q in stadium(dw, wz, kn, detail)]

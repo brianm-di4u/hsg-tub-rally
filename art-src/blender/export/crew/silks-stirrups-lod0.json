@@ -942,7 +942,7 @@
     0.0
    ],
    "src": "shared",
-   "tris": 7970
+   "tris": 8114
   },
   "cap_arm_l": {
    "part": "cap_arm_l",
@@ -1261,8 +1261,8 @@
    "att3": 5226,
    "cap": 3154
   },
-  "total": 49294,
-  "tub": 25540
+  "total": 49438,
+  "tub": 25684
  },
  "units": "metres; kart space: Y up, +Z forward, +X the kart's left",
  "water": {

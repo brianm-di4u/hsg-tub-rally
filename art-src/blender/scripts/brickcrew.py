@@ -241,6 +241,22 @@ def band_tops(a, col=30):
     return tops
 
 
+# Print colours moved per team (sRGB from -> to), after keying: Trail Shredders' orange stripes turn lime on
+# their now-orange jersey (brickfig.COLOUR_OVERRIDES).
+PRINT_RECOLOUR = {'trail-shredders': [('#EE7A22', '#7DBB3C')]}
+
+
+def recolour(a, pairs, tol=0.25):
+    """Shift print colours near each `from` colour by (to - from), fading out with RGB distance."""
+    np = _np()
+    out = a.copy()
+    for src, dst in pairs:
+        s, d = np.array(hexc(src)), np.array(hexc(dst))
+        w = np.clip(2.0 - 2.0 * np.linalg.norm(a[..., :3] - s, axis=2) / tol, 0.0, 1.0)
+        out[..., :3] = np.clip(out[..., :3] + w[..., None] * (d - s), 0.0, 1.0)
+    return out
+
+
 def torso_crops(team_id):
     """Keyed front and back prints cropped to the torso aspect (rows top-down), or (None, None)."""
     front = os.path.join(TEX, 'torso_%s.png' % team_id)
@@ -248,7 +264,10 @@ def torso_crops(team_id):
     if not os.path.exists(front):
         return None, None
     np = _np()
+    rc = PRINT_RECOLOUR.get(team_id)
     a = key_white(load_px(front), flood=False)
+    if rc:
+        a = recolour(a, rc)
     h, w = a.shape[:2]
     H = int(round(w / TORSO_ASPECT))
     b = ink_box(a[..., 3])
@@ -257,6 +276,8 @@ def torso_crops(team_id):
     ba = None
     if os.path.exists(back):
         bb = key_white(load_px(back), flood=False)
+        if rc:
+            bb = recolour(bb, rc)
         tf, tb = band_tops(fa), band_tops(bb)
         if team_id == 'engine-six' and len(tf) >= 2 and len(tb) >= 2:
             # the pilot's back bands sat at other heights: resample rows so they line up with the front's
@@ -693,6 +714,26 @@ def _hemisphere(n):
     return out
 
 
+AO_RING_SMOOTH = {'body': 4}    # passes of AO averaging along the tub's horizontal rings (loop-4: the per-vertex
+                                # rays left faint vertical banding on the enamel along the radial segments)
+
+
+def _ring_smooth(me, ao, passes):
+    """Average AO with neighbours at the same height ([1, 2, 1] per pass): smooths along the swept rings and
+    keeps the profile's detail (rim crease, seam groove) sharp."""
+    if not passes:
+        return ao
+    nb = [[] for _ in me.vertices]
+    for e in me.edges:
+        a, b = e.vertices
+        if abs(me.vertices[a].co.z - me.vertices[b].co.z) < 1e-5:
+            nb[a].append(b)
+            nb[b].append(a)
+    for _ in range(passes):
+        ao = [(2 * ao[v] + sum(ao[u] for u in nb[v])) / (2 + len(nb[v])) for v in range(len(ao))]
+    return ao
+
+
 def bake(targets, occluders, mode, pal=None):
     """Vertex data for each target mesh (once per mesh, from its first object). AO: fixed rays against the
     occluders in rest pose plus the ground. mode 'ao': COLOR_0 grey AO and a _SLOT corner attribute (shared
@@ -728,6 +769,7 @@ def bake(targets, occluders, mode, pal=None):
                 if bvh.ray_cast(org, t * d.x + bb * d.y + n * d.z, AO_DIST)[0] is not None:
                     hits += 1
             ao.append(1.0 - AO_STRENGTH * hits / len(dirs))
+        ao = _ring_smooth(me, ao, AO_RING_SMOOTH.get(me.name, 0))
         mats = list(me.materials)
         attr = me.color_attributes.new('Col', 'FLOAT_COLOR', 'CORNER')
         uvl = me.uv_layers[0]

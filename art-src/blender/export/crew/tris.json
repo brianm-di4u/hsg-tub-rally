@@ -2,18 +2,18 @@
  "bubble-patrol": {
   "0": {
    "figures": {
-    "att0": 4412,
-    "att1": 4940,
-    "att2": 4876,
-    "att3": 4844,
-    "cap": 2772
+    "att0": 4742,
+    "att1": 5270,
+    "att2": 5206,
+    "att3": 5174,
+    "cap": 3102
    },
    "nodes": {
     "att0_arm_l": 248,
     "att0_arm_r": 248,
     "att0_hand_l": 500,
     "att0_hand_r": 500,
-    "att0_hat": 464,
+    "att0_hat": 794,
     "att0_head": 300,
     "att0_item": 240,
     "att0_leg_l": 592,
@@ -25,7 +25,7 @@
     "att1_arm_r": 248,
     "att1_hand_l": 500,
     "att1_hand_r": 500,
-    "att1_hat": 464,
+    "att1_hat": 794,
     "att1_head": 300,
     "att1_item": 768,
     "att1_leg_l": 592,
@@ -37,7 +37,7 @@
     "att2_arm_r": 248,
     "att2_hand_l": 500,
     "att2_hand_r": 500,
-    "att2_hat": 464,
+    "att2_hat": 794,
     "att2_head": 300,
     "att2_item": 704,
     "att2_leg_l": 592,
@@ -49,7 +49,7 @@
     "att3_arm_r": 248,
     "att3_hand_l": 500,
     "att3_hand_r": 500,
-    "att3_hat": 464,
+    "att3_hat": 794,
     "att3_head": 300,
     "att3_item": 672,
     "att3_leg_l": 592,
@@ -57,12 +57,12 @@
     "att3_leg_r": 592,
     "att3_leg_r_trim": 108,
     "att3_torso": 512,
-    "body": 7970,
+    "body": 8114,
     "cap_arm_l": 248,
     "cap_arm_r": 248,
     "cap_hand_l": 500,
     "cap_hand_r": 500,
-    "cap_hat": 464,
+    "cap_hat": 794,
     "cap_head": 300,
     "cap_torso": 512,
     "duck": 2924,
@@ -74,23 +74,23 @@
     "wheel_2": 3012,
     "wheel_3": 3012
    },
-   "total": 47384,
-   "tub": 25540
+   "total": 49178,
+   "tub": 25684
   },
   "1": {
    "figures": {
-    "att0": 1952,
-    "att1": 2096,
-    "att2": 2036,
-    "att3": 1944,
-    "cap": 1176
+    "att0": 2066,
+    "att1": 2210,
+    "att2": 2150,
+    "att3": 2058,
+    "cap": 1290
    },
    "nodes": {
     "att0_arm_l": 104,
     "att0_arm_r": 104,
     "att0_hand_l": 196,
     "att0_hand_r": 196,
-    "att0_hat": 268,
+    "att0_hat": 382,
     "att0_head": 108,
     "att0_item": 176,
     "att0_leg_l": 256,
@@ -102,7 +102,7 @@
     "att1_arm_r": 104,
     "att1_hand_l": 196,
     "att1_hand_r": 196,
-    "att1_hat": 268,
+    "att1_hat": 382,
     "att1_head": 108,
     "att1_item": 320,
     "att1_leg_l": 256,
@@ -114,7 +114,7 @@
     "att2_arm_r": 104,
     "att2_hand_l": 196,
     "att2_hand_r": 196,
-    "att2_hat": 268,
+    "att2_hat": 382,
     "att2_head": 108,
     "att2_item": 260,
     "att2_leg_l": 256,
@@ -126,7 +126,7 @@
     "att3_arm_r": 104,
     "att3_hand_l": 196,
     "att3_hand_r": 196,
-    "att3_hat": 268,
+    "att3_hat": 382,
     "att3_head": 108,
     "att3_item": 168,
     "att3_leg_l": 256,
@@ -134,12 +134,12 @@
     "att3_leg_r": 256,
     "att3_leg_r_trim": 44,
     "att3_torso": 200,
-    "body": 4178,
+    "body": 4298,
     "cap_arm_l": 104,
     "cap_arm_r": 104,
     "cap_hand_l": 196,
     "cap_hand_r": 196,
-    "cap_hat": 268,
+    "cap_hat": 382,
     "cap_head": 108,
     "cap_torso": 200,
     "duck": 716,
@@ -151,8 +151,8 @@
     "wheel_2": 924,
     "wheel_3": 924
    },
-   "total": 18972,
-   "tub": 9768
+   "total": 19662,
+   "tub": 9888
   },
   "2": {
    "figures": {
@@ -286,11 +286,11 @@
  "engine-six": {
   "0": {
    "figures": {
-    "att0": 5830,
-    "att1": 6358,
-    "att2": 6294,
-    "att3": 6262,
-    "cap": 4102
+    "att0": 5772,
+    "att1": 6300,
+    "att2": 6236,
+    "att3": 6204,
+    "cap": 4044
    },
    "nodes": {
     "att0_arm_l": 248,
@@ -299,7 +299,7 @@
     "att0_arm_r_trim": 152,
     "att0_hand_l": 500,
     "att0_hand_r": 500,
-    "att0_hat": 1490,
+    "att0_hat": 1432,
     "att0_head": 300,
     "att0_item": 240,
     "att0_leg_l": 592,
@@ -313,7 +313,7 @@
     "att1_arm_r_trim": 152,
     "att1_hand_l": 500,
     "att1_hand_r": 500,
-    "att1_hat": 1490,
+    "att1_hat": 1432,
     "att1_head": 300,
     "att1_item": 768,
     "att1_leg_l": 592,
@@ -327,7 +327,7 @@
     "att2_arm_r_trim": 152,
     "att2_hand_l": 500,
     "att2_hand_r": 500,
-    "att2_hat": 1490,
+    "att2_hat": 1432,
     "att2_head": 300,
     "att2_item": 704,
     "att2_leg_l": 592,
@@ -341,7 +341,7 @@
     "att3_arm_r_trim": 152,
     "att3_hand_l": 500,
     "att3_hand_r": 500,
-    "att3_hat": 1490,
+    "att3_hat": 1432,
     "att3_head": 300,
     "att3_item": 672,
     "att3_leg_l": 592,
@@ -349,14 +349,14 @@
     "att3_leg_r": 592,
     "att3_leg_r_trim": 152,
     "att3_torso": 512,
-    "body": 7970,
+    "body": 8114,
     "cap_arm_l": 248,
     "cap_arm_l_trim": 152,
     "cap_arm_r": 248,
     "cap_arm_r_trim": 152,
     "cap_hand_l": 500,
     "cap_hand_r": 500,
-    "cap_hat": 1490,
+    "cap_hat": 1432,
     "cap_head": 300,
     "cap_torso": 512,
     "duck": 2924,
@@ -368,16 +368,16 @@
     "wheel_2": 3012,
     "wheel_3": 3012
    },
-   "total": 58534,
-   "tub": 29688
+   "total": 58388,
+   "tub": 29832
   },
   "1": {
    "figures": {
-    "att0": 2530,
-    "att1": 2674,
-    "att2": 2614,
-    "att3": 2522,
-    "cap": 1666
+    "att0": 2536,
+    "att1": 2680,
+    "att2": 2620,
+    "att3": 2528,
+    "cap": 1672
    },
    "nodes": {
     "att0_arm_l": 104,
@@ -386,7 +386,7 @@
     "att0_arm_r_trim": 88,
     "att0_hand_l": 196,
     "att0_hand_r": 196,
-    "att0_hat": 582,
+    "att0_hat": 588,
     "att0_head": 108,
     "att0_item": 176,
     "att0_leg_l": 256,
@@ -400,7 +400,7 @@
     "att1_arm_r_trim": 88,
     "att1_hand_l": 196,
     "att1_hand_r": 196,
-    "att1_hat": 582,
+    "att1_hat": 588,
     "att1_head": 108,
     "att1_item": 320,
     "att1_leg_l": 256,
@@ -414,7 +414,7 @@
     "att2_arm_r_trim": 88,
     "att2_hand_l": 196,
     "att2_hand_r": 196,
-    "att2_hat": 582,
+    "att2_hat": 588,
     "att2_head": 108,
     "att2_item": 260,
     "att2_leg_l": 256,
@@ -428,7 +428,7 @@
     "att3_arm_r_trim": 88,
     "att3_hand_l": 196,
     "att3_hand_r": 196,
-    "att3_hat": 582,
+    "att3_hat": 588,
     "att3_head": 108,
     "att3_item": 168,
     "att3_leg_l": 256,
@@ -436,14 +436,14 @@
     "att3_leg_r": 256,
     "att3_leg_r_trim": 88,
     "att3_torso": 200,
-    "body": 4178,
+    "body": 4298,
     "cap_arm_l": 104,
     "cap_arm_l_trim": 88,
     "cap_arm_r": 104,
     "cap_arm_r_trim": 88,
     "cap_hand_l": 196,
     "cap_hand_r": 196,
-    "cap_hat": 582,
+    "cap_hat": 588,
     "cap_head": 108,
     "cap_torso": 200,
     "duck": 716,
@@ -455,8 +455,8 @@
     "wheel_2": 924,
     "wheel_3": 924
    },
-   "total": 22866,
-   "tub": 10860
+   "total": 23016,
+   "tub": 10980
   },
   "2": {
    "figures": {
@@ -590,18 +590,18 @@
  "flamingo-flock": {
   "0": {
    "figures": {
-    "att0": 5026,
-    "att1": 5554,
-    "att2": 5490,
-    "att3": 5458,
-    "cap": 3602
+    "att0": 5136,
+    "att1": 5664,
+    "att2": 5600,
+    "att3": 5568,
+    "cap": 3712
    },
    "nodes": {
     "att0_arm_l": 248,
     "att0_arm_r": 248,
     "att0_hand_l": 500,
     "att0_hand_r": 500,
-    "att0_hat": 1294,
+    "att0_hat": 1404,
     "att0_head": 300,
     "att0_item": 240,
     "att0_leg_l": 592,
@@ -611,7 +611,7 @@
     "att1_arm_r": 248,
     "att1_hand_l": 500,
     "att1_hand_r": 500,
-    "att1_hat": 1294,
+    "att1_hat": 1404,
     "att1_head": 300,
     "att1_item": 768,
     "att1_leg_l": 592,
@@ -621,7 +621,7 @@
     "att2_arm_r": 248,
     "att2_hand_l": 500,
     "att2_hand_r": 500,
-    "att2_hat": 1294,
+    "att2_hat": 1404,
     "att2_head": 300,
     "att2_item": 704,
     "att2_leg_l": 592,
@@ -631,18 +631,18 @@
     "att3_arm_r": 248,
     "att3_hand_l": 500,
     "att3_hand_r": 500,
-    "att3_hat": 1294,
+    "att3_hat": 1404,
     "att3_head": 300,
     "att3_item": 672,
     "att3_leg_l": 592,
     "att3_leg_r": 592,
     "att3_torso": 512,
-    "body": 7970,
+    "body": 8114,
     "cap_arm_l": 248,
     "cap_arm_r": 248,
     "cap_hand_l": 500,
     "cap_hand_r": 500,
-    "cap_hat": 1294,
+    "cap_hat": 1404,
     "cap_head": 300,
     "cap_torso": 512,
     "duck": 2924,
@@ -654,23 +654,23 @@
     "wheel_2": 3012,
     "wheel_3": 3012
    },
-   "total": 50670,
-   "tub": 25540
+   "total": 51364,
+   "tub": 25684
   },
   "1": {
    "figures": {
-    "att0": 2074,
-    "att1": 2218,
-    "att2": 2158,
-    "att3": 2066,
-    "cap": 1386
+    "att0": 2112,
+    "att1": 2256,
+    "att2": 2196,
+    "att3": 2104,
+    "cap": 1424
    },
    "nodes": {
     "att0_arm_l": 104,
     "att0_arm_r": 104,
     "att0_hand_l": 196,
     "att0_hand_r": 196,
-    "att0_hat": 478,
+    "att0_hat": 516,
     "att0_head": 108,
     "att0_item": 176,
     "att0_leg_l": 256,
@@ -680,7 +680,7 @@
     "att1_arm_r": 104,
     "att1_hand_l": 196,
     "att1_hand_r": 196,
-    "att1_hat": 478,
+    "att1_hat": 516,
     "att1_head": 108,
     "att1_item": 320,
     "att1_leg_l": 256,
@@ -690,7 +690,7 @@
     "att2_arm_r": 104,
     "att2_hand_l": 196,
     "att2_hand_r": 196,
-    "att2_hat": 478,
+    "att2_hat": 516,
     "att2_head": 108,
     "att2_item": 260,
     "att2_leg_l": 256,
@@ -700,18 +700,18 @@
     "att3_arm_r": 104,
     "att3_hand_l": 196,
     "att3_hand_r": 196,
-    "att3_hat": 478,
+    "att3_hat": 516,
     "att3_head": 108,
     "att3_item": 168,
     "att3_leg_l": 256,
     "att3_leg_r": 256,
     "att3_torso": 200,
-    "body": 4178,
+    "body": 4298,
     "cap_arm_l": 104,
     "cap_arm_r": 104,
     "cap_hand_l": 196,
     "cap_hand_r": 196,
-    "cap_hat": 478,
+    "cap_hat": 516,
     "cap_head": 108,
     "cap_torso": 200,
     "duck": 716,
@@ -723,8 +723,8 @@
     "wheel_2": 924,
     "wheel_3": 924
    },
-   "total": 19670,
-   "tub": 9768
+   "total": 19980,
+   "tub": 9888
   },
   "2": {
    "figures": {
@@ -858,18 +858,18 @@
  "gator-gang": {
   "0": {
    "figures": {
-    "att0": 6214,
-    "att1": 6742,
-    "att2": 6678,
-    "att3": 6646,
-    "cap": 4790
+    "att0": 6324,
+    "att1": 6852,
+    "att2": 6788,
+    "att3": 6756,
+    "cap": 4900
    },
    "nodes": {
     "att0_arm_l": 248,
     "att0_arm_r": 248,
     "att0_hand_l": 500,
     "att0_hand_r": 500,
-    "att0_hat": 2482,
+    "att0_hat": 2592,
     "att0_head": 300,
     "att0_item": 240,
     "att0_leg_l": 592,
@@ -879,7 +879,7 @@
     "att1_arm_r": 248,
     "att1_hand_l": 500,
     "att1_hand_r": 500,
-    "att1_hat": 2482,
+    "att1_hat": 2592,
     "att1_head": 300,
     "att1_item": 768,
     "att1_leg_l": 592,
@@ -889,7 +889,7 @@
     "att2_arm_r": 248,
     "att2_hand_l": 500,
     "att2_hand_r": 500,
-    "att2_hat": 2482,
+    "att2_hat": 2592,
     "att2_head": 300,
     "att2_item": 704,
     "att2_leg_l": 592,
@@ -899,18 +899,18 @@
     "att3_arm_r": 248,
     "att3_hand_l": 500,
     "att3_hand_r": 500,
-    "att3_hat": 2482,
+    "att3_hat": 2592,
     "att3_head": 300,
     "att3_item": 672,
     "att3_leg_l": 592,
     "att3_leg_r": 592,
     "att3_torso": 512,
-    "body": 7970,
+    "body": 8114,
     "cap_arm_l": 248,
     "cap_arm_r": 248,
     "cap_hand_l": 500,
     "cap_hand_r": 500,
-    "cap_hat": 2482,
+    "cap_hat": 2592,
     "cap_head": 300,
     "cap_torso": 512,
     "duck": 2924,
@@ -922,23 +922,23 @@
     "wheel_2": 3012,
     "wheel_3": 3012
    },
-   "total": 60758,
-   "tub": 29688
+   "total": 61452,
+   "tub": 29832
   },
   "1": {
    "figures": {
-    "att0": 2174,
-    "att1": 2318,
-    "att2": 2258,
-    "att3": 2166,
-    "cap": 1486
+    "att0": 2212,
+    "att1": 2356,
+    "att2": 2296,
+    "att3": 2204,
+    "cap": 1524
    },
    "nodes": {
     "att0_arm_l": 104,
     "att0_arm_r": 104,
     "att0_hand_l": 196,
     "att0_hand_r": 196,
-    "att0_hat": 578,
+    "att0_hat": 616,
     "att0_head": 108,
     "att0_item": 176,
     "att0_leg_l": 256,
@@ -948,7 +948,7 @@
     "att1_arm_r": 104,
     "att1_hand_l": 196,
     "att1_hand_r": 196,
-    "att1_hat": 578,
+    "att1_hat": 616,
     "att1_head": 108,
     "att1_item": 320,
     "att1_leg_l": 256,
@@ -958,7 +958,7 @@
     "att2_arm_r": 104,
     "att2_hand_l": 196,
     "att2_hand_r": 196,
-    "att2_hat": 578,
+    "att2_hat": 616,
     "att2_head": 108,
     "att2_item": 260,
     "att2_leg_l": 256,
@@ -968,18 +968,18 @@
     "att3_arm_r": 104,
     "att3_hand_l": 196,
     "att3_hand_r": 196,
-    "att3_hat": 578,
+    "att3_hat": 616,
     "att3_head": 108,
     "att3_item": 168,
     "att3_leg_l": 256,
     "att3_leg_r": 256,
     "att3_torso": 200,
-    "body": 4178,
+    "body": 4298,
     "cap_arm_l": 104,
     "cap_arm_r": 104,
     "cap_hand_l": 196,
     "cap_hand_r": 196,
-    "cap_hat": 578,
+    "cap_hat": 616,
     "cap_head": 108,
     "cap_torso": 200,
     "duck": 716,
@@ -991,8 +991,8 @@
     "wheel_2": 924,
     "wheel_3": 924
    },
-   "total": 21262,
-   "tub": 10860
+   "total": 21572,
+   "tub": 10980
   },
   "2": {
    "figures": {
@@ -1181,7 +1181,7 @@
     "att3_leg_l": 592,
     "att3_leg_r": 592,
     "att3_torso": 512,
-    "body": 7970,
+    "body": 8114,
     "cap_arm_l": 248,
     "cap_arm_l_trim": 108,
     "cap_arm_r": 248,
@@ -1200,8 +1200,8 @@
     "wheel_2": 3012,
     "wheel_3": 3012
    },
-   "total": 60298,
-   "tub": 29688
+   "total": 60442,
+   "tub": 29832
   },
   "1": {
    "figures": {
@@ -1260,7 +1260,7 @@
     "att3_leg_l": 256,
     "att3_leg_r": 256,
     "att3_torso": 200,
-    "body": 4178,
+    "body": 4298,
     "cap_arm_l": 104,
     "cap_arm_l_trim": 44,
     "cap_arm_r": 104,
@@ -1279,8 +1279,8 @@
     "wheel_2": 924,
     "wheel_3": 924
    },
-   "total": 22942,
-   "tub": 10860
+   "total": 23062,
+   "tub": 10980
   },
   "2": {
    "figures": {
@@ -1414,18 +1414,18 @@
  "out-of-towners": {
   "0": {
    "figures": {
-    "att0": 5962,
-    "att1": 6490,
-    "att2": 6426,
-    "att3": 6394,
-    "cap": 4538
+    "att0": 6072,
+    "att1": 6600,
+    "att2": 6536,
+    "att3": 6504,
+    "cap": 4648
    },
    "nodes": {
     "att0_arm_l": 248,
     "att0_arm_r": 248,
     "att0_hand_l": 500,
     "att0_hand_r": 500,
-    "att0_hat": 2230,
+    "att0_hat": 2340,
     "att0_head": 300,
     "att0_item": 240,
     "att0_leg_l": 592,
@@ -1435,7 +1435,7 @@
     "att1_arm_r": 248,
     "att1_hand_l": 500,
     "att1_hand_r": 500,
-    "att1_hat": 2230,
+    "att1_hat": 2340,
     "att1_head": 300,
     "att1_item": 768,
     "att1_leg_l": 592,
@@ -1445,7 +1445,7 @@
     "att2_arm_r": 248,
     "att2_hand_l": 500,
     "att2_hand_r": 500,
-    "att2_hat": 2230,
+    "att2_hat": 2340,
     "att2_head": 300,
     "att2_item": 704,
     "att2_leg_l": 592,
@@ -1455,18 +1455,18 @@
     "att3_arm_r": 248,
     "att3_hand_l": 500,
     "att3_hand_r": 500,
-    "att3_hat": 2230,
+    "att3_hat": 2340,
     "att3_head": 300,
     "att3_item": 672,
     "att3_leg_l": 592,
     "att3_leg_r": 592,
     "att3_torso": 512,
-    "body": 7970,
+    "body": 8114,
     "cap_arm_l": 248,
     "cap_arm_r": 248,
     "cap_hand_l": 500,
     "cap_hand_r": 500,
-    "cap_hat": 2230,
+    "cap_hat": 2340,
     "cap_head": 300,
     "cap_torso": 512,
     "duck": 2924,
@@ -1478,23 +1478,23 @@
     "wheel_2": 3012,
     "wheel_3": 3012
    },
-   "total": 55350,
-   "tub": 25540
+   "total": 56044,
+   "tub": 25684
   },
   "1": {
    "figures": {
-    "att0": 2026,
-    "att1": 2170,
-    "att2": 2110,
-    "att3": 2018,
-    "cap": 1338
+    "att0": 2064,
+    "att1": 2208,
+    "att2": 2148,
+    "att3": 2056,
+    "cap": 1376
    },
    "nodes": {
     "att0_arm_l": 104,
     "att0_arm_r": 104,
     "att0_hand_l": 196,
     "att0_hand_r": 196,
-    "att0_hat": 430,
+    "att0_hat": 468,
     "att0_head": 108,
     "att0_item": 176,
     "att0_leg_l": 256,
@@ -1504,7 +1504,7 @@
     "att1_arm_r": 104,
     "att1_hand_l": 196,
     "att1_hand_r": 196,
-    "att1_hat": 430,
+    "att1_hat": 468,
     "att1_head": 108,
     "att1_item": 320,
     "att1_leg_l": 256,
@@ -1514,7 +1514,7 @@
     "att2_arm_r": 104,
     "att2_hand_l": 196,
     "att2_hand_r": 196,
-    "att2_hat": 430,
+    "att2_hat": 468,
     "att2_head": 108,
     "att2_item": 260,
     "att2_leg_l": 256,
@@ -1524,18 +1524,18 @@
     "att3_arm_r": 104,
     "att3_hand_l": 196,
     "att3_hand_r": 196,
-    "att3_hat": 430,
+    "att3_hat": 468,
     "att3_head": 108,
     "att3_item": 168,
     "att3_leg_l": 256,
     "att3_leg_r": 256,
     "att3_torso": 200,
-    "body": 4178,
+    "body": 4298,
     "cap_arm_l": 104,
     "cap_arm_r": 104,
     "cap_hand_l": 196,
     "cap_hand_r": 196,
-    "cap_hat": 430,
+    "cap_hat": 468,
     "cap_head": 108,
     "cap_torso": 200,
     "duck": 716,
@@ -1547,8 +1547,8 @@
     "wheel_2": 924,
     "wheel_3": 924
    },
-   "total": 19430,
-   "tub": 9768
+   "total": 19740,
+   "tub": 9888
   },
   "2": {
    "figures": {
@@ -1745,7 +1745,7 @@
     "att3_leg_r": 592,
     "att3_leg_r_trim": 108,
     "att3_torso": 512,
-    "body": 7970,
+    "body": 8114,
     "cap_arm_l": 248,
     "cap_arm_l_trim": 216,
     "cap_arm_r": 248,
@@ -1764,8 +1764,8 @@
     "wheel_2": 3012,
     "wheel_3": 3012
    },
-   "total": 49294,
-   "tub": 25540
+   "total": 49438,
+   "tub": 25684
   },
   "1": {
    "figures": {
@@ -1832,7 +1832,7 @@
     "att3_leg_r": 256,
     "att3_leg_r_trim": 44,
     "att3_torso": 200,
-    "body": 4178,
+    "body": 4298,
     "cap_arm_l": 104,
     "cap_arm_l_trim": 88,
     "cap_arm_r": 104,
@@ -1851,8 +1851,8 @@
     "wheel_2": 924,
     "wheel_3": 924
    },
-   "total": 19202,
-   "tub": 9768
+   "total": 19322,
+   "tub": 9888
   },
   "2": {
    "figures": {
@@ -1986,18 +1986,18 @@
  "steam-rangers": {
   "0": {
    "figures": {
-    "att0": 4864,
-    "att1": 5392,
-    "att2": 5328,
-    "att3": 5296,
-    "cap": 3440
+    "att0": 5084,
+    "att1": 5612,
+    "att2": 5548,
+    "att3": 5516,
+    "cap": 3660
    },
    "nodes": {
     "att0_arm_l": 248,
     "att0_arm_r": 248,
     "att0_hand_l": 500,
     "att0_hand_r": 500,
-    "att0_hat": 1132,
+    "att0_hat": 1352,
     "att0_head": 300,
     "att0_item": 240,
     "att0_leg_l": 592,
@@ -2007,7 +2007,7 @@
     "att1_arm_r": 248,
     "att1_hand_l": 500,
     "att1_hand_r": 500,
-    "att1_hat": 1132,
+    "att1_hat": 1352,
     "att1_head": 300,
     "att1_item": 768,
     "att1_leg_l": 592,
@@ -2017,7 +2017,7 @@
     "att2_arm_r": 248,
     "att2_hand_l": 500,
     "att2_hand_r": 500,
-    "att2_hat": 1132,
+    "att2_hat": 1352,
     "att2_head": 300,
     "att2_item": 704,
     "att2_leg_l": 592,
@@ -2027,18 +2027,18 @@
     "att3_arm_r": 248,
     "att3_hand_l": 500,
     "att3_hand_r": 500,
-    "att3_hat": 1132,
+    "att3_hat": 1352,
     "att3_head": 300,
     "att3_item": 672,
     "att3_leg_l": 592,
     "att3_leg_r": 592,
     "att3_torso": 512,
-    "body": 7970,
+    "body": 8114,
     "cap_arm_l": 248,
     "cap_arm_r": 248,
     "cap_hand_l": 500,
     "cap_hand_r": 500,
-    "cap_hat": 1132,
+    "cap_hat": 1352,
     "cap_head": 300,
     "cap_torso": 512,
     "duck": 2924,
@@ -2050,23 +2050,23 @@
     "wheel_2": 3012,
     "wheel_3": 3012
    },
-   "total": 49860,
-   "tub": 25540
+   "total": 51104,
+   "tub": 25684
   },
   "1": {
    "figures": {
-    "att0": 1996,
-    "att1": 2140,
-    "att2": 2080,
-    "att3": 1988,
-    "cap": 1308
+    "att0": 2072,
+    "att1": 2216,
+    "att2": 2156,
+    "att3": 2064,
+    "cap": 1384
    },
    "nodes": {
     "att0_arm_l": 104,
     "att0_arm_r": 104,
     "att0_hand_l": 196,
     "att0_hand_r": 196,
-    "att0_hat": 400,
+    "att0_hat": 476,
     "att0_head": 108,
     "att0_item": 176,
     "att0_leg_l": 256,
@@ -2076,7 +2076,7 @@
     "att1_arm_r": 104,
     "att1_hand_l": 196,
     "att1_hand_r": 196,
-    "att1_hat": 400,
+    "att1_hat": 476,
     "att1_head": 108,
     "att1_item": 320,
     "att1_leg_l": 256,
@@ -2086,7 +2086,7 @@
     "att2_arm_r": 104,
     "att2_hand_l": 196,
     "att2_hand_r": 196,
-    "att2_hat": 400,
+    "att2_hat": 476,
     "att2_head": 108,
     "att2_item": 260,
     "att2_leg_l": 256,
@@ -2096,18 +2096,18 @@
     "att3_arm_r": 104,
     "att3_hand_l": 196,
     "att3_hand_r": 196,
-    "att3_hat": 400,
+    "att3_hat": 476,
     "att3_head": 108,
     "att3_item": 168,
     "att3_leg_l": 256,
     "att3_leg_r": 256,
     "att3_torso": 200,
-    "body": 4178,
+    "body": 4298,
     "cap_arm_l": 104,
     "cap_arm_r": 104,
     "cap_hand_l": 196,
     "cap_hand_r": 196,
-    "cap_hat": 400,
+    "cap_hat": 476,
     "cap_head": 108,
     "cap_torso": 200,
     "duck": 716,
@@ -2119,8 +2119,8 @@
     "wheel_2": 924,
     "wheel_3": 924
    },
-   "total": 19280,
-   "tub": 9768
+   "total": 19780,
+   "tub": 9888
   },
   "2": {
    "figures": {
@@ -2254,18 +2254,18 @@
  "suds-posse": {
   "0": {
    "figures": {
-    "att0": 5034,
-    "att1": 5562,
-    "att2": 5498,
-    "att3": 5466,
-    "cap": 3394
+    "att0": 5144,
+    "att1": 5672,
+    "att2": 5608,
+    "att3": 5576,
+    "cap": 3504
    },
    "nodes": {
     "att0_arm_l": 248,
     "att0_arm_r": 248,
     "att0_hand_l": 500,
     "att0_hand_r": 500,
-    "att0_hat": 1086,
+    "att0_hat": 1196,
     "att0_head": 300,
     "att0_item": 240,
     "att0_leg_l": 592,
@@ -2277,7 +2277,7 @@
     "att1_arm_r": 248,
     "att1_hand_l": 500,
     "att1_hand_r": 500,
-    "att1_hat": 1086,
+    "att1_hat": 1196,
     "att1_head": 300,
     "att1_item": 768,
     "att1_leg_l": 592,
@@ -2289,7 +2289,7 @@
     "att2_arm_r": 248,
     "att2_hand_l": 500,
     "att2_hand_r": 500,
-    "att2_hat": 1086,
+    "att2_hat": 1196,
     "att2_head": 300,
     "att2_item": 704,
     "att2_leg_l": 592,
@@ -2301,7 +2301,7 @@
     "att3_arm_r": 248,
     "att3_hand_l": 500,
     "att3_hand_r": 500,
-    "att3_hat": 1086,
+    "att3_hat": 1196,
     "att3_head": 300,
     "att3_item": 672,
     "att3_leg_l": 592,
@@ -2309,12 +2309,12 @@
     "att3_leg_r": 592,
     "att3_leg_r_trim": 108,
     "att3_torso": 512,
-    "body": 7970,
+    "body": 8114,
     "cap_arm_l": 248,
     "cap_arm_r": 248,
     "cap_hand_l": 500,
     "cap_hand_r": 500,
-    "cap_hat": 1086,
+    "cap_hat": 1196,
     "cap_head": 300,
     "cap_torso": 512,
     "duck": 2924,
@@ -2326,23 +2326,23 @@
     "wheel_2": 3012,
     "wheel_3": 3012
    },
-   "total": 50494,
-   "tub": 25540
+   "total": 51188,
+   "tub": 25684
   },
   "1": {
    "figures": {
-    "att0": 2130,
-    "att1": 2274,
-    "att2": 2214,
-    "att3": 2122,
-    "cap": 1354
+    "att0": 2168,
+    "att1": 2312,
+    "att2": 2252,
+    "att3": 2160,
+    "cap": 1392
    },
    "nodes": {
     "att0_arm_l": 104,
     "att0_arm_r": 104,
     "att0_hand_l": 196,
     "att0_hand_r": 196,
-    "att0_hat": 446,
+    "att0_hat": 484,
     "att0_head": 108,
     "att0_item": 176,
     "att0_leg_l": 256,
@@ -2354,7 +2354,7 @@
     "att1_arm_r": 104,
     "att1_hand_l": 196,
     "att1_hand_r": 196,
-    "att1_hat": 446,
+    "att1_hat": 484,
     "att1_head": 108,
     "att1_item": 320,
     "att1_leg_l": 256,
@@ -2366,7 +2366,7 @@
     "att2_arm_r": 104,
     "att2_hand_l": 196,
     "att2_hand_r": 196,
-    "att2_hat": 446,
+    "att2_hat": 484,
     "att2_head": 108,
     "att2_item": 260,
     "att2_leg_l": 256,
@@ -2378,7 +2378,7 @@
     "att3_arm_r": 104,
     "att3_hand_l": 196,
     "att3_hand_r": 196,
-    "att3_hat": 446,
+    "att3_hat": 484,
     "att3_head": 108,
     "att3_item": 168,
     "att3_leg_l": 256,
@@ -2386,12 +2386,12 @@
     "att3_leg_r": 256,
     "att3_leg_r_trim": 44,
     "att3_torso": 200,
-    "body": 4178,
+    "body": 4298,
     "cap_arm_l": 104,
     "cap_arm_r": 104,
     "cap_hand_l": 196,
     "cap_hand_r": 196,
-    "cap_hat": 446,
+    "cap_hat": 484,
     "cap_head": 108,
     "cap_torso": 200,
     "duck": 716,
@@ -2403,8 +2403,8 @@
     "wheel_2": 924,
     "wheel_3": 924
    },
-   "total": 19862,
-   "tub": 9768
+   "total": 20172,
+   "tub": 9888
   },
   "2": {
    "figures": {
@@ -2593,7 +2593,7 @@
     "att3_leg_r": 592,
     "att3_leg_r_trim": 108,
     "att3_torso": 512,
-    "body": 7970,
+    "body": 8114,
     "cap_arm_l": 248,
     "cap_arm_r": 248,
     "cap_hand_l": 500,
@@ -2610,8 +2610,8 @@
     "wheel_2": 3012,
     "wheel_3": 3012
    },
-   "total": 48964,
-   "tub": 25540
+   "total": 49108,
+   "tub": 25684
   },
   "1": {
    "figures": {
@@ -2670,7 +2670,7 @@
     "att3_leg_r": 256,
     "att3_leg_r_trim": 44,
     "att3_torso": 200,
-    "body": 4178,
+    "body": 4298,
     "cap_arm_l": 104,
     "cap_arm_r": 104,
     "cap_hand_l": 196,
@@ -2687,8 +2687,8 @@
     "wheel_2": 924,
     "wheel_3": 924
    },
-   "total": 18862,
-   "tub": 9768
+   "total": 18982,
+   "tub": 9888
   },
   "2": {
    "figures": {
@@ -2877,7 +2877,7 @@
     "att3_leg_l": 592,
     "att3_leg_r": 592,
     "att3_torso": 512,
-    "body": 7970,
+    "body": 8114,
     "cap_arm_l": 248,
     "cap_arm_l_trim": 108,
     "cap_arm_r": 248,
@@ -2896,8 +2896,8 @@
     "wheel_2": 3012,
     "wheel_3": 3012
    },
-   "total": 48230,
-   "tub": 25540
+   "total": 48374,
+   "tub": 25684
   },
   "1": {
    "figures": {
@@ -2956,7 +2956,7 @@
     "att3_leg_l": 256,
     "att3_leg_r": 256,
     "att3_torso": 200,
-    "body": 4178,
+    "body": 4298,
     "cap_arm_l": 104,
     "cap_arm_l_trim": 44,
     "cap_arm_r": 104,
@@ -2975,8 +2975,8 @@
     "wheel_2": 924,
     "wheel_3": 924
    },
-   "total": 19390,
-   "tub": 9768
+   "total": 19510,
+   "tub": 9888
   },
   "2": {
    "figures": {
@@ -3173,7 +3173,7 @@
     "att3_leg_r": 592,
     "att3_leg_r_trim": 108,
     "att3_torso": 512,
-    "body": 7970,
+    "body": 8114,
     "cap_arm_l": 248,
     "cap_arm_l_trim": 44,
     "cap_arm_r": 248,
@@ -3192,8 +3192,8 @@
     "wheel_2": 3012,
     "wheel_3": 3012
    },
-   "total": 55082,
-   "tub": 29688
+   "total": 55226,
+   "tub": 29832
   },
   "1": {
    "figures": {
@@ -3260,7 +3260,7 @@
     "att3_leg_r": 256,
     "att3_leg_r_trim": 44,
     "att3_torso": 200,
-    "body": 4178,
+    "body": 4298,
     "cap_arm_l": 104,
     "cap_arm_l_trim": 44,
     "cap_arm_r": 104,
@@ -3279,8 +3279,8 @@
     "wheel_2": 924,
     "wheel_3": 924
    },
-   "total": 21394,
-   "tub": 10860
+   "total": 21514,
+   "tub": 10980
   },
   "2": {
    "figures": {

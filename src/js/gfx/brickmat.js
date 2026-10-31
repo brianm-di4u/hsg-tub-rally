@@ -215,6 +215,16 @@ const FRAG_MAIN = `
         ao *= 1.0 - fade * (0.22 * (1.0 - smoothstep(r, r + 0.035, d)) * out1 + 0.3 * castSh * out1);
         albedo *= 1.0 + 0.05 * top * fade;
         ao *= mix(1.0, 0.97, 1.0 - fade);
+        // each 4×4-stud plate is its own part, a shade lighter or darker, so the baseplate keeps a pattern where the
+        // studs themselves are too small to draw
+        albedo *= 1.0 + (hash12(floor(cell / 4.0)) - 0.5) * 0.09 * uPatAmt;
+      } else if (N.y > 0.25) {
+        // slopes are terraced plates: a groove and a lit lip every plate of rise, each plate a shade apart
+        float py = vWorld.y / ${BRICK.plate.toFixed(3)}, f = fract(py), aw = fwidth(py) + 1e-4;
+        float fadeT = 1.0 - smoothstep(0.25, 0.6, aw);
+        ao *= 1.0 - 0.28 * fadeT * (1.0 - smoothstep(0.0, 0.12 + aw, f)) * uPatAmt;
+        lit += fadeT * smoothstep(0.82, 0.9, f) * (1.0 - smoothstep(0.94, 1.0, f)) * 2.0 * uPatAmt;
+        albedo *= 1.0 + (hash12(vec2(floor(py), floor(vWorld.x * 0.5 + vWorld.z * 0.5))) - 0.5) * 0.08 * uPatAmt;
       }
     #endif
     #ifdef PAT_GRAIN
@@ -252,6 +262,11 @@ const FRAG_MAIN = `
       // a soft rim from the sky, tinted by the part colour and capped so dark parts keep their colour; at dusk and
       // sunset a fill (uFill) lifts the crews off the darker road
       c += min(uHemiSky * pow(1.0 - max(dot(N, V), 0.0), 3.0) * uRim * (0.3 + 0.7 * albedo), vec3(0.22)) + albedo * uFill;
+    #endif
+    #ifdef GLASS
+      { float sy = fract(vWorld.y / 3.6), st = fract((vWorld.x + vWorld.z) * 0.3 + vWorld.y * 0.3);
+        c = mix(c, uHemiSky * 0.9, 0.12 + 0.22 * sy);
+        c += uHemiSky * 0.18 * smoothstep(0.0, 0.06, st) * (1.0 - smoothstep(0.14, 0.24, st)); }
     #endif
     #ifdef FLASH
       c += uFlash;
@@ -322,7 +337,7 @@ const INST_MAIN = `
         float t = clamp(dot(io - a, ab) / max(dot(ab, ab), 1e-4), 0.0, 1.0);
         float corridor = mix(1.0, smoothstep(0.8, 1.1, length((io - (a + ab * t)).xz) - length(instanceMatrix[0].xyz) * 2.0), step(0.02, t) * (1.0 - step(0.97, t)));
         float reach = length(instanceMatrix[0].xyz) * 2.7; // canopy radius at this tree's scale
-        vNear = smoothstep(3.0, 3.3, length((io - a).xz) - reach) * corridor; }
+        vNear = smoothstep(4.5, 4.8, length((io - a).xz) - reach) * corridor; }
     #endif
     #ifdef FOOT_AO
       vFootY = pos.y;
@@ -344,6 +359,10 @@ export function worldMat(opts = {}) {
       vec4 wp = modelMatrix * vec4(pos, 1.0);
       vNormal = normalize(mat3(modelMatrix) * nrm);
     #endif
+    #if defined(NEAR_FADE) && !defined(USE_INSTANCING)
+      // merged street furniture (lamp posts, benches): fades out within ~4 m of the camera, by vertex
+      vNear = smoothstep(2.6, 4.2, distance(cameraPosition.xz, wp.xz));
+    #endif
     vWorld = wp.xyz;
     vec4 mv = viewMatrix * wp;
     ${FOG_V_MAIN}
@@ -352,6 +371,7 @@ export function worldMat(opts = {}) {
   if (opts.cheer) m.defines.CHEER = '';
   if (opts.nearFade) { m.defines.NEAR_FADE = ''; a2c(m, opts); }
   if (opts.footAO) m.defines.FOOT_AO = '';
+  if (opts.glass) m.defines.GLASS = '';
   return m;
 }
 

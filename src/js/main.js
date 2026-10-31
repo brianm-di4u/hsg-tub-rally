@@ -143,7 +143,8 @@ export function loadCourse(id) {
     // the mountain lies behind the Row: the mean direction from the road out to each bathhouse
     let dx = 0, dz = 0;
     for (const l of row) { const ls = l.s ?? l.at * App.track.length, q = App.track.point(ls, l.d || 0), o = App.track.point(ls, 0), m = Math.hypot(q.x - o.x, q.z - o.z) || 1; dx += (q.x - o.x) / m; dz += (q.z - o.z) / m; }
-    env.peaks = [[Math.atan2(dx, dz), 1.3, 110]];
+    // a broad summit with two shoulders, so it reads as a mountain behind the Row rather than one wall
+    const az = Math.atan2(dx, dz); env.peaks = [[az, 0.55, 70], [az - 0.7, 0.4, 38], [az + 0.75, 0.45, 44]];
   }
   App.sky = buildSky(THREE, env);
   // keep the sky inside the far plane (Low's shorter fog pulls the far plane in; a clipped dome shows as a disc)
@@ -214,7 +215,10 @@ export async function startRace(opts = {}) {
     App.renderer.scene.add(v.mesh);
     return v;
   });
-  if (App.race.player >= 0 && App.views.length > 1) App.views[App.race.player].showMarker(App.race.karts[App.race.player].team);
+  if (App.race.player >= 0 && App.views.length > 1) {
+    App.views[App.race.player].showMarker(App.race.karts[App.race.player].team);
+    App.views.forEach((v, i) => { if (i !== App.race.player) v.showRing(App.race.karts[i].team, true); });
+  }
   App.prev = App.race.karts.map(poseOf);
   App.fx.setRace(App.race, track); App.fx.clear(); App.frameEvents.length = 0;
   // Time Trial: record this run; race the saved best as a see-through ghost
@@ -489,10 +493,12 @@ function stepOnce() {
     const snd = { boost: 'boost', fumble: 'hit', wall: 'bump', bump: 'bump', pickup: 'pickup', ticket: 'ticket', bribe: 'whistle', judge: 'whistle', taskDone: 'cheer', blocked: 'snap', drained: 'splash' }[e.type];
     if (snd) sfx(snd, e.type === 'drained');
     if (e.type === 'use') sfx({ duck: 'quack', towel: 'snap', blaster: 'splash', hose: 'splash', jet: 'steam', jet3: 'steam', bubble: 'pickup' }[e.item] || 'menu');
-    if (e.type === 'boost') App.hud.flash(e.kind === 'hot' ? 'HOT STEAM!' : e.kind === 'start' ? 'GREAT START!' : 'WARM STEAM', 'boost', 1);
+    if (e.type === 'boost') { App.hud.flash(e.kind === 'hot' ? 'HOT STEAM!' : e.kind === 'start' ? 'GREAT START!' : 'WARM STEAM', 'boost', 1); App.cam.punch = e.kind === 'hot' ? 6 : 4; App.cam.shake = Math.max(App.cam.shake, 0.25); }
     else if (e.type === 'fumble') { App.hud.flash('Dropped the ' + (e.item || 'item') + '! Circle the tub!', 'bad', 1.6); App.cam.shake = 0.8; App.views[me.id].flash = 1; }
     else if (e.type === 'wall' && e.v > 7) App.cam.shake = Math.min(1, e.v / 14);
     else if (e.type === 'land' && e.v > 7) App.cam.shake = 0.4;
+    else if (e.type === 'hit') { App.cam.shake = 0.7; App.cam.punch = 3; }
+    else if (e.type === 'bump') App.cam.shake = Math.max(App.cam.shake, 0.35);
     else if (e.type === 'fall') App.hud.flash('Over the edge! The refs will tow you back', 'bad', 2);
     else if (e.type === 'bribe') App.hud.flash('Bribe accepted: HEAD START!', 'boost', 1.4);
     else if (e.type === 'blocked') App.hud.flash('Blocked by your loofah!', 'lap', 1);

@@ -12,7 +12,7 @@ export class ChaseCam {
   constructor(cam) {
     this.cam = cam;
     this.yaw = 0; this.x = 0; this.y = 5; this.z = 0; this.dist = 6.2; this.height = 2.5; this.fovKick = 0;
-    this.shake = 0; this.init = false; this.mode = 'chase';
+    this.shake = 0; this.punch = 0; this.roll = 0; this.init = false; this.mode = 'chase';
   }
   snap() { this.init = false; }
   update(k, pose, dt, opts = {}) {
@@ -48,8 +48,14 @@ export class ChaseCam {
     this.cam.position.set(cx + Math.sin(t * 47) * sh * 0.15, cy + Math.sin(t * 61) * sh * 0.12, cz);
     const look = 6 + portrait * 2;
     this.cam.lookAt(this.x + fx * look, this.y + 0.9 - portrait * 1.6, this.z + fz * look);
+    // lean into a power slide: up to 2.5 degrees of roll
+    this.roll = snapped ? 0 : damp(this.roll, opts.reducedMotion ? 0 : (k.drift || 0) * 0.044, 6, dt);
+    if (this.roll) this.cam.rotateZ(this.roll);
     const fovT = (opts.baseFov || 62) + (k.boostT > 0 && !opts.reducedMotion ? 7 : 0) + Math.min(6, v * 0.18);
     this.fovKick = snapped ? fovT : damp(this.fovKick, fovT, 4, dt);
-    if (Math.abs(this.cam.fov - this.fovKick) > 0.05) { this.cam.fov = this.fovKick; this.cam.updateProjectionMatrix(); }
+    // punch: a quick FOV kick (degrees) on slide releases and hits, gone in about 0.25 s
+    this.punch = snapped ? 0 : Math.max(0, this.punch - dt * 20);
+    const fov = this.fovKick + (opts.reducedMotion ? 0 : this.punch);
+    if (Math.abs(this.cam.fov - fov) > 0.05) { this.cam.fov = fov; this.cam.updateProjectionMatrix(); }
   }
 }

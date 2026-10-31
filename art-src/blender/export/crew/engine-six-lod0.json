@@ -192,7 +192,7 @@
     0.0
    ],
    "src": "team",
-   "tris": 1490
+   "tris": 1432
   },
   "att0_head": {
    "part": "att0_torso",
@@ -402,7 +402,7 @@
     0.0
    ],
    "src": "team",
-   "tris": 1490
+   "tris": 1432
   },
   "att1_head": {
    "part": "att1_torso",
@@ -612,7 +612,7 @@
     0.0
    ],
    "src": "team",
-   "tris": 1490
+   "tris": 1432
   },
   "att2_head": {
    "part": "att2_torso",
@@ -822,7 +822,7 @@
     0.0
    ],
    "src": "team",
-   "tris": 1490
+   "tris": 1432
   },
   "att3_head": {
    "part": "att3_torso",
@@ -942,7 +942,7 @@
     0.0
    ],
    "src": "shared",
-   "tris": 7970
+   "tris": 8114
   },
   "cap_arm_l": {
    "part": "cap_arm_l",
@@ -1047,7 +1047,7 @@
     0.0
    ],
    "src": "team",
-   "tris": 1490
+   "tris": 1432
   },
   "cap_head": {
    "part": "cap_head",
@@ -1255,14 +1255,14 @@
    "tub": 30000
   },
   "figures": {
-   "att0": 5830,
-   "att1": 6358,
-   "att2": 6294,
-   "att3": 6262,
-   "cap": 4102
+   "att0": 5772,
+   "att1": 6300,
+   "att2": 6236,
+   "att3": 6204,
+   "cap": 4044
   },
-  "total": 58534,
-  "tub": 29688
+  "total": 58388,
+  "tub": 29832
  },
  "units": "metres; kart space: Y up, +Z forward, +X the kart's left",
  "water": {

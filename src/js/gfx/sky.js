@@ -24,7 +24,23 @@ export function buildSky(THREE, env = {}) {
   const dg = new THREE.BufferGeometry();
   dg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   dg.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-  const dome = new THREE.Mesh(dg, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, depthWrite: false, fog: false }));
+  // the gradient, plus a glow toward the sun along the horizon and a soft sun disc (strong at dusk and sunset, a faint
+  // haze by day)
+  const low = env.time === 'dusk' || env.time === 'sunset';
+  const sd = env.sun || [0.35, 0.8, 0.45], sl = Math.hypot(sd[0], sd[2]) || 1;
+  const dome = new THREE.Mesh(dg, new THREE.ShaderMaterial({
+    uniforms: { uSun: { value: new THREE.Vector3(sd[0] / sl, Math.max(0.16, Math.min(0.3, sd[1] * 0.5)), sd[2] / sl).normalize() },
+      uGlow: { value: new THREE.Color(low ? (env.time === 'dusk' ? '#FFB27A' : '#FFD08A') : '#FFF6E0') }, uGlowAmt: { value: low ? 1.0 : 0.25 }, uDisc: { value: low ? 1 : 0 } },
+    vertexShader: 'attribute vec3 color; varying vec3 vC; varying vec3 vDir; void main() { vC = color; vDir = normalize(position + vec3(0.0, 20.0, 0.0)); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: `uniform vec3 uSun; uniform vec3 uGlow; uniform float uGlowAmt; uniform float uDisc; varying vec3 vC; varying vec3 vDir;
+      void main() {
+        vec3 d = normalize(vDir); float toward = max(dot(d, uSun), 0.0);
+        float band = exp(-max(d.y, 0.0) * 2.6);
+        vec3 c = mix(vC, uGlow, clamp(uGlowAmt * band * (0.6 + 0.4 * pow(toward, 3.0)), 0.0, 1.0));
+        c = mix(c, vec3(1.0, 0.96, 0.85), uDisc * smoothstep(0.9975, 0.999, toward));
+        gl_FragColor = vec4(c, 1.0);
+      }`,
+    side: THREE.BackSide, depthWrite: false }));
   dome.renderOrder = -10;
   group.add(dome);
   // the Ouachita horizon, brick-built: three rings of long, low ridges whose silhouettes step in whole plates
@@ -43,8 +59,16 @@ export function buildSky(THREE, env = {}) {
       const a0 = (i / N) * Math.PI * 2, a1 = ((i + 1) / N) * Math.PI * 2;
       const h = Math.max(STEP, Math.round(height((a0 + a1) / 2) / STEP) * STEP);
       const P = (a, y) => [Math.sin(a) * R2, y, Math.cos(a) * R2];
-      const quad = (y0, y1, col) => { for (const v of [P(a0, y0), P(a1, y1), P(a1, y0), P(a0, y0), P(a0, y1), P(a1, y1)]) { rpos.push(...v); rcol.push(...col); } };
-      quad(BOT, h - 1.4, c);
+      const quad = (y0, y1, c0, c1 = c0) => { const cs = [c0, c1, c0, c0, c1, c1]; [P(a0, y0), P(a1, y1), P(a1, y0), P(a0, y0), P(a0, y1), P(a1, y1)].forEach((v, k) => { rpos.push(...v); rcol.push(...cs[k]); }); };
+      // each column a plate of its own (a shade lighter or darker), darker and hazier toward its foot, with a
+      // tree line (a darker green band) under the lit lip on the nearer rings, so a big ridge reads as built
+      // terrain rather than one flat wall
+      const t = 0.9 + 0.2 * (((i * 2654435761) >>> 0) % 997) / 997, col = c.map((v) => Math.min(1, v * t));
+      const foot = col.map((v, k) => v * 0.78 + B[k] * 0.22 * haze);
+      const tree = col.map((v) => v * 0.82);
+      quad(BOT, Math.max(BOT + 1, h - 9), foot, col);
+      if (li > 0) { quad(Math.max(BOT + 1, h - 9), h - 3.4, col); quad(h - 3.4, h - 1.4, tree); }
+      else quad(Math.max(BOT + 1, h - 9), h - 1.4, col);
       quad(h - 1.4, h, lip);
     }
   });

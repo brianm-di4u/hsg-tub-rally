@@ -23,7 +23,7 @@ export class Hud {
     this.root = root;
     root.innerHTML = `
       <div class="hud-tl"><canvas class="hud-lap" aria-hidden="true"></canvas><div class="hud-time" aria-hidden="true"><canvas class="hud-timec"></canvas></div></div>
-      <div class="hud-tr"><canvas class="hud-place" aria-hidden="true"></canvas></div>
+      <div class="hud-tr empty"><canvas class="hud-place" aria-hidden="true"></canvas></div>
       <div class="hud-item" aria-hidden="true"><div class="bubble"><canvas class="item-icon" width="48" height="48"></canvas></div><div class="tickets"><span class="tk-ico"></span><b class="tk-n">0</b></div></div>
       <div class="hud-bl"><canvas class="hud-water" width="150" height="96" aria-hidden="true"></canvas><div class="hud-pips" aria-hidden="true"></div></div>
       <canvas class="hud-map" width="150" height="150" aria-hidden="true"></canvas>
@@ -83,6 +83,7 @@ export class Hud {
     if (me.place !== L.place) {
       L.place = me.place;
       pixelText(ORD[me.place] || '', { scale: 7, canvas: el.place, fill: PLACE_FILL[me.place] || ['#FFFFFF', '#9FB3C8'] });
+      el.place.parentNode.classList.toggle('empty', !ORD[me.place]); // no empty tile before places are known
     }
     // water gauge
     const gal = Math.round(me.water.gal * 2) / 2;
@@ -149,9 +150,9 @@ export class Hud {
     g.restore();
     g.strokeStyle = '#2A1A10'; g.lineWidth = 3; g.beginPath(); g.moveTo(x0, top); g.lineTo(x1, top); g.quadraticCurveTo(x1 - 4, bot, x1 - 26, bot); g.lineTo(x0 + 26, bot); g.quadraticCurveTo(x0 + 4, bot, x0, top); g.stroke();
     g.setLineDash([5, 3]); g.strokeStyle = '#FFF6C8'; g.lineWidth = 2; g.beginPath(); g.moveTo(x0 + 4, ly); g.lineTo(x1 - 4, ly); g.stroke(); g.setLineDash([]);
-    // the 10-gallon mark on its own dark tile, large enough to read at a glance on a phone
-    g.fillStyle = '#2A1A10'; g.beginPath(); g.roundRect(x1 - 6, ly - 9, 24, 18, 4); g.fill();
-    g.fillStyle = '#FFF6C8'; g.font = 'bold 14px system-ui, sans-serif'; g.textAlign = 'center'; g.fillText('10', x1 + 6, ly + 5); g.textAlign = 'left';
+    // the 10-gallon mark on its own dark tile inside the gauge, large enough to read at a glance on a phone
+    g.fillStyle = '#2A1A10'; g.beginPath(); g.roundRect(x1 - 30, ly - 9, 24, 18, 4); g.fill();
+    g.fillStyle = '#FFF6C8'; g.font = 'bold 14px system-ui, sans-serif'; g.textAlign = 'center'; g.fillText('10', x1 - 18, ly + 5); g.textAlign = 'left';
     for (const fx of [x0 + 22, x1 - 22]) { g.fillStyle = '#C9A24A'; g.fillRect(fx - 4, bot, 8, 7); }
     g.fillStyle = '#FFFFFF'; g.font = 'bold 15px system-ui, sans-serif'; g.textAlign = 'center';
     g.fillText(`${w.gal.toFixed(0)} GAL`, W / 2, H - 6); g.textAlign = 'left';

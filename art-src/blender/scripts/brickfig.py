@@ -52,6 +52,7 @@ def teams():
     for m in re.finditer(r"\{ id: '([^']+)', name: '([^']*)', div: '(\w+)'.*?colors: \{([^}]*)\}.*?emblem: '(\w+)', "
                          r"hat: '([^']+)'", src, re.S):
         cols = {k: v.upper() for k, v in re.findall(r"(\w+): '(#[0-9A-Fa-f]{6})'", m.group(4))}
+        cols.update(COLOUR_OVERRIDES.get(m.group(1), {}))
         out.append(dict(id=m.group(1), name=m.group(2), div=m.group(3), colors=cols, emblem=m.group(5),
                         hat=m.group(6)))
     return out
@@ -64,6 +65,11 @@ def item_colours():
 
 
 ITEMS = ['towel', 'mat', 'soap', 'loofah']   # att0..att3 (karts3d.js ITEM_ORDER)
+
+# Crew colours that differ from teams.js. Loop-4 review: Trail Shredders, Gator Gang and Steam Rangers all wore
+# green-family torsos; the mountain bikers' jersey moves to their own helmet orange (about 27 deg against Gator
+# Gang's 115), and brickcrew.PRINT_RECOLOUR turns the print's orange stripes lime so they still show.
+COLOUR_OVERRIDES = {'trail-shredders': {'shirt': '#F07F22'}}
 
 # Costume details the team data does not carry (original, chosen per archetype). sRGB hex.
 #   pants, boots: leg colours (the pants and shoe slots); cuffs/legbands/spats/boottop: team trim nodes
@@ -211,6 +217,16 @@ def stud_(p, c, M, mat):
         p.add(bm_stud(c.kn), M, mat)
 
 
+HAT_STUD = 0.6      # hat studs are the chassis stud at 0.6 scale: a full stud is over half a hat wide, so only
+                    # one fits and it reads as part of the hat; at 0.6 two to four fit on a crown and read as studs
+
+
+def hat_studs(p, c, M, pts, z, mat):
+    """Studs on a hat's crown or brim at (x, y), standing on a top surface at height z (LOD0-1 only)."""
+    for x, y in pts:
+        stud_(p, c, M @ T(x, y, z) @ S(HAT_STUD), mat)
+
+
 def plate(p, outline, t, M, mat):
     """Extrude a CCW outline [(x, y)] by t along +Z (cap n-gons flat, sides one flat face each)."""
     bm = _new_bm()
@@ -337,24 +353,25 @@ def hat_helmet(p, c, M):
     if c.full:
         rb(p, c, (0.11, 0.01, 0.074), (0, 0, 0), hat, M @ T(0, yc - cd / 2 - 0.023, 1.498) @ R(7, 'X'), r=0.006)
         _helmet_comb(p, c, M, hat, cw, cd, cz1, cr, yc)
-        stud_(p, c, M @ T(0, yc, cz1), hat)
+        hat_studs(p, c, M, [(-0.06, yc), (0.06, yc)], cz1, hat)      # either side of the comb's gap
 
 
 def _helmet_comb(p, c, M, hat, cw, cd, cz1, cr, yc):
+    """Comb over the crown, front and back halves, with a gap at the top for the crown studs. The straight
+    runs are single spans (their in-between rings added nothing)."""
     kn = c.kn
-    steps = max(1, kn.curve_segs)
 
     def path(z0, y_end):
         hy = cd / 2
-        pts = [(yc - hy, z0 + (cz1 - cr - z0) * i / steps, -1.0, 0.0) for i in range(steps + 1)]
+        pts = [(yc - hy, z0, -1.0, 0.0), (yc - hy, cz1 - cr, -1.0, 0.0)]
         for i in range(1, kn.curve_segs * 2):
             a = math.pi - math.pi / 2 * i / (kn.curve_segs * 2)
             pts.append((yc - hy + cr + cr * math.cos(a), cz1 - cr + cr * math.sin(a), math.cos(a), math.sin(a)))
-        pts += [(yc - hy + cr + (y_end - (yc - hy + cr)) * i / steps, cz1, 0.0, 1.0) for i in range(steps + 1)]
+        pts += [(yc - hy + cr, cz1, 0.0, 1.0), (y_end, cz1, 0.0, 1.0)]
         return pts
     nsec = max(2, kn.bevel_segs * 3)
     for back in (False, True):
-        pth = path(1.44 if not back else 1.425, yc - STUD_R - 0.004)
+        pth = path(1.44 if not back else 1.425, yc - HAT_STUD * STUD_R - 0.008)
         if back:
             pth = [(2 * yc - y, z, -ny, nz) for y, z, ny, nz in pth]
         rings = []
@@ -382,7 +399,7 @@ def hat_turban(p, c, M):
     rb(p, c, (0.07, 0.03, 0.08), (0, -0.185, 1.465), gold, M, r=0.012)
     if c.full:
         sph(p, c, 0.022, M @ T(0, -0.202, 1.468), stone, segs=max(8, c.kn.round_segs // 2))
-        stud_(p, c, M @ T(0, 0.008, 1.62), cloth)
+        hat_studs(p, c, M, [(0, 0.008)], 1.618, cloth)                # on the top of the dome
     else:
         bx(p, (0.20, 0.19, 0.06), (0, 0.0, 1.545), cloth, M, skip=('-z',))
 
@@ -400,7 +417,7 @@ def hat_fedora(p, c, M):
          lambda x, y: -0.30 * max(0.0, -y - 0.08) + 0.20 * max(0.0, y - 0.12), M)
     if c.full:
         rb(p, c, (0.026, 0.12, 0.012), (0, -0.065, 1.592), dark, M, r=0.005)
-        stud_(p, c, M @ T(0, 0.07, 1.595), hat)
+        hat_studs(p, c, M, [(0, 0.048)], 1.595, hat)                  # behind the crease (the crown is small)
 
 
 def hat_snout(p, c, M):
@@ -424,7 +441,7 @@ def hat_snout(p, c, M):
             sph(p, c, 0.018, M @ T(s * 0.08, -0.103, 1.606), dark, segs=c.tiny)
         for i, (y, z) in enumerate(((0.165, 1.555), (0.172, 1.505), (0.168, 1.455))):
             rb(p, c, (0.03, 0.04, 0.03), (0, y, z), shade_hex(hood, 0.75), M, r=0.008)
-        stud_(p, c, M @ T(0, 0.07, 1.59), hood)
+        hat_studs(p, c, M, [(-0.06, 0.06), (0.06, 0.06)], 1.59, hood)  # behind the eye bumps
     else:
         for s in (1, -1):
             bx(p, (0.07, 0.07, 0.05), (s * 0.08, -0.06, 1.60), eye, M, skip=('-z',))
@@ -448,7 +465,7 @@ def hat_peaked(p, c, M):
     plate(p, half_ellipse(0.26, 0.12, 12 if c.full else 6), 0.014, M @ T(0, -0.135, 1.412) @ R(14, 'X'), visor)
     if c.full:
         plate(p, _star(0.03, 0.013), 0.008, M @ T(0, -0.16, 1.49) @ R(90, 'X'), gold)
-        stud_(p, c, M @ T(0, 0.01, 1.555), hat)
+        hat_studs(p, c, M, [(x, 0.01 + y) for y in (-0.06, 0.06) for x in (-0.06, 0.06)], 1.555, hat)  # 2 x 2
     else:
         bx(p, (0.05, 0.01, 0.05), (0, -0.166, 1.49), gold, M)
 
@@ -466,7 +483,7 @@ def hat_bike(p, c, M):
     if c.full:
         for x in (0.085, -0.085):
             ellipsoid_rib(p, c, rx, ry, rz, ctr, x, 0.6, 2.4, 0.022, 0.01, stripe, M)
-        stud_(p, c, M @ T(0, 0.04, 1.552), shell)
+        hat_studs(p, c, M, [(0, 0.04)], 1.552, shell)                 # on the top of the shell
     plate(p, half_ellipse(0.22, 0.07, 10 if c.full else 5), 0.012, M @ T(0, -0.19, 1.425) @ R(-12, 'X'), shell)
 
 
@@ -493,7 +510,7 @@ def hat_antenna(p, c, M):
         else:
             bx(p, (0.08, 0.08, 0.08), (0, 0, 0.245), ball, base)
     if c.full:
-        stud_(p, c, M @ T(0, 0.0, 1.5475), cap)
+        hat_studs(p, c, M, [(0, -0.06), (0, 0.06)], 1.5475, cap)      # front and back, between the stalks
 
 
 def hat_jockey(p, c, M):
@@ -507,7 +524,7 @@ def hat_jockey(p, c, M):
     sph(p, c, 1.0, M @ T(0, 0.005, 1.425) @ S(0.172, 0.162, 0.125), quarters, top_only=True)
     plate(p, half_ellipse(0.20, 0.08, 10 if c.full else 5), 0.012, M @ T(0, -0.14, 1.428) @ R(10, 'X'), a)
     if c.full:
-        stud_(p, c, M @ T(0, 0.005, 1.545), b)
+        hat_studs(p, c, M, [(0, 0.005)], 1.544, b)                    # the top button
         if c.kn.studs != 'geo':
             rb(p, c, (0.05, 0.05, 0.03), (0, 0.005, 1.555), b, M)
     else:
@@ -539,7 +556,8 @@ def hat_campaign(p, c, M):
         p.add(bm, M, hat)
         bnd = [(0.149 * math.cos(2 * math.pi * k / n), 0.149 * math.sin(2 * math.pi * k / n)) for k in range(n)]
         plate(p, bnd, 0.03, M @ T(0, 0, 1.446), band)
-        stud_(p, c, M @ T(0, 0, 1.598), hat)
+        hat_studs(p, c, M, [(0, 0)], 1.598, hat)                      # crown peak
+        hat_studs(p, c, M, [(-0.21, 0), (0.21, 0)], 1.448, hat)       # on the brim, left and right
     else:
         _pyramid(p, 0.145, 0.06, 1.448, 1.60, hat, M)
 
@@ -568,7 +586,9 @@ def hat_cowboy(p, c, M):
     if c.full:
         rb(p, c, (0.256, 0.306, 0.03), (0, 0.01, 1.455), band, M, r=0.008)
         rb(p, c, (0.026, 0.16, 0.012), (0, -0.02, 1.617), dark, M, r=0.005)
-        stud_(p, c, M @ T(0, 0.095, 1.62), hat)
+        # the creased crown has no flat top: one stud on the brim in front (tilted with its dip), one behind
+        hat_studs(p, c, M @ T(0, -0.205, 1.454 + curl(0, -0.205)) @ R(6.7, 'X'), [(0, 0)], 0.0, hat)
+        hat_studs(p, c, M, [(0, 0.21)], 1.454, hat)
     brim(p, c, 0.30, 0.27, 0.0, 1.445, 0.018, hat, curl, M)
 
 
@@ -604,7 +624,7 @@ def hat_beak(p, c, M):
         rb(p, c, (0.03, 0.12, 0.02), (0, 0, 0), shade_hex(hood, 0.8), M @ T(0, 0.10, 1.595) @ R(-20, 'X'), r=0.008)
         for s in (1, -1):
             sph(p, c, 0.018, M @ T(s * 0.105, -0.142, 1.53), tip, segs=c.tiny)
-        stud_(p, c, M @ T(0, -0.03, 1.59), hood)
+        hat_studs(p, c, M, [(-0.055, -0.02), (0.055, -0.02)], 1.589, hood)  # in front of the crest
 
 
 def hat_headband(p, c, M):

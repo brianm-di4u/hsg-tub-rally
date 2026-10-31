@@ -208,7 +208,7 @@ export function buildTrackWorld(THREE, track, env = {}) {
     } else {
       const ch = Math.floor(sp.s / step / CHUNK);
       const glow = night && p.type === 'lamp' ? geoFor('glow', () => worldMat({ emissive: true, shadows: false }), ch) : null;
-      buildProp(p.type, geoFor('props', () => mat({ gloss: 0.65 }), ch), [p.x, y, p.z], p.yaw, p.sc || 1, glow);
+      buildProp(p.type, geoFor('props', () => mat({ gloss: 0.65, nearFade: true }), ch), [p.x, y, p.z], p.yaw, p.sc || 1, glow);
       if (glow) pools.push([p.x, y, p.z]);
     }
   }
@@ -216,8 +216,8 @@ export function buildTrackWorld(THREE, track, env = {}) {
   // edge, with studded grey stepping stones along both banks
   for (const zn of (track.zones || []).filter((z) => z.type === 'ford')) {
     const ch = Math.min(nChunks - 1, Math.floor(zn.s0 / step / CHUNK));
-    const water = geoFor('ford', () => worldMat({ pattern: 'tiles', uvScale: 1, tile: 0.56, gloss: 0.95, transparent: true, alpha: 0.5, depthWrite: false }), ch);
-    const rocks = geoFor('rocks', () => mat({ pattern: 'studs', gloss: 0.4 }), ch), blue = hex('#3D9BE0'), grey = hex(PAL.darkGrey);
+    const water = geoFor('ford', () => worldMat({ pattern: 'tiles', uvScale: 1, tile: 0.56, gloss: 0.95, transparent: true, alpha: 0.7, depthWrite: false }), ch);
+    const rocks = geoFor('rocks', () => mat({ pattern: 'studs', gloss: 0.4 }), ch), blue = hex('#2E86D0'), grey = hex(PAL.darkGrey);
     for (let s0 = zn.s0; s0 < zn.s1 - 0.01; s0 += 1) {
       const s1 = Math.min(zn.s1, s0 + 1), c0 = track.at(s0), c1 = track.at(s1), n = 6;
       const L0 = -(c0.wl + 1.5), R0 = c0.wr + 1.5, L1 = -(c1.wl + 1.5), R1 = c1.wr + 1.5;
@@ -337,7 +337,7 @@ const KIT_WALLS = ['#A3523A', '#82422A', '#B86B4B', '#D09168', '#E4CD9E'], KIT_A
 function buildFacadeKit(geoFor, ch, b, mat) {
   const wall = geoFor('kitwall', () => mat({ pattern: 'bricks', uvScale: 1, tile: 1.12, patAmt: 0.85, gloss: 0.4 }), ch);
   const trim = geoFor('kittrim', () => mat({ pattern: 'studs', gloss: 0.5 }), ch);
-  const glass = geoFor('kitglass', () => mat({ gloss: 0.95 }), ch);
+  const glass = geoFor('kitglass', () => mat({ gloss: 0.95, glass: true }), ch);
   const plain = geoFor('bldg', () => mat({ pattern: 'studs', gloss: 0.45 }), ch);
   const fp = b.fp, y0 = b.base, y1 = b.base + b.h, n = fp.length, hsh = hash(Math.round(fp[0][0] * 7 + fp[0][1] * 13), 1);
   const wc = hex(KIT_WALLS[Math.floor(hsh * KIT_WALLS.length)]), trimC = hex(hsh < 0.5 ? PAL.tan : PAL.white);

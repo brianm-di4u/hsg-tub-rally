@@ -204,15 +204,18 @@ export class Fx {
       // power slide: wheel spray while charging, then steam that grows and warms with each stage
       if (k.drift) {
         // stage 0 throws water spray, stage 1 white steam, stage 2 hot steam; all of it trails behind the tub
-        const st = k.stage || 0, col = st === 2 ? [1, 0.55, 0.42] : st === 1 ? [0.97, 0.98, 1] : [0.72, 0.87, 0.98];
-        for (const sgn of [-1, 1]) this.burst(k.x - fx * 0.7 + fz * 0.55 * sgn, k.y + 0.15, k.z - fz * 0.7 - fx * 0.55 * sgn, 2 + st, col, { speed: 0.7 + st * 0.4, up: 0.9 + st * 0.8, size: 0.24 + st * 0.12, life: 0.3 + st * 0.12, grav: st ? -0.5 : 6, vx: fz * sgn * 1.8 - fx * 0.4, vz: -fx * sgn * 1.8 - fz * 0.4, spread: 0.15 });
+        // the colour follows the charge itself (render-only): water blue, warming to white steam by the warm tier
+        // (0.85 s) and to hot orange by the hot tier (1.9 s), so the build-up shows before a tier is reached
+        const st = k.stage || 0, ch = k.charge || 0, w = Math.min(1, ch / 0.85), h = Math.max(0, Math.min(1, (ch - 0.85) / 1.05));
+        const col = [0.72 + 0.25 * w + 0.03 * h, 0.87 + 0.11 * w - 0.43 * h, 0.98 + 0.02 * w - 0.58 * h];
+        for (const sgn of [-1, 1]) this.burst(k.x - fx * 0.7 + fz * 0.55 * sgn, k.y + 0.15, k.z - fz * 0.7 - fx * 0.55 * sgn, 2 + st, col, { speed: 0.7 + st * 0.4, up: 0.9 + w * 0.6 + st * 0.5, size: 0.22 + w * 0.08 + st * 0.1, life: 0.3 + w * 0.15 + st * 0.1, grav: st || w > 0.7 ? -0.5 : 6, vx: fz * sgn * 1.8 - fx * 0.4, vz: -fx * sgn * 1.8 - fz * 0.4, spread: 0.15 });
       }
       if ((k.boostT > 0 || k.hoseT > 0) && !reduced) this.burst(k.x - fx * 1.6, k.y + 0.6, k.z - fz * 1.6, 2, k.hoseT > 0 ? [0.6, 0.85, 1] : [0.96, 0.96, 0.98], { speed: 0.6, up: 1, size: 0.22, life: 0.4, grav: -1, vx: -fx * 1.5, vz: -fz * 1.5 });
       if (k.sprayT > 0) this.burst(k.x + fx * 1.4, k.y + 1.0, k.z + fz * 1.4, 3, [0.5, 0.8, 1], { speed: 0.5, up: 1.2, size: 0.16, life: 0.5, grav: 9, vx: fx * 16 + Math.sin(k.yaw) * 0, vz: fz * 16, spread: 0.2 });
       }
     }
     for (const { k, e } of events) {
-      if (e.type === 'hit' || e.type === 'fumble') this.burst(k.x, k.y + 1.1, k.z, reduced ? 6 : 12, [0.55, 0.82, 0.95], { speed: 4, up: 5, size: 0.17, life: 0.8 }); // small enough to keep the crew in view
+      if (e.type === 'hit' || e.type === 'fumble') this.burst(k.x, k.y + 1.1, k.z, reduced ? 4 : 8, [0.62, 0.86, 0.97], { speed: 4.5, up: 5, size: 0.12, life: 0.45 }); // small and brief, so the crew stays in view
       if (e.type === 'pickup') this.burst(k.x, k.y + 1.6, k.z, 10, [0.9, 0.8, 1], { speed: 2, up: 2, size: 0.18, life: 0.5, grav: 0 });
       if (e.type === 'ticket') this.burst(k.x, k.y + 1.4, k.z, 5, [0.95, 0.76, 0.19], { speed: 1.5, up: 2, size: 0.15, life: 0.4, grav: 2 });
       if (e.type === 'bribe') this.burst(k.x, k.y + 1.6, k.z, 14, [0.95, 0.76, 0.19], { speed: 3, up: 4, size: 0.2, life: 0.8 });

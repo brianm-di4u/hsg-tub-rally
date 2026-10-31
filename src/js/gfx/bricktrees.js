@@ -107,8 +107,13 @@ export function buildBrickFlora(THREE, boards, track, opts = {}) {
   [lists.oak, lists.maple] = split('oak');
   [lists.pine, lists.spruce] = split('pine');
   for (const kind of ['oak', 'maple', 'magnolia', 'pine', 'spruce']) {
-    const list = lists[kind];
+    let list = lists[kind];
     if (!list || !list.length) continue;
+    {
+      const Tk = TREES[kind], r0 = Math.max(...Tk.layers.map(([x, , z, w]) => Math.hypot(x, z) + w)), kept = [];
+      for (const p of list) { const r = r0 * (p.sc || 1); if (kept.every((o) => Math.hypot(o.x - p.x, o.z - p.z) > (r + r0 * (o.sc || 1)) * 0.62)) kept.push(p); }
+      list = kept;
+    }
     const geo = treeGeo(THREE, kind), T = TREES[kind];
     // canopy footprint radius at scale 1 (turned layers reach out to their corners)
     const reach = Math.max(...T.layers.map(([x, , z, w, , yaw]) => Math.hypot(x, z) + w * (yaw ? Math.SQRT2 : 1)));

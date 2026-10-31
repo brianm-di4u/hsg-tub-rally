@@ -60,7 +60,8 @@ const hexLin = (h) => [1, 3, 5].map((i) => s2l(parseInt(h.slice(i, i + 2), 16) /
 export function buildCrewGeo(THREE, teamId, lod) {
   const L = pack && pack.lods[lod], T = pack && pack.teams[teamId], list = L && L.teams[teamId];
   if (!list || !T) return null;
-  const slots = pack.slots.map((s) => (T.palette[s] ? hexLin(T.palette[s]) : null)), items = {};
+  // bath water a clearer, deeper blue than the export's pale cyan, so a full tub reads as full
+  const slots = pack.slots.map((s) => (s === 'water' ? hexLin('#3F9FD8') : T.palette[s] ? hexLin(T.palette[s]) : null)), items = {};
   for (const [k, h] of Object.entries(T.items)) items[k] = hexLin(h);
   const [ex, ey] = pack.empty, grey = hexLin('#9A9A9A');
   const nodes = list.map(([pi, mk]) => ({ place: L.places[pi], m: meshView(lod, mk) }));

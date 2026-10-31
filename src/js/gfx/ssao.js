@@ -20,7 +20,10 @@ const AO_FRAG = `
     vec3 p = viewPos(vUv);
     vec3 n = normalize(cross(dFdx(p), dFdy(p)));
     // per-pixel rotation of the kernel (interleaved gradient noise), resolved by the composite's blur
-    float a = 6.2831 * fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
+    // kernel rotation from a 4x4 ordered pattern: the composite's 4x4 blur covers exactly one period, so it leaves
+    // no residue (a free-running noise left stripes)
+    vec2 q = mod(floor(gl_FragCoord.xy), 4.0);
+    float a = 6.2831 * (mod(q.x * 4.0 + q.y * 2.0 + floor(q.y * 0.5), 16.0) + 0.5) / 16.0;
     vec3 r = vec3(cos(a), sin(a), 0.0);
     vec3 t = normalize(r - n * dot(r, n)), b = cross(n, t);
     float occ = 0.0;
@@ -31,7 +34,8 @@ const AO_FRAG = `
       vec2 su = c.xy / c.w * 0.5 + 0.5;
       float sz = viewPos(su).z;
       float range = smoothstep(0.0, 1.0, uRadius / max(abs(p.z - sz), 1e-3));
-      occ += (sz >= s.z + 0.03 ? 1.0 : 0.0) * range;
+      // depth bias grows with distance, so the flat-per-triangle normals of curved parts don't occlude themselves
+      occ += (sz >= s.z + 0.05 + 0.006 * -p.z ? 1.0 : 0.0) * range;
     }
     gl_FragColor = vec4(vec3(1.0 - occ / 8.0), 1.0);
   }`;
@@ -45,8 +49,8 @@ const COMP_FRAG = `
     float d = texture2D(tDepth, vUv).x;
     if (d >= 1.0) { gl_FragColor = col; return; }
     float z = viewZ(vUv), sum = 0.0, wsum = 0.0;
-    for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) {
-      vec2 o = vec2(float(x), float(y)) * uAOTexel * 1.5;
+    for (int y = -2; y < 2; y++) for (int x = -2; x < 2; x++) {
+      vec2 o = (vec2(float(x), float(y)) + 0.5) * uAOTexel;
       float w = 1.0 / (1.0 + abs(viewZ(vUv + o) - z) * 4.0);
       sum += textureLod(tAO, vUv + o, 0.0).r * w; wsum += w;
     }
@@ -59,8 +63,8 @@ export class SSAO {
   constructor(THREE, opts = {}) {
     this.THREE = THREE;
     this.samples = opts.samples ?? 4;
-    this.strength = opts.strength ?? 0.85;
-    this.radius = opts.radius ?? 0.8;
+    this.strength = opts.strength ?? 0.75;
+    this.radius = opts.radius ?? 0.4;
     this.fadeFar = opts.fadeFar ?? 70;
     // cosine-weighted hemisphere kernel, denser near the centre (fixed, so captures repeat exactly)
     const kernel = [];

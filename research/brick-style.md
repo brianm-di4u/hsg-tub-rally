@@ -316,8 +316,8 @@ except its colour is exported once per LOD; each team adds only what is truly it
 
 | LOD | Shared file | 12 team files together | Total |
 |---|---|---|---|
-| LOD0 | 1,024 KB | 947 KB | 2.0 MB |
-| LOD1 | 438 KB | 398 KB | 0.84 MB |
+| LOD0 | 1,032 KB | 995 KB | 2.0 MB |
+| LOD1 | 445 KB | 417 KB | 0.86 MB |
 | LOD2 | 76 KB | 294 KB | 0.37 MB |
 | LOD3 | 51 KB | 167 KB | 0.22 MB |
 
@@ -337,26 +337,26 @@ The first export (one full mesh per team per LOD) was about 28 MB. The rolled-ri
 
 | Team | LOD0 | LOD1 | LOD2 | LOD3 |
 |---|---|---|---|---|
-| `engine-six` (helmet, traditional) | 6,358 / 29,688 | 2,674 / 10,860 | 344 / 596 | 134 / 236 |
-| `lather-linen` (turban, traditional) | 6,650 / 29,688 | 2,654 / 10,860 | 370 / 596 | 132 / 236 |
-| `velvet-mob` (fedora, traditional) | 5,650 / 29,688 | 2,362 / 10,860 | 344 / 596 | 134 / 236 |
-| `gator-gang` (snout hood, traditional) | 6,742 / 29,688 | 2,318 / 10,860 | 336 / 596 | 134 / 236 |
-| `bubble-patrol` (police cap, modified) | 4,940 / 25,540 | 2,096 / 9,768 | 326 / 568 | 134 / 212 |
-| `trail-shredders` (bike helmet, modified) | 5,256 / 25,540 | 2,074 / 9,768 | 292 / 568 | 134 / 212 |
-| `out-of-towners` (antenna cap, modified) | 6,490 / 25,540 | 2,170 / 9,768 | 316 / 568 | 142 / 212 |
-| `silks-stirrups` (jockey cap, modified) | 5,322 / 25,540 | 2,142 / 9,768 | 282 / 568 | 134 / 212 |
-| `steam-rangers` (campaign hat, stock) | 5,392 / 25,540 | 2,140 / 9,768 | 298 / 568 | 134 / 212 |
-| `suds-posse` (cowboy hat, stock) | 5,562 / 25,540 | 2,274 / 9,768 | 332 / 568 | **150** / 212 |
-| `flamingo-flock` (beak hood, stock) | 5,554 / 25,540 | 2,218 / 9,768 | 360 / 568 | 134 / 212 |
-| `tub-ninjas` (headband, stock) | 5,066 / 25,540 | 2,162 / 9,768 | 258 / 568 | 132 / 212 |
-| Whole kart (5 figures + tub), range | 47.4k–60.8k | 18.9k–22.9k | 1.7k–2.3k | 824–914 |
+| `engine-six` (helmet, traditional) | 6,300 / 29,832 | 2,680 / 10,980 | 344 / 596 | 134 / 236 |
+| `lather-linen` (turban, traditional) | 6,650 / 29,832 | 2,654 / 10,980 | 370 / 596 | 132 / 236 |
+| `velvet-mob` (fedora, traditional) | 5,650 / 29,832 | 2,362 / 10,980 | 344 / 596 | 134 / 236 |
+| `gator-gang` (snout hood, traditional) | 6,852 / 29,832 | 2,356 / 10,980 | 336 / 596 | 134 / 236 |
+| `bubble-patrol` (police cap, modified) | 5,270 / 25,684 | 2,210 / 9,888 | 326 / 568 | 134 / 212 |
+| `trail-shredders` (bike helmet, modified) | 5,256 / 25,684 | 2,074 / 9,888 | 292 / 568 | 134 / 212 |
+| `out-of-towners` (antenna cap, modified) | 6,600 / 25,684 | 2,208 / 9,888 | 316 / 568 | 142 / 212 |
+| `silks-stirrups` (jockey cap, modified) | 5,322 / 25,684 | 2,142 / 9,888 | 282 / 568 | 134 / 212 |
+| `steam-rangers` (campaign hat, stock) | 5,612 / 25,684 | 2,216 / 9,888 | 298 / 568 | 134 / 212 |
+| `suds-posse` (cowboy hat, stock) | 5,672 / 25,684 | 2,312 / 9,888 | 332 / 568 | **150** / 212 |
+| `flamingo-flock` (beak hood, stock) | 5,664 / 25,684 | 2,256 / 9,888 | 360 / 568 | 134 / 212 |
+| `tub-ninjas` (headband, stock) | 5,066 / 25,684 | 2,162 / 9,888 | 258 / 568 | 132 / 212 |
+| Whole kart (5 figures + tub), range | 48.4k–61.5k | 19.0k–23.1k | 1.7k–2.3k | 824–914 |
 
-The shared files hold 48,744 / 18,656 / 1,296 / 586 tris (both body variants included). Skirted tubs carry
+The shared files hold 48,888 / 18,776 / 1,296 / 586 tris (both body variants included). Skirted tubs carry
 the shared chassis studs under their skirt; that costs 1.7k at LOD0 and 0.6k at LOD1, within budget. Suds
 Posse at LOD3 sits exactly on the 150 budget. LOD2 figures lost 20 tris each when the printed face replaced
 the eye dots.
 
-**Hats** (each original; one stud at full detail):
+**Hats** (each original; studs at LOD0–1 per decision 12):
 
 | Hat | Team | Design |
 |---|---|---|
@@ -439,8 +439,40 @@ as exported, prints by offset. Every crew is distinguishable from both sides.
     - The wall and the enamel meet the tube on its surface and close inside it. That makes a clean crease
       under the lip, and the bowl doesn't pay for the rim's resolution.
     - **Budget:** the LOD1 tub budget rose from 9,300 to 11,000, as agreed with the runtime session.
-      Traditional tubs are 10,860 and skirted tubs 9,768. LOD0 stays under 30,000 (29,688).
+      The rim brought traditional tubs to 10,860 and skirted tubs to 9,768; decision 13 has the current
+      numbers.
     - Check render: `renders/crew/check_lod1_rim.png` (`scripts/crewcheck.py`).
 11. **LOD2 faces.** LOD2 heads project the face cell exactly like LOD0–1. Shared heads point at the neutral
     face, and the sidecar's `faces[].uvOffset` moves each figure to its expression. LOD2 torsos keep their
     colour rows. Check render: `renders/crew/check_lod2_faces.png`.
+12. **Hat studs (loop-4 review).** Every hat already had one full-size stud at LOD0–1, but the review read
+    "no studs on hats". A full stud (0.168 m) is over half a hat wide, so it reads as part of the hat (the
+    antenna cap's looked like a cap top), and only one fits on a crown.
+    - Hat studs are now the chassis stud profile at 0.6 scale (`brickfig.HAT_STUD`), 1–4 per hat on flat crown
+      or brim areas: police cap 2 x 2; helmet 2, either side of the comb; antenna cap 2, between the stalks;
+      gator and flamingo hoods 2; ranger hat 3 (crown peak and both sides of the brim); cowboy hat 2, on the
+      brim front (tilted with its dip) and back, because the creased crown has no flat top; turban, fedora,
+      bike helmet and jockey cap 1 each (domes or small crowns). The headband keeps its full-size knot stud.
+    - The helmet comb lost its collinear in-between rings (no visible change), which keeps Engine Six's
+      attendant at 2,680 of 2,700.
+    - LOD2–3 have no studs. Check render: `renders/crew/check_lod1_hats.png`.
+13. **Tub as parts (loop-4 review).** At LOD0–1 the team stripe is a separate raised tile, 12 mm proud with
+    4 mm chamfers, on each straight side (0.8 m long, z 0.70–0.80). The shell no longer paints the band.
+    - A V groove 8 mm deep at z 0.50 is the seam where the bowl meets its base ring.
+    - With the rim tube's crease, a close-up shows four part lines (rim, tile top and bottom, base seam) plus
+      the tile ends.
+    - One hidden band inside the rim tube was removed to pay for it. The LOD1 tub is 10,980 (traditional) and
+      9,888 (skirted), within 11,000; LOD0 is 29,832. LOD2–3 keep the painted band.
+    - Check render: `renders/crew/check_lod1_tub_side.png`.
+14. **Water winding.** The LOD0–1 water rings were wound facing down (216 of 250 triangles at LOD1); only the
+    centre cap faced up. They now face +Y at every LOD, which the export check confirms.
+15. **AO along the tub's rings.** Per-vertex rays left faint vertical banding on the enamel. The `body` mesh's
+    AO is now averaged with same-height neighbours (4 passes of [1, 2, 1]), which smooths along the rings and
+    keeps the rim crease and the seam groove sharp.
+16. **Trail Shredders' jersey (loop-4 review: three green-family torsos).** `brickfig.COLOUR_OVERRIDES` sets
+    their shirt to their helmet orange `#F07F22` (teams.js still says lime `#7DBB3C`; the game's UI uses that
+    file). `brickcrew.PRINT_RECOLOUR` turns the print's orange stripes lime so they still show.
+    - Measured torso hue (print over shirt, saturation-weighted): Trail Shredders 25–35° (saturation 0.57),
+      Gator Gang 95–115° (0.26).
+    - Steam Rangers' attendant shirts are grey (saturation 0.03–0.07), so their hue reads as neutral. Their
+      captain's torso is the olive `cap` colour (88°), 19° from Gator Gang's captain green.

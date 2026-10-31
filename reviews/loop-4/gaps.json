@@ -1,0 +1,210 @@
+[
+  {
+    "id": "G-action-feedback",
+    "category": "animation",
+    "expectedGain": 1,
+    "severity": 4,
+    "effort": "M",
+    "workstream": "WS3",
+    "evidence": [
+      "strips/high/R14",
+      "strips/high/R15",
+      "high/desktop/R17",
+      "high/desktop/R19"
+    ],
+    "benchmark": "2k-drive/drive-3.jpg",
+    "fix": "In-world steam puffs off the rear wheels during a slide, coloured per charge tier (warm white, then hot orange), with a burst on release; camera roll of 2-3 degrees into the slide, a 4-degree FOV kick for 0.3 s on release, and a 0.15 s shake on fumbles and prop hits; fumble beads translucent, half the size and half the count, life at most 0.4 s; lamp posts and rails push the tub out with a bump instead of passing through it. Test: tier-coloured puffs in at least 3 frames of strips/high/R14; the ridge-top row in strips/high/R15 moves at least 6 px (strip scale) in some frame (now at most 3); no lamp post inside the player's ring in any R14 frame (now frame 8); bead pixels under 30% of the tub's bounding box in R15 frames 3-6.",
+    "priority": 0.75,
+    "selected": true
+  },
+  {
+    "id": "G-landscape-team-select",
+    "category": "mobile",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS6",
+    "evidence": [
+      "high/landscape/R02"
+    ],
+    "benchmark": "2k-drive/drive-2.jpg",
+    "fix": "At 844x390 lay the 12 cards out as 4 columns by 3 rows (name plus division, two lines at most), use the empty band between the Water bar and the buttons for the details, and narrow the panel or offset the preview so the whole tub sits right of the panel edge. Test: in high/landscape/R02 all 12 cards and their labels are fully inside the panel (no 'Stock ·' cut) and the preview tub's leftmost pixel is at least 8 px right of the panel edge. Also lifts ui and typography.",
+    "priority": 0.75,
+    "selected": true
+  },
+  {
+    "id": "G-hud-overlaps",
+    "category": "ui",
+    "expectedGain": 0.5,
+    "severity": 2,
+    "effort": "S",
+    "workstream": "WS6",
+    "evidence": [
+      "high/desktop/R04",
+      "high/mobile/R04",
+      "high/landscape/R04",
+      "high/desktop/R01",
+      "high/mobile/R02"
+    ],
+    "benchmark": "2k-drive/drive-3.jpg",
+    "fix": "Put the 10-gallon tile inside the gauge panel (or widen the panel by the tile plus 4 px); draw focus rings outside the stud tops; keep panel titles off the stud row. Test: at least 3 px of dark tile on both sides of the '10' glyphs on desktop, portrait and landscape (now the 0's right stroke ends at x=159 with road at x=160 on R04 row y=711); no focus-ring pixel inside a stud in high/desktop/R01 and R18; no title glyph over a stud in high/mobile/R02. Also lifts typography.",
+    "priority": 0.75,
+    "selected": true
+  },
+  {
+    "id": "G-hero-facade-modelling",
+    "category": "lighting",
+    "expectedGain": 0.3,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R06",
+      "high/desktop/R05"
+    ],
+    "benchmark": "worlds/worlds-4.jpg",
+    "fix": "Set each course's key-light azimuth so it rakes the main landmark faces (at least 30 degrees off the camera-facing normal), raise the key-to-ambient ratio, or add a cool sky fill from above, so walls that face different ways separate. Test: in high/desktop/R06, wall-only luminance (windows excluded) differs by at least 15 levels between the Arlington's main front and its tower sides (now 101.7 against 99.1 and 103.2; all planes 99-103).",
+    "priority": 0.45,
+    "selected": true
+  },
+  {
+    "id": "G-judge-figures",
+    "category": "readability",
+    "expectedGain": 0.3,
+    "severity": 2,
+    "effort": "S",
+    "workstream": "WS5",
+    "evidence": [
+      "high/desktop/R16",
+      "strips/high/R16"
+    ],
+    "benchmark": "2k-drive/drive-3.jpg",
+    "fix": "Two judges in black-and-white striped shirts, with a clipboard and a raised flag, standing at the road-side end of the stop line in front of the booth, plus a JUDGES sign on the booth. Test: both judges at least 40 px tall and unobstructed in high/desktop/R16 and visible in all 8 frames of strips/high/R16. Also lifts authenticity.",
+    "priority": 0.45,
+    "selected": true
+  },
+  {
+    "id": "G-world-surface-pass",
+    "category": "materials",
+    "expectedGain": 1,
+    "severity": 4,
+    "effort": "L",
+    "workstream": "WS1",
+    "bigLever": true,
+    "evidence": [
+      "high/desktop/R05",
+      "high/desktop/R06",
+      "high/desktop/R04",
+      "high/desktop/R08",
+      "high/desktop/R19"
+    ],
+    "benchmark": "worlds/worlds-1.jpg; builders-journey/bj-3.jpg",
+    "fix": "Big lever. (a) Ridge rings: shade each stepped column face from the course sun, add a vertical gradient from the haze colour at the base and aerial perspective toward the sky, jitter value 4% per 6 m column, and lower or push back the near ring on the Row so sky shows above the Fordyce and the Arlington; the silhouette stays as is. (b) Banks and shoulders: studded baseplate or stepped plates with a lit edge every 0.4 m of rise. (c) Windows: glazing with a sky Fresnel term and a one-plate recess. (d) Gulpha ford: trans-clear blue tiles over a visible bed, with foam plates at the edges. Test: texture-free non-sky share (9x9 sigma < 0.75) below 12% in high/desktop/R04, R05 and R06 (now 23.5/27.2/24.2%); no single RGB value over 2% of any day frame (now 17.9% in R05, 12.3% in R06); window pixels in R06 span at least 20 luminance levels (sampled windows now 35-40); R19 ford mean B at least R+15 (now 136,131,124). Also lifts scenery and lighting.",
+    "priority": 0.375,
+    "selected": true
+  },
+  {
+    "id": "G-dusk-sunset-sky",
+    "category": "lighting",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R11",
+      "high/desktop/R07",
+      "high/mobile/R07"
+    ],
+    "benchmark": "worlds/worlds-4.jpg",
+    "fix": "A sun disc and glow band on the sky dome for sunset and a horizon glow for dusk, far rings tinted toward the glow, brick-plate clouds lit from the sun side, and a small halo on lamp globes. Test: in high/desktop/R11 the sun or glow is in frame and the band within 40 px above the horizon is at least 1.3x the zenith luminance (now about 1.19 on x=650); lamp globes in R07 carry a halo at least 1.5x the globe radius.",
+    "priority": 0.375,
+    "selected": true
+  },
+  {
+    "id": "G-pack-tub-separation",
+    "category": "readability",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS2",
+    "evidence": [
+      "high/mobile/R07",
+      "high/desktop/R12",
+      "high/desktop/R04"
+    ],
+    "benchmark": "2k-drive/drive-3.jpg",
+    "fix": "Give each rival tub within 25 m a slim team-colour band on its lip (20% emissive) and a team-colour contact ring at 60% opacity and 0.8x the player's ring width, so tubs read through the crews ahead. Test: in high/mobile/R07 and high/desktop/R12 every rival tub within 25 m shows at least 15 px of ring or lip, and the player's ring stays the brightest ring in the frame.",
+    "priority": 0.375,
+    "selected": false
+  },
+  {
+    "id": "G-tub-water-sheet",
+    "category": "characters",
+    "expectedGain": 0.3,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS2",
+    "evidence": [
+      "crops/high/R02-preview-captain",
+      "crops/low/R02-preview-captain",
+      "crops/high/R15-player"
+    ],
+    "benchmark": "2k-drive/drive-4.jpg",
+    "fix": "Clip the water sheet to the tub's inner-rim profile (stencil, or a sheet built from the inner cross-section at fill height), clamp the slosh tilt so no edge passes the inner wall, set the fill height from the gauge (full sits just under the lip), and give it a lighter, more saturated blue with a meniscus highlight at the rim. Test: no water pixels outside the inner rim in crops/high and crops/low R02-preview-captain (now a triangle each side of the duck); water covers at least 70% of the visible interior in crops/high/R15-player at 37 gal.",
+    "priority": 0.3,
+    "selected": false
+  },
+  {
+    "id": "G-ao-closeup-banding",
+    "category": "characters",
+    "expectedGain": 0.3,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS1",
+    "evidence": [
+      "crops/high/R02-preview-captain",
+      "crops/high/R02-preview-rear",
+      "crops/high/R15-player"
+    ],
+    "benchmark": "builders-journey/bj-1.jpg",
+    "fix": "In the High occlusion pass use a per-pixel rotated kernel from a 4x4 interleaved noise tile, a separable depth-aware blur in both axes, and a depth-aware bilinear upsample from half resolution. Test: column-mean residual sigma below 0.7 levels on the box (250,420)-(450,520) of crops/high/R02-preview-captain (now 3.02 at a 9.9 px period; Low 0.06), while the under-tub mean in high/desktop/R03 stays at or below 40 (now 29.7).",
+    "priority": 0.3,
+    "selected": false
+  },
+  {
+    "id": "G-near-occluders",
+    "category": "readability",
+    "expectedGain": 0.2,
+    "severity": 2,
+    "effort": "S",
+    "workstream": "WS5",
+    "evidence": [
+      "high/desktop/R11",
+      "high/desktop/R16",
+      "high/desktop/R13",
+      "high/desktop/R19"
+    ],
+    "benchmark": "2k-drive/drive-3.jpg",
+    "fix": "Extend the near-hide rule to lamp posts and street furniture within 4 m of the camera, and hide any tree within 8 m whose screen bounds would cover more than 5% of the frame. Test: no single tree or prop covers more than 5% of high/desktop/R11, R13, R16 or R19 (critics measured 16-17.5% canopy in R11 and R19, 11.5% in R16). Gain lowered: no tub, pickup or road edge is hidden today.",
+    "priority": 0.3,
+    "selected": false
+  },
+  {
+    "id": "G-tub-parts-and-hat-studs",
+    "category": "characters",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS2",
+    "evidence": [
+      "crops/high/R03-player",
+      "crops/high/R04-kart_3",
+      "crops/high/R15-player",
+      "crops/high/R03-player-rear"
+    ],
+    "benchmark": "2k-drive/drive-4.jpg",
+    "fix": "Build the tub from visible parts: a studded plate ring under the rolled lip, the team stripe as a raised tile with seams, and exposed studs on the tail plate; put 1-4 studs on each hat crown (helmet comb base, caps, cowboy and ranger hats), never on heads. Test: at least 3 part seams on the tub body in crops/high/R03-player and crops/high/R04-kart_3; studs on every hat in high/desktop/R03; the IP silhouette check still passes.",
+    "priority": 0.25,
+    "selected": false
+  }
+]
