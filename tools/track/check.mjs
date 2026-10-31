@@ -5,16 +5,46 @@
 //
 // Checks: the loop closes; road edges never cross (except declared overpasses); width ≥ 9 m; centreline radius
 // ≥ 10 m; grade ≤ the spec's gmax (default 0.18); a ≥ 60 m straight behind the start line for the grid; zones and
-// props on or beside drivable ground; no building over the road; and 8 AI tubs × 3 laps all finish, with lap times
-// inside the target window (Soak class).
+// props on or beside drivable ground; no building over the road; no landmark model inside the drivable band (out to
+// the limit walls, placed as the game places it); and 8 AI tubs × 3 laps all finish, with lap times inside the target
+// window (Soak class).
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Track } from '../../src/js/sim/track.js';
 import { makeRace, stepRace, DT } from '../../src/js/sim/race.js';
+import { landmarkPose } from '../../src/js/sim/landmarks.js';
 import { segX } from './lib.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+
+// hero landmark models (assets/models-*.js) seen from above: a 0.5 m occupancy grid of every triangle, plus the
+// reach behind and in front of the origin that the game's placement uses
+const CELL = 0.5;
+const cellKey = (x, z) => Math.floor(x / CELL) + ',' + Math.floor(z / CELL);
+let PLANS = null;
+function modelPlans() {
+  if (PLANS) return PLANS;
+  const win = {}, dir = path.join(ROOT, 'assets');
+  for (const f of fs.readdirSync(dir).filter((f) => /^models-.*\.js$/.test(f))) new Function('window', fs.readFileSync(path.join(dir, f), 'utf8'))(win);
+  PLANS = {};
+  for (const [name, M] of Object.entries(win.TR_MODELS2 || {})) {
+    const cells = new Set();
+    let z0 = Infinity, z1 = -Infinity;
+    for (const d of Object.values(M)) {
+      const P = new Int16Array(new Uint8Array(Buffer.from(d.p, 'base64')).buffer); // centimetres, x y z per vertex
+      for (let t = 0; t + 8 < P.length; t += 9) {
+        const ax = P[t] / 100, az = P[t + 2] / 100, bx = P[t + 3] / 100, bz = P[t + 5] / 100, cx = P[t + 6] / 100, cz = P[t + 8] / 100;
+        z0 = Math.min(z0, az, bz, cz); z1 = Math.max(z1, az, bz, cz);
+        // fill the triangle's footprint at ≤ 0.25 m spacing (a vertical wall fills as its line)
+        const N = Math.max(2, Math.ceil(Math.max(Math.hypot(bx - ax, bz - az), Math.hypot(cx - ax, cz - az), Math.hypot(cx - bx, cz - bz)) / 0.25));
+        for (let i = 0; i <= N; i++) for (let j = 0; j <= N - i; j++) { const u = i / N, v = j / N, w = 1 - u - v; cells.add(cellKey(ax * w + bx * u + cx * v, az * w + bz * u + cz * v)); }
+      }
+    }
+    PLANS[name] = { cells, box: { depth: Math.max(0, -z0), fwd: Math.max(0, z1) } };
+  }
+  return PLANS;
+}
 
 export function checkTrack(id, { quick = false } = {}) {
   const json = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'tracks', id + '.json'), 'utf8'));
@@ -84,6 +114,27 @@ export function checkTrack(id, { quick = false } = {}) {
     if (hit) bOnRoad++;
   }
   ok('no building over the road', bOnRoad === 0, `${bOnRoad} of ${(json.buildings || []).length} buildings touch the road`);
+  // tubs are held in by the limit walls, not by buildings: no landmark model may stand inside the drivable band (out
+  // to 0.5 m beyond the walls) anywhere on the course, including legs other than the one it is placed beside
+  const plans = modelPlans(), lmHits = [];
+  let lmCount = 0;
+  for (const lm of json.landmarks || []) {
+    const P = plans[lm.model];
+    if (!P) continue;
+    lmCount++;
+    const q = landmarkPose(tr, lm, P.box), cy = Math.cos(q.yaw), sy = Math.sin(q.yaw), hit = [];
+    for (let i = 0; i < n; i++) {
+      const c = tr.at(i * st);
+      for (let d = -c.limL - 0.5; d <= c.limR + 0.5; d += 0.5) {
+        const p = tr.point(i * st, d), dx = (p.x - q.x) / q.scale, dz = (p.z - q.z) / q.scale;
+        if (P.cells.has(cellKey(dx * cy - dz * sy, dx * sy + dz * cy))) { hit.push(i * st); break; }
+      }
+    }
+    const runs = [];
+    for (const s of hit) { const r = runs[runs.length - 1]; if (r && s - r[1] <= 2 * st) r[1] = s; else runs.push([s, s]); }
+    if (runs.length) lmHits.push(`${lm.id} at s ${runs.map(([a, b]) => (a === b ? a.toFixed(0) : `${a.toFixed(0)}–${b.toFixed(0)}`)).join(', ')}`);
+  }
+  ok('no landmark in the drivable band', lmHits.length === 0, lmHits.length ? lmHits.join('; ') : `${lmCount} landmark models clear of the limit walls`);
   // AI race
   const target = spec.lapTarget || [42, 62];
   if (!quick && !spec.arena) {
