@@ -1,7 +1,8 @@
 # Spa City Tub Rally: report
 
-An original N64-style bathtub kart racer on the real streets and mountain roads of Hot Springs, Arkansas,
-inspired by the World Championship Running of the Tubs. Built M0–M5 per `DEV-PLAN.md`.
+An original bathtub kart racer on the real streets and mountain roads of Hot Springs, Arkansas, inspired by the
+World Championship Running of the Tubs. Built M0–M5 per `DEV-PLAN.md` in an N64 style, then restyled as a glossy
+brick-toy world (see the brick campaign section below).
 
 ## What was built
 - **Eight courses from real data** (OpenStreetMap streets and buildings, USGS 3DEP elevation), routed, compressed
@@ -77,18 +78,103 @@ on phones. The fixes were checked on reshot sheets but not re-scored.
   throttle; 86 draws / 31k triangles desktop (Medium), 78 draws / 29k phone (Low).
 - Size: index.html 269 KB, three.js 545 KB, whole game 2.18 MB, first race 1.42 MB.
 
+## Brick-toy visual campaign (October 30–31, 2026)
+The N64 look was replaced with a glossy brick-toy world, through ten loops of build, gate check, blind review and
+refinement. Each loop was reviewed by two critics, Claude and Codex GPT-6.1. They worked blind to the build notes
+and to each other, and scored against `reviews/RUBRIC.md` with blind A/B pairs against the previous loop. A
+prosecutor and an advocate then argued over the scores, and a judge ruled on the disputes from the captures
+themselves.
+
+![Loop 0 against loop 10, same shots](reviews/campaign/before-after.jpg)
+
+**Result: 48.0 → 67.5 / 100.** The campaign stopped by its own rule: three loops in a row (8, 9 and 10) without a new
+best of at least +1.0.
+
+- **Gates met:** characters 7, UI 7, typography 7, mobile 7 and authenticity 7 (its gate is 6); perf 52/52; the IP
+  check.
+- **Gates not met:** materials, scenery, lighting, animation and readability, each at 6.5.
+- **Not measured:** the fidelity gate (`tools/fidelity.mjs`) was never built.
+- **Full record:** per-loop scores in `reviews/HISTORY.md`; every review in `reviews/loop-*/`.
+
+| Loop | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Total | 48.0 | 58.0 | 61.0 | 63.0 | 63.5 | 65.5 | 66.5 | 67.5 | 67.5 | 67.5 | 67.5 |
+
+**What changed:**
+- **Rendering:**
+  - Per-pixel plastic shading (`src/js/gfx/brickmat.js`), with stud, tile and brick patterns and moulded edges
+    drawn in the shader.
+  - Sun shadows on Medium and High.
+  - Screen-space ambient occlusion on High (`ssao.js`).
+  - Native resolution with MSAA. The 240-line look is now an optional Retro setting.
+- **Crews and tubs:**
+  - Built in Blender (an original block figure; no minifigure shapes and no LEGO marks).
+  - Packed with LOD levels per tier into `assets/crew.js` and `assets/crew-prints.js`.
+  - Assembled by `crew3d.js`, taking the colours in `teams.js`.
+  - Printed faces and uniforms, studded helmets, clear tub water that sloshes, and a fixed gold marker on the
+    player's tub.
+- **World:**
+  - Studded baseplate lawns, tile roads, brick-course walls and roof tiles.
+  - Storefronts built from parts.
+  - Brick trees in five kinds, kept apart from each other.
+  - Brick crowds.
+  - A JUDGE booth at each judge stop.
+  - A horizon of forested hills in four rings.
+  - Clear water in the creek ford.
+- **Feel and UI:**
+  - Steam and spray effects, a slide-charge arc and an impact camera kick.
+  - The HUD and menus restyled as studded plates and brick buttons.
+  - Call-outs docked away from the road.
+  - Phone layouts reworked.
+
+**Numbers (loop 10):**
+- **Tests:** 65/65 on both suites.
+- **Track checks:** pass.
+- **Captures:** repeat exactly (0.013/255 at most).
+- **Bathhouse Row triangles and draws:**
+
+  | Tier | Triangles | Draws |
+  |---|---|---|
+  | Low | 112k | 105 |
+  | Medium | 391k | 160 |
+
+  Each is within budget (`tools/perf-budgets.json`).
+- **Frame times:**
+  - Desktop p95: 1.0–1.3 ms.
+  - Phone CPU at 4× throttle: 1.1 ms task time.
+  - Estimated mid-range phone: 17.4 ms.
+  - Software-GL floor: 52 fps.
+- **Size:** index.html 432 KB, three.js 545 KB, whole game 2.76 MB, first race 1.99 MB.
+
+**Where the remaining points are**, from the loop-10 judge's ranked gaps (`reviews/loop-10/gaps.json`):
+- **The horizon:** the far hills are the same flat card silhouette on every course, not the Ouachita ridgelines.
+  This is the biggest single gap, holding back scenery and authenticity.
+- **Dusk:** lamps and windows are unlit.
+- **Ambient occlusion:** it reads at only about 5% at landmark distance.
+- **Effects:** they are opaque spheres rather than translucent brick parts.
+- **Slosh:** it is not legible from the chase camera.
+- **Ford and trails:** the creek ford reads as blue tile, and the trails as plaza tile.
+- **Landmark windows:** they are flat, painted panels.
+- **Rocks and banks:** Goat Rock and the creek banks are textured ramps rather than plates.
+- **Phone countdown:** it still covers the grid in landscape.
+- **Fumble flash:** it bleaches the crew's team colours.
+- **Slides:** a slide can run onto the pavement with no reaction.
+
+**Process notes:**
+- **Perf noise.** Perf runs on this shared PC picked up load from other sessions, so loops 9 and 10 needed repeat
+  runs; `reviews/PERF.md` records each one. Measured back to back, the loop-8 and loop-10 builds perform the same.
+- **Determinism.** Review captures now freeze CSS transitions along with the render clock, so call-outs no longer
+  break capture determinism.
+
 ## Known gaps
 - Nobody has played it with real hands or listened to the audio yet; feel and mix are tuned from tests and sims.
-- Tubs and crews are procedural code models, not Blender models as the plan said (they animate per part in one draw;
-  a Blender pass could add detail).
+- The visual gaps left after the brick campaign are listed in its section above.
 - Scald class: ~39% of AI tubs finish under 10 gal (by design for the hard class; noted).
 - Course compression is strong on the mountains (ks 0.085–0.185, kv 0.08–0.16): switchbacks become runs of
   hairpins and climbs are gentle. Tool ideas from the course builders: per-section kv, a `link` option for labelled
   game-course connectors, minimum straight length in loop closure, pin-order validation.
 - Positions estimated (labelled in notes): the Vapors, the 1924 West Mountain shelter, the Pagoda.
 - Battle (Water Fight) balance is checked by sim only; the arena is small (125 m ring).
-- Visual review not re-scored after the fixes; crowd sprites are smoother than the period look, and the painted
-  panoramas still show a pale haze band from high mountain viewpoints.
 - Not on the website: the private repo exists (v0.2.0); the site entry waits for your go-ahead.
 
 ## Harness requests

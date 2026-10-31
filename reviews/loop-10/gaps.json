@@ -1,0 +1,202 @@
+[
+  {
+    "id": "G-phone-countdown",
+    "category": "readability",
+    "expectedGain": 0.4,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS6",
+    "evidence": [
+      "high/landscape/R03",
+      "high/mobile/R03"
+    ],
+    "benchmark": "drive-3",
+    "fix": "Apply the desktop call-out rule to phones: in landscape scale the countdown to 50% and anchor its top at 92 CSS px; in portrait keep its bottom 20 CSS px or more above the road's far end. Test: no countdown pixel below y 275 of 780 in high/landscape/R03; in high/mobile/R03 its bottom is 40+ device px above y 535.",
+    "priority": 0.6,
+    "selected": true
+  },
+  {
+    "id": "G-fumble-flash-bleach",
+    "category": "readability",
+    "expectedGain": 0.3,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS3",
+    "evidence": [
+      "crops/high/R15-player",
+      "high/desktop/R15",
+      "strips/high/R15"
+    ],
+    "fix": "Replace the full-body whitening with a 2-frame additive rim/fresnel flash or white outline that keeps albedo. Test: in crops/high/R15-player the tub body and helmets keep HSV saturation >= 0.5 (now 0.25) and hue within 10 degrees of the team colour.",
+    "priority": 0.45,
+    "selected": true
+  },
+  {
+    "id": "G-ao-strength",
+    "category": "lighting",
+    "expectedGain": 0.3,
+    "severity": 2,
+    "effort": "S",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R06",
+      "low/desktop/R06",
+      "ab/high-desktop-R06"
+    ],
+    "benchmark": "worlds-4",
+    "fix": "AO exists at about 5%: double the high-tier SSAO intensity in the 40-150 m range and scale its radius with distance (about 1.5 m at 100 m), capped at 25% darkening. Test: the band above each Arlington tower base in high/desktop/R06 is 13+ levels (10%) darker than in low/desktop/R06 (now 5.9-6.7), with mid-walls within 3.",
+    "priority": 0.45,
+    "selected": true
+  },
+  {
+    "id": "G-dusk-lamps",
+    "category": "lighting",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R07",
+      "high/desktop/R11"
+    ],
+    "benchmark": "worlds-2",
+    "fix": "On dusk and sunset courses: emissive lamp globes with a stateless halo sprite, a warm radial light decal (about 3 m) on the paving under each lamp, warm emissive shop glass. Test in R07: paving under the nearest lamp 20%+ brighter than midway between lamps (now +6%); sky within 15 px of a globe 10+ levels brighter than 60 px away (now 10.7 darker).",
+    "priority": 0.375,
+    "selected": true
+  },
+  {
+    "id": "G-brick-particles",
+    "category": "animation",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS3",
+    "evidence": [
+      "strips/high/R14",
+      "high/desktop/R19",
+      "high/desktop/R17"
+    ],
+    "benchmark": "drive-3",
+    "fix": "Replace the opaque shaded spheres with translucent brick parts, sorted with no depth write and no outline: steam as trans-clear 1x1 round plates and 2x2 round tiles at alpha 0.5-0.7 growing 1-2x and fading over life; spray as trans-light-blue round plates tumbling on an outward arc. Test: at 6x on the R19 steam no overlap edge is 15+ levels darker than both interiors and the background shows through; the R14 strip spray forms an outward arc in 4+ frames.",
+    "priority": 0.375,
+    "selected": true
+  },
+  {
+    "id": "G-water-and-trails",
+    "category": "scenery",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS4",
+    "evidence": [
+      "high/desktop/R19",
+      "high/desktop/R10"
+    ],
+    "benchmark": "drive-1",
+    "fix": "Ford: a trans-blue water sheet over a visible submerged plate bed, fresnel sky reflection and a white round-plate foam edge on both banks; inside the ford volume sink wheels 0.15 m and spray at each wheel. Trails on R10 and R19: tan and brown dirt plates with scattered 1x1 rocks (R09 already uses sand plates). Test: ford luminance std >= 12 in R19 with the bed visible; trail median hue differs from the plaza tile by 15+ degrees in R10.",
+    "priority": 0.375,
+    "selected": false
+  },
+  {
+    "id": "G-slosh-legible",
+    "category": "animation",
+    "expectedGain": 0.4,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS3",
+    "evidence": [
+      "strips/high/R16",
+      "strips/high/R14",
+      "strips/high/R15"
+    ],
+    "benchmark": "drive-3",
+    "fix": "Make slosh read from the chase camera: a light foam line where water meets the bowl wall, water climbing 0.12 m+ up the outer wall in turns and fumbles, one or two trans-blue droplets spilling over the rim at peak tilt, and a 3-frame FOV +5 degree kick on fumbles and hits. Test: in a 2x crop of strips/high/R14 the water line tilts 8+ degrees against the rim in 3+ frames; strips/high/R15 frames 1-3 show the FOV kick.",
+    "priority": 0.3,
+    "selected": false
+  },
+  {
+    "id": "G-autumn-canopy",
+    "category": "scenery",
+    "expectedGain": 0.2,
+    "severity": 2,
+    "effort": "S",
+    "workstream": "WS5",
+    "evidence": [
+      "high/desktop/R08",
+      "high/desktop/R11",
+      "high/desktop/R10"
+    ],
+    "benchmark": "worlds-1",
+    "fix": "Autumn canopies are wood-tan (hue 34-38 vs trunk 19) and the R08 tree was read as a blank sign: use saturated brick orange and yellow for autumn canopies and snap slab yaw to multiples of 45 degrees in whole-stud sizes. Test: lit canopy HSV saturation >= 0.6 in R08 (now about 0.4); slab yaws in R10 and R11 on 45-degree multiples.",
+    "priority": 0.3,
+    "selected": true
+  },
+  {
+    "id": "G-slide-kerb-contact",
+    "category": "animation",
+    "expectedGain": 0.3,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS3",
+    "evidence": [
+      "strips/high/R14"
+    ],
+    "benchmark": "drive-3",
+    "fix": "Add road-edge kerb and street-furniture colliders; on contact apply a lateral bounce, a 3-frame camera shake and a 6-10 piece brick burst. Test: in strips/high/R14 the ring centre never crosses the road-edge line, or a reaction shows within 2 frames (now frame 8 sits on the paving against a lamp post with no reaction).",
+    "priority": 0.225,
+    "selected": false
+  },
+  {
+    "id": "G-landmark-windows",
+    "category": "materials",
+    "expectedGain": 0.3,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS4",
+    "evidence": [
+      "high/desktop/R06",
+      "crops/high/R04-kart_3",
+      "high/desktop/R05"
+    ],
+    "benchmark": "worlds-1",
+    "fix": "Storefronts and the Fordyce already have relief; only the landmark blocks lack it. Instance the storefront window-surround and sill part on the Arlington main blocks and over the painted windows of the painted-facade landmarks; give ground-floor panes a dark interior behind trans glass. Test: in high/desktop/R06 each sunlit sill is 15+ levels above the wall beside it.",
+    "priority": 0.225,
+    "selected": false
+  },
+  {
+    "id": "G-terrain-parts",
+    "category": "materials",
+    "expectedGain": 0.3,
+    "severity": 2,
+    "effort": "M",
+    "workstream": "WS4",
+    "evidence": [
+      "high/desktop/R09",
+      "high/desktop/R19",
+      "high/desktop/R08"
+    ],
+    "benchmark": "drive-5",
+    "fix": "Rebuild Goat Rock from slope bricks and stacked plates with flat normals, with brick courses only on vertical faces; terrace the R19 and R08 banks (now ribbed, stud-less ramps) with risers at least one plate high and studs on the treads. Test: no diagonal shading split on any R09 rock face; on the R19 bank risers differ from treads by 20+ levels and treads carry studs.",
+    "priority": 0.225,
+    "selected": false
+  },
+  {
+    "id": "G-ridgeline-rings",
+    "category": "scenery",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "L",
+    "workstream": "WS4",
+    "evidence": [
+      "high/desktop/R09",
+      "high/desktop/R06",
+      "high/desktop/R04",
+      "high/desktop/R19"
+    ],
+    "benchmark": "worlds-1",
+    "fix": "BIG LEVER for this loop. The same flat crenellated card backdrop closes every course; it is the main thing holding scenery below worlds-1 and the failing Ouachitas clause in authenticity. Replace it with 3-4 depth layers of stepped brick terrain (plates and slope bricks with tree clusters) whose per-course silhouettes follow the real ridgelines (Hot Springs, North, West and Sugarloaf mountains, the long Ouachita ridges). Test: no card edge or repeated crenellation in R09 or R06; R09 and R19 skylines overlap by less than 70%.",
+    "priority": 0.188,
+    "bigLever": true,
+    "selected": true
+  }
+]
