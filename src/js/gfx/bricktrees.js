@@ -32,16 +32,19 @@ function treeGeo(THREE, kind) {
   return g.build(THREE);
 }
 
-// a spectator facing +z, feet at y = 0: legs and hips, shirt torso, skin head with hair, arms (parts 1 and 2)
+// a spectator facing +z, feet at y = 0: legs and hips, shirt torso, skin head under a brimmed cap in the shirt colour,
+// arms (parts 1 and 2). Caps in the shirt colour, not a brown hair block, keep them from resembling a well-known
+// game character; heads stay plain boxes (a rounded head cost ~200 triangles a figure, x hundreds of spectators).
 function fanGeo(THREE) {
-  const g = new Geo(), pants = hex('#2B2E33'), hair = hex('#4A3426');
+  const g = new Geo(), pants = hex('#2B2E33');
   g.setPart(0);
   g.box([-0.17, 0, -0.08], [-0.01, 0.55, 0.08], pants); g.box([0.01, 0, -0.08], [0.17, 0.55, 0.08], pants);
   g.box([-0.19, 0.55, -0.1], [0.19, 0.64, 0.1], pants);
   g.box([-0.2, 0.64, -0.12], [0.2, 1.1, 0.12], MARK);
   g.box([-0.07, 1.1, -0.06], [0.07, 1.15, 0.06], SKIN);
-  g.box([-0.15, 1.15, -0.13], [0.15, 1.44, 0.13], SKIN);
-  g.box([-0.16, 1.36, -0.15], [0.16, 1.5, 0.1], hair);
+  g.box([-0.15, 1.15, -0.13], [0.15, 1.42, 0.13], SKIN);
+  g.box([-0.16, 1.4, -0.14], [0.16, 1.5, 0.14], MARK);
+  g.box([-0.13, 1.39, 0.13], [0.13, 1.42, 0.24], MARK);
   // printed face on the front of the head: two eyes and a smile
   const ink = hex('#1E1B18');
   for (const ex of [-0.065, 0.065]) g.box([ex - 0.022, 1.29, 0.13], [ex + 0.022, 1.335, 0.136], ink);
@@ -55,7 +58,7 @@ function fanGeo(THREE) {
   return g.build(THREE, { parts: true });
 }
 
-const SHIRTS = [PAL.red, PAL.blue, PAL.yellow, PAL.green, PAL.orange, PAL.white, PAL.azure, PAL.magenta, PAL.lime, PAL.mediumBlue, PAL.pink, PAL.tan];
+const SHIRTS = [PAL.red, PAL.blue, PAL.yellow, PAL.green, PAL.orange, PAL.white, PAL.magenta, PAL.lime, PAL.pink, PAL.tan, PAL.purple, PAL.darkRed];
 const SKINS = ['#F1C9A5', '#E0AC7E', '#C68C5D', '#A86F4C', '#8D5A3B', '#6B4329'];
 
 // verge dressing scattered by the track builder: brick shrubs (instance greens), flower clusters (instance colours)

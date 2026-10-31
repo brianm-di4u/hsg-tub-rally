@@ -337,7 +337,7 @@ const INST_MAIN = `
         float t = clamp(dot(io - a, ab) / max(dot(ab, ab), 1e-4), 0.0, 1.0);
         float corridor = mix(1.0, smoothstep(0.8, 1.1, length((io - (a + ab * t)).xz) - length(instanceMatrix[0].xyz) * 2.0), step(0.02, t) * (1.0 - step(0.97, t)));
         float reach = length(instanceMatrix[0].xyz) * 2.7; // canopy radius at this tree's scale
-        vNear = smoothstep(4.5, 4.8, length((io - a).xz) - reach) * corridor; }
+        vNear = smoothstep(5.8, 6.1, length((io - a).xz) - reach) * corridor; }
     #endif
     #ifdef FOOT_AO
       vFootY = pos.y;

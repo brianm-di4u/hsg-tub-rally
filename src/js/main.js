@@ -592,7 +592,8 @@ function drawRace(r, alpha, dt) {
     if (i !== r.player && r.player >= 0) {
       const cam = App.renderer.camera.position, pp = r.karts[r.player], ax = pp.x - cam.x, az = pp.z - cam.z, l2 = ax * ax + az * az || 1;
       const t = Math.max(0, Math.min(1, ((pose.x - cam.x) * ax + (pose.z - cam.z) * az) / l2)), off = Math.hypot(pose.x - cam.x - ax * t, pose.z - cam.z - az * t);
-      App.views[i].mat.uniforms.uFade.value = !App.camOverride && t > 0.02 && t < 0.9 && off < 2.4 ? Math.min(1, (2.4 - off) / 0.5) : 0;
+      const fade = !App.camOverride && t > 0.02 && t < 0.9 && off < 2.4 ? Math.min(1, (2.4 - off) / 0.5) : 0;
+      App.views[i].mat.uniforms.uFade.value = fade; App.views[i].shadow.visible = fade < 0.5;
     }
     if (i === r.player || (r.player < 0 && i === 0)) { App.camPose = { k, pose }; setFocus(pose.x, pose.y, pose.z); }
   });
@@ -666,7 +667,9 @@ function drawAttract(dt) {
     const back = 5.5 + tall * 3.2;
     cam.position.set(pc.x - pc.tz * 3.2 - pc.tx * back, pc.y + 2.6 + tall * 0.6, pc.z + pc.tx * 3.2 - pc.tz * back);
     const lx = -(pp.z - cam.position.z), lz = pp.x - cam.position.x, ll = Math.hypot(lx, lz) || 1;
-    cam.lookAt(pp.x - (lx / ll) * 2.6 * wide, pp.y + 0.9 - tall * 4.4, pp.z - (lz / ll) * 2.6 * wide);
+    // very wide (phone landscape) screens: aim further left so the tub sits in the right third, clear of the panel
+    const aimL = aspect > 1.9 ? 3.9 : 2.6;
+    cam.lookAt(pp.x - (lx / ll) * aimL * wide, pp.y + 0.9 - tall * 4.4, pp.z - (lz / ll) * aimL * wide);
   } else App.footBlobs.set([]);
   if (App.camOverride) { const o = App.camOverride; cam.position.set(o.pos[0], o.pos[1], o.pos[2]); cam.lookAt(o.target[0], o.target[1], o.target[2]); }
   if (cam.fov !== App.renderer.baseFov) { cam.fov = App.renderer.baseFov; cam.updateProjectionMatrix(); }

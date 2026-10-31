@@ -1,0 +1,12 @@
+{
+  "perf": {
+    "pass": true,
+    "checked": 52,
+    "failed": []
+  },
+  "fidelity": null,
+  "ip": {
+    "pass": true,
+    "note": "developer check: crews unchanged in silhouette; spectators now wear shirt-coloured caps (no brown hair block, no cyan shirts) to avoid resembling a well-known game character; no LEGO name or logo; critics re-check"
+  }
+}

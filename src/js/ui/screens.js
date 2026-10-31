@@ -103,7 +103,7 @@ const TEMPLATES = {
     <div class="panel teams" role="dialog" aria-label="Choose your team">
       <canvas data-pixel="CHOOSE YOUR TEAM" data-scale="4"></canvas>
       <div class="team-grid">${TEAMS.map((t) => `<button type="button" class="tcard ${t.id === cur.id ? 'sel' : ''}" data-act="${unlocked(t) ? 'team' : 'locked'}" data-id="${t.id}" ${unlocked(t) ? '' : 'aria-disabled="true"'} aria-pressed="${t.id === cur.id}">
-        <span class="tsw" style="background:${t.colors.tub};border-color:${t.colors.trim}"></span><b>${t.name}</b><small>${DIVISIONS[t.div].name}${unlocked(t) ? '' : ' · locked'}</small></button>`).join('')}</div>
+        <span class="tsw" style="background:${t.colors.tub};border-color:${t.colors.flag}"></span><b>${t.name}</b><small>${DIVISIONS[t.div].name}${unlocked(t) ? '' : ' · locked'}</small></button>`).join('')}</div>
       <div class="team-info">
         <h3>${cur.name}</h3>
         <p><b>Captain:</b> ${cur.captain} · <b>Inspired by:</b> ${cur.archetype} (fictional team)</p>

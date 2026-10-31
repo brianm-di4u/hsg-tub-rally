@@ -47,7 +47,7 @@ export function buildSky(THREE, env = {}) {
   // (6 m), each column topped by a lighter plate edge, tinted toward the horizon haze with distance. They reach
   // below the ground so no band shows where the terrain ends.
   const ridgeCols = env.ridges || ['#7F9AB0', '#5F7F6E', '#40604A'], seed = env.ridgeSeed || 3;
-  const LAYERS = [[352, 0.62, 30, 64], [334, 0.32, 24, 48], [316, 0.0, 16, 34]]; // radius, haze, base height, swing
+  const LAYERS = [[352, 0.78, 30, 64], [334, 0.55, 24, 48], [316, 0.3, 16, 34]]; // radius, haze, base height, swing
   const rpos = [], rcol = [], N = 180, STEP = 6, BOT = -60;
   LAYERS.forEach(([R2, haze, base, amp], li) => {
     const c0 = hex(ridgeCols[li]), c = [0, 1, 2].map((k) => c0[k] + (B[k] - c0[k]) * haze), lip = c.map((v) => Math.min(1, v * 1.18 + 0.03));
@@ -70,6 +70,18 @@ export function buildSky(THREE, env = {}) {
       if (li > 0) { quad(Math.max(BOT + 1, h - 9), h - 3.4, col); quad(h - 3.4, h - 1.4, tree); }
       else quad(Math.max(BOT + 1, h - 9), h - 1.4, col);
       quad(h - 1.4, h, lip);
+      // the nearer rings carry a tree line: stepped conifer crowns standing on most columns, so a ridge reads as
+      // wooded Ouachita hills rather than a bare wall
+      if (li > 0) {
+        const hh = (((i * 2246822519) ^ (li * 3266489917)) >>> 0) % 1000 / 1000;
+        if (hh < 0.75) {
+          const ta = (a0 + a1) / 2 + (hh - 0.4) * (a1 - a0), tw = (3 + hh * 3) / R2, th = 5 + hh * 6, tc = tree.map((v) => v * 0.92);
+          const Q = (b0, b1, y0, y1, col) => { const P2 = (b, y) => [Math.sin(b) * (R2 - 0.5), y, Math.cos(b) * (R2 - 0.5)]; [P2(b0, y0), P2(b1, y1), P2(b1, y0), P2(b0, y0), P2(b0, y1), P2(b1, y1)].forEach((v) => { rpos.push(...v); rcol.push(...col); }); };
+          Q(ta - tw, ta + tw, h, h + th * 0.45, tc);
+          Q(ta - tw * 0.66, ta + tw * 0.66, h + th * 0.45, h + th * 0.8, tc);
+          Q(ta - tw * 0.33, ta + tw * 0.33, h + th * 0.8, h + th, tc);
+        }
+      }
     }
   });
   const rg = new THREE.BufferGeometry();

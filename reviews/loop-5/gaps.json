@@ -1,0 +1,211 @@
+[
+  {
+    "id": "G-phone-hud-dock",
+    "category": "mobile",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS6",
+    "evidence": [
+      "high/mobile/R04",
+      "high/mobile/R17",
+      "high/landscape/R04",
+      "high/landscape/R07",
+      "high/landscape/R17"
+    ],
+    "benchmark": "drive-3",
+    "fix": "Portrait: stack lap tile, gauge and checklist in one column with 8 CSS px gaps (gauge below the lap tile, not under it) and move the item orb and coin chip to a row below the place tile. Landscape: dock the map at least 8 CSS px below the place tile. Test: no two HUD bounding boxes intersect in high/mobile/R04, R07, R08, R17 or high/landscape/R04, R07, R08, R17.",
+    "priority": 0.75,
+    "selected": true
+  },
+  {
+    "id": "G-near-camera-fade",
+    "category": "readability",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R11",
+      "high/desktop/R19",
+      "high/desktop/R08",
+      "low/desktop/R19"
+    ],
+    "benchmark": "drive-3",
+    "fix": "Fade or offset tree canopies (not just trunks) inside the chase camera's near volume, and fade a tub's ring and particles together with its body. Test: no single canopy covers more than 8% of high/desktop/R08, R11 or R19 (now ~12%, ~24%, ~15%), and no ring arc without its tub in high/desktop/R19 or low/desktop/R19.",
+    "priority": 0.75,
+    "selected": true
+  },
+  {
+    "id": "G-backdrop-haze-ramp",
+    "category": "lighting",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R05",
+      "high/desktop/R06",
+      "high/desktop/R17"
+    ],
+    "benchmark": "worlds-4",
+    "fix": "Apply per-ring distance fog so each horizon ring sits between the ground in front and the sky, and clamp the farthest ring below sky luma. Test: in R05 and R06 nearest-ridge luma is at least 1.25x the mid-distance tree luma (now 78.5 vs 74) and at most 0.85x the sky; each further ring is lighter than the one in front and darker than the sky (now 207 vs 201 in R05, 215 vs 207 in R17).",
+    "priority": 0.75,
+    "selected": true
+  },
+  {
+    "id": "G-sunset-fill",
+    "category": "lighting",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R11",
+      "high/desktop/R07"
+    ],
+    "benchmark": "worlds-4",
+    "fix": "At the sunset preset raise the hemisphere sky term and add a warm low rim or fill on figures and canopies (about +0.5 EV in shadow), leaving dusk unchanged. Test: in high/desktop/R11 at most 15% of the central frame (15-85% width, 15-95% height) below luma 40 (now 43%), near-right canopy at 900-1000, 200-280 at least luma 45 (now 28), clean sunlit road at least luma 95 (now ~84); high/desktop/R07 keeps at least 10% below luma 40 (now 17%).",
+    "priority": 0.75,
+    "selected": true
+  },
+  {
+    "id": "G-crowd-kit-restyle",
+    "category": "scenery",
+    "expectedGain": 0.25,
+    "severity": 4,
+    "effort": "S",
+    "workstream": "WS5",
+    "evidence": [
+      "high/desktop/R13",
+      "strips/high/R15",
+      "high/desktop/R16"
+    ],
+    "benchmark": "worlds-1",
+    "fix": "Give spectators and the judge the crew's glossy plastic material and printed-face style, add three or more hair and hat variants from crew parts, and ban the cyan tee + flat brown hair cap + dark trousers combination (reads as Minecraft's default character). Test: crowd heads in high/desktop/R13 and R15 show a specular highlight, and no crowd figure in any capture uses that combination.",
+    "priority": 0.375,
+    "selected": true
+  },
+  {
+    "id": "G-steam-charge-fx",
+    "category": "animation",
+    "expectedGain": 0.5,
+    "severity": 4,
+    "effort": "M",
+    "workstream": "WS3",
+    "evidence": [
+      "strips/high/R14",
+      "high/desktop/R17",
+      "high/desktop/R19"
+    ],
+    "benchmark": "drive-3",
+    "fix": "Emit slide puffs from the rear wheel contacts, growing in size and opacity with charge: blue-white at charge start (already present), white at warm, orange at hot. Fire the WARM/HOT callouts only together with that visual, plus a release burst. Test: strips/high/R14 frames 5-8 have no spray clump more than 10 px from a wheel; high/desktop/R17 has at least 1,500 orange px (hue 15-45 deg, s>0.55, v>0.7) within 150 px of the rear wheels (now 32, none from spray); high/desktop/R19 has at least 800 soft-white px within 120 px of the wheels.",
+    "priority": 0.375,
+    "selected": true
+  },
+  {
+    "id": "G-horizon-ridges",
+    "category": "scenery",
+    "expectedGain": 1,
+    "severity": 4,
+    "effort": "L",
+    "workstream": "WS4",
+    "evidence": [
+      "high/desktop/R05",
+      "high/desktop/R06",
+      "high/desktop/R09",
+      "high/desktop/R12",
+      "high/desktop/R17"
+    ],
+    "benchmark": "drive-1, drive-5, worlds-4",
+    "fix": "BIG LEVER. Replace the flat stepped column walls with three depth bands of brick-built Ouachita ridges: overlapping rounded ridgelines of stepped plates with instanced low-LOD tree crowns and a darker tree-line band. Cap the near band's height so it never forms a sheer cliff (R06 left third), and reshape Hot Springs Mountain's face. Test (geometry only; haze is G-backdrop-haze-ramp): in R05, R06, R09, R12 and R17 no uniform ridge run longer than 60 px horizontally, at least 3 tree crowns per 100 px of ridge, and no vertical ridge face taller than 15% of the frame height.",
+    "priority": 0.375,
+    "bigLever": true,
+    "selected": true
+  },
+  {
+    "id": "G-landscape-select-preview",
+    "category": "mobile",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS6",
+    "evidence": [
+      "high/landscape/R02"
+    ],
+    "benchmark": "drive-2",
+    "fix": "At 844x390 narrow the team panel to at most 60% of the width or shift the turntable camera so the crew and tub sit in the free area. Test: in high/landscape/R02 the full tub and every crew figure are visible outside the panel (now an ~80 px sliver at x 1280-1360).",
+    "priority": 0.375,
+    "selected": false
+  },
+  {
+    "id": "G-scenery-bevels",
+    "category": "materials",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS4",
+    "evidence": [
+      "high/desktop/R10",
+      "high/desktop/R05",
+      "high/desktop/R13"
+    ],
+    "benchmark": "worlds-1",
+    "fix": "Canopy studs already exist (R05, R09). Add an edge-highlight term or a one-plate chamfer to canopy plate edges, facade corners, storey ledges and roof edges, plus a light brick bevel normal map on facades. Test: near canopy sides in high/desktop/R10 vary by at least 15 luma along a lit edge (now flat 78-79 at 1140-1260, 290-320); facade corners in R05 and R13 show a lit bevel line.",
+    "priority": 0.375,
+    "selected": false
+  },
+  {
+    "id": "G-pack-separation",
+    "category": "readability",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS6",
+    "evidence": [
+      "high/desktop/R04",
+      "high/desktop/R07",
+      "high/mobile/R04"
+    ],
+    "benchmark": "drive-3",
+    "fix": "Float a small, unoutlined team-colour pip above each rival captain within 60 m (smaller than the player's marker), so tubs in a single-file pack keep separate cues. Test: in high/desktop/R04 and R07 at least 5 rival tubs are individually marked.",
+    "priority": 0.375,
+    "selected": false
+  },
+  {
+    "id": "G-team-colour-key",
+    "category": "readability",
+    "expectedGain": 0.25,
+    "severity": 2,
+    "effort": "S",
+    "workstream": "WS2",
+    "evidence": [
+      "high/desktop/R08",
+      "high/landscape/R02",
+      "crops/high/R03-kart_1"
+    ],
+    "benchmark": "drive-3",
+    "fix": "Use one key colour per team across the team-select swatch, ring, flag and tub stripe (Trail Shredders: swatch (240,127,34), ring and stripe (114,170,56)). Test: every team's ring hue is within 20 deg of its swatch hue.",
+    "priority": 0.375,
+    "selected": true
+  },
+  {
+    "id": "G-hud-tile-unify",
+    "category": "ui",
+    "expectedGain": 0.25,
+    "severity": 2,
+    "effort": "S",
+    "workstream": "WS6",
+    "evidence": [
+      "high/desktop/R04",
+      "high/desktop/R16",
+      "high/desktop/R17",
+      "high/desktop/R19",
+      "high/mobile/R17"
+    ],
+    "benchmark": "drive-3",
+    "fix": "Give the gauge tile the slate fill, dark outline and bevel of the lap and place tiles; put the desktop minimap on a matching tile; restyle the teal WARM/HOT callouts as studded slate plates like the R16 banner; move the item count to its own badge outside the orb. Test: one tile style across R04, R16, R17 and R19; the item count is at least 12 CSS px and does not overlap the orb outline at 1280, 390 and 844 px.",
+    "priority": 0.25,
+    "selected": false
+  }
+]

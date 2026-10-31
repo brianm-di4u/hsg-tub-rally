@@ -210,12 +210,17 @@ export class Fx {
         const col = [0.72 + 0.25 * w + 0.03 * h, 0.87 + 0.11 * w - 0.43 * h, 0.98 + 0.02 * w - 0.58 * h];
         for (const sgn of [-1, 1]) this.burst(k.x - fx * 0.7 + fz * 0.55 * sgn, k.y + 0.15, k.z - fz * 0.7 - fx * 0.55 * sgn, 2 + st, col, { speed: 0.7 + st * 0.4, up: 0.9 + w * 0.6 + st * 0.5, size: 0.22 + w * 0.08 + st * 0.1, life: 0.3 + w * 0.15 + st * 0.1, grav: st || w > 0.7 ? -0.5 : 6, vx: fz * sgn * 1.8 - fx * 0.4, vz: -fx * sgn * 1.8 - fz * 0.4, spread: 0.15 });
       }
-      if ((k.boostT > 0 || k.hoseT > 0) && !reduced) this.burst(k.x - fx * 1.6, k.y + 0.6, k.z - fz * 1.6, 2, k.hoseT > 0 ? [0.6, 0.85, 1] : [0.96, 0.96, 0.98], { speed: 0.6, up: 1, size: 0.22, life: 0.4, grav: -1, vx: -fx * 1.5, vz: -fz * 1.5 });
+      // boost trail from the rear wheels, coloured by its kind: hot steam orange, warm steam white, hose blue
+      if ((k.boostT > 0 || k.hoseT > 0) && !reduced) {
+        const bc = k.hoseT > 0 ? [0.6, 0.85, 1] : k.boostKind === 'hot' ? [1, 0.58, 0.28] : [0.96, 0.96, 0.98];
+        for (const sgn of [-1, 1]) this.burst(k.x - fx * 0.8 + fz * 0.5 * sgn, k.y + 0.35, k.z - fz * 0.8 - fx * 0.5 * sgn, 2, bc, { speed: 0.5, up: 1.1, size: 0.26, life: 0.45, grav: -1.2, vx: -fx * 2.2, vz: -fz * 2.2, spread: 0.12 });
+      }
       if (k.sprayT > 0) this.burst(k.x + fx * 1.4, k.y + 1.0, k.z + fz * 1.4, 3, [0.5, 0.8, 1], { speed: 0.5, up: 1.2, size: 0.16, life: 0.5, grav: 9, vx: fx * 16 + Math.sin(k.yaw) * 0, vz: fz * 16, spread: 0.2 });
       }
     }
     for (const { k, e } of events) {
       if (e.type === 'hit' || e.type === 'fumble') this.burst(k.x, k.y + 1.1, k.z, reduced ? 4 : 8, [0.62, 0.86, 0.97], { speed: 4.5, up: 5, size: 0.12, life: 0.45 }); // small and brief, so the crew stays in view
+      if (e.type === 'boost' && (e.kind === 'hot' || e.kind === 'warm')) { const bf = Math.sin(k.yaw), bz = Math.cos(k.yaw); this.burst(k.x - bf * 0.9, k.y + 0.4, k.z - bz * 0.9, reduced ? 6 : 16, e.kind === 'hot' ? [1, 0.55, 0.25] : [0.97, 0.98, 1], { speed: 2.4, up: 2.2, size: 0.3, life: 0.55, grav: -0.6 }); }
       if (e.type === 'pickup') this.burst(k.x, k.y + 1.6, k.z, 10, [0.9, 0.8, 1], { speed: 2, up: 2, size: 0.18, life: 0.5, grav: 0 });
       if (e.type === 'ticket') this.burst(k.x, k.y + 1.4, k.z, 5, [0.95, 0.76, 0.19], { speed: 1.5, up: 2, size: 0.15, life: 0.4, grav: 2 });
       if (e.type === 'bribe') this.burst(k.x, k.y + 1.6, k.z, 14, [0.95, 0.76, 0.19], { speed: 3, up: 4, size: 0.2, life: 0.8 });

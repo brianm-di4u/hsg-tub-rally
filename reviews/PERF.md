@@ -96,3 +96,8 @@ a plain-box version beyond 22 m), opaque tub water, no shadow map, the lighter s
   was re-run three times: 3.6–4.1 ms. `reviews/loop-4/perf.json` is the re-run; the first run is kept outside the
   repo. Rule from here: a perf failure is re-run once in full, both runs are recorded here, and a failure that
   repeats is fixed, not re-run.
+- **Loop 6, first gate run:** failed 5 of 52 checks. Row triangles were over budget on Low (131k, limit 120k) and
+  Medium (455k, limit 450k), and the iGPU estimate for the Row was 17.4 ms (limit 16.7). Cause: rounded spectator
+  heads and caps (about 216 triangles a figure instead of 24, times several hundred spectators, drawn twice on
+  High for the shadow pass). This was a real regression, not noise: the heads went back to boxes and the gates
+  were re-run.

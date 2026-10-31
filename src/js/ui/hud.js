@@ -163,7 +163,7 @@ export class Hud {
     this.el.item.classList.toggle('has', !!id);
     if (!id) return;
     drawItemIcon(g, id, 24, 24, 18);
-    if (n > 1) { g.fillStyle = '#2A1A10'; g.font = 'bold 14px system-ui'; g.fillText('×' + n, 30, 44); }
+    if (n > 1) { g.fillStyle = '#1A1410'; g.beginPath(); g.roundRect(26, 30, 22, 18, 5); g.fill(); g.fillStyle = '#FFFFFF'; g.font = 'bold 15px system-ui'; g.textAlign = 'center'; g.fillText('×' + n, 37, 44); g.textAlign = 'left'; }
   }
   drawMap(race, me) {
     if (!this.mapCache) return;
