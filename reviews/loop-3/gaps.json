@@ -1,0 +1,214 @@
+[
+  {
+    "id": "G-ring-terrain-conform",
+    "category": "readability",
+    "expectedGain": 0.3,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R08",
+      "high/desktop/R10",
+      "high/desktop/R12",
+      "high/mobile/R08"
+    ],
+    "benchmark": "2k-drive/drive-3.jpg",
+    "fix": "Sample road height under each ring vertex, or draw the ring as a projected decal with a depth bias after the road. Test: ring-pixel left/right split within 60/40 in high/desktop/R08, R10 and R12 (now 88/12, 100/0 and 93/7).",
+    "priority": 0.45,
+    "selected": true
+  },
+  {
+    "id": "G-dusk-emissive-and-pools",
+    "category": "lighting",
+    "expectedGain": 0.3,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R07",
+      "high/landscape/R07"
+    ],
+    "benchmark": "worlds/worlds-4.jpg",
+    "fix": "Give the R07 facade stripe a lit, fogged material, or cap its emissive and apply fog. Tone-map lamp pools with a soft knee, and extend each pool across the near lane. Test in high/desktop/R07: stripe pixels take at least 20 distinct values with max R < 250 (now one value, (255,225,79)); no pool pixel at R = 255; road patch 700-1000 x 640-740 has sigma at least 3 (now 0.0).",
+    "priority": 0.45,
+    "selected": true
+  },
+  {
+    "id": "G-hud-tiles-and-numerals",
+    "category": "ui",
+    "expectedGain": 0.3,
+    "severity": 2,
+    "effort": "S",
+    "workstream": "WS6",
+    "evidence": [
+      "high/desktop/R04",
+      "high/mobile/R04",
+      "high/landscape/R07",
+      "high/landscape/R04",
+      "high/desktop/R02",
+      "high/desktop/R01"
+    ],
+    "benchmark": "2k-drive/drive-3.jpg",
+    "fix": "Put LAP/time, place and the item labels on bevelled HUD tiles that match the water-gauge tile. Draw the water-line label at 11 CSS px or more on phones and 12 px or more on desktop, inside the gauge tile, or fold it into the readout ('41 / 10 GAL'). In landscape, box the minimap with its top at least 12 px below the place glyphs. Derive the panel stud count from panel width and draw the focus ring outside the stud tops. Test: '10' cap height at least 11 CSS px in high/mobile/R04; no minimap pixel within 8 px of the place glyph box in high/landscape/R04 and R07; every stud wholly inside its panel outline in high/desktop/R02 and R18. Also lifts typography.",
+    "priority": 0.45,
+    "selected": true
+  },
+  {
+    "id": "G-near-camera-ghosting",
+    "category": "readability",
+    "expectedGain": 0.5,
+    "severity": 4,
+    "effort": "M",
+    "workstream": "WS5",
+    "evidence": [
+      "high/desktop/R19",
+      "strips/high/R16",
+      "high/desktop/R11",
+      "high/desktop/R08"
+    ],
+    "benchmark": "2k-drive/drive-3.jpg",
+    "fix": "Replace half-fades with removal. Any tree whose bounds enter the camera-to-player corridor or come within 6 m of the camera fades to alpha 0 within 0.15 s, or isn't placed there. A rival between the camera and the player's tub fades fully out and is shown as a team-colour outline. Test: no frame of high/desktop R08, R11, R16, R19 or strips/high/R16 has more than 5% of its pixels covered by geometry at 0 < alpha < 1, and the player's ring is at least 80% visible in R19 and in every R16 strip frame.",
+    "priority": 0.375,
+    "selected": true
+  },
+  {
+    "id": "G-env-plastic-response",
+    "category": "materials",
+    "expectedGain": 1,
+    "severity": 4,
+    "effort": "L",
+    "workstream": "WS1",
+    "bigLever": true,
+    "evidence": [
+      "high/desktop/R13",
+      "high/desktop/R03",
+      "high/desktop/R10",
+      "high/desktop/R19",
+      "high/desktop/R09"
+    ],
+    "benchmark": "worlds/worlds-1.jpg; builders-journey/bj-3.jpg",
+    "fix": "Big lever. Give environment parts the figures' ABS response: a per-brick bevel normal map and mortar AO on brick walls, with instanced brick courses on the nearest High facades; bevel highlights on foliage plates and rock; a shared gloss lobe on walls and roofs; and trans-clear blue ford tiles over a visible creek bed. Test: in a crop of the high/desktop/R13 right building, each brick's top edge is at least 8 levels brighter than its face under the key light; foliage plate edges in high/desktop/R10 show a highlight at least 15 levels above the plate face; the creek bed or stepping stones are visible through the water in high/desktop/R19.",
+    "priority": 0.375,
+    "selected": true
+  },
+  {
+    "id": "G-phone-teamselect-layout",
+    "category": "mobile",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS6",
+    "evidence": [
+      "high/mobile/R02",
+      "high/landscape/R02"
+    ],
+    "benchmark": "2k-drive/drive-2.jpg",
+    "fix": "End a bounded scroll region above a solid button plate. In landscape, put the description and stats in a column beside the turntable. In portrait, place the heading below the stud row and frame the turntable camera so the whole tub sits above the panel. Test: at 390x844 and 844x390 no text or stat bar intersects the button plate, the Water row is reachable, no heading glyph overlaps a stud, and the preview tub's wheels are at least 20 px above the panel top in high/mobile/R02.",
+    "priority": 0.375,
+    "selected": true
+  },
+  {
+    "id": "G-action-feedback",
+    "category": "animation",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS3",
+    "evidence": [
+      "strips/high/R14",
+      "strips/high/R15",
+      "crops/high/R02-preview-captain"
+    ],
+    "benchmark": "2k-drive/drive-3.jpg",
+    "fix": "Collide tubs with lamp posts, barriers and the curb. On contact, fire the hit splash, a crew stagger and a 0.15 s camera kick. Add an FOV kick when hot steam releases. Tilt a blue, translucent bath-water plane with lateral acceleration, and spill beads over the rim on hard slides. Cap slide-bead life so the spray stays within one tub-length of the wheels, and shrink fumble beads to at most half a head width. Test: a re-shot strips/high/R14 has no static prop inside the ring in any frame, a contact frame with hit effects, a water-surface angle change of at least 5 deg, and no bead more than one tub-length from the tub; strips/high/R15 keeps the captain's face visible in every frame.",
+    "priority": 0.375,
+    "selected": false
+  },
+  {
+    "id": "G-crevice-ao-and-shade-fill",
+    "category": "lighting",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R13",
+      "high/desktop/R06",
+      "crops/high/R03-kart_1"
+    ],
+    "benchmark": "worlds/worlds-4.jpg",
+    "fix": "Add SSAO on High, or baked vertex AO on Medium and Low, under cornices, in window reveals, at building corners and under eaves. Desaturate the hemisphere ground term so shaded buff walls stay buff (the bounce already exists; it is too green). Test: in high/desktop/R13, pixels directly under the cornice and at corners are at least 15% darker than open wall; the Arlington's shaded facade in high/desktop/R06 is within 15 deg of its sunlit hue (now 89 deg vs 53 deg).",
+    "priority": 0.375,
+    "selected": false
+  },
+  {
+    "id": "G-ground-surface-detail",
+    "category": "materials",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R04",
+      "high/desktop/R05",
+      "high/desktop/R06",
+      "high/desktop/R07"
+    ],
+    "benchmark": "worlds/worlds-1.jpg",
+    "fix": "Add low-contrast large-plate seams or grain to the asphalt (the gloss lobe already exists). Use a mip-aware stud normal/AO texture so baseplate studs survive at distance. Add tile or plate seams to flat roofs. Test: sigma at least 3 over high/desktop/R04 820-1000 x 600-700 and over high/desktop/R05 1150-1270 x 620-700 (both now 0.5); the lower Arlington roof in high/desktop/R06 (460-560 x 560-600) shows seams with sigma at least 6 (now ~3).",
+    "priority": 0.375,
+    "selected": false
+  },
+  {
+    "id": "G-crowd-toy-figures",
+    "category": "scenery",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS5",
+    "evidence": [
+      "crops/high/R03-kart_5",
+      "crops/high/R03-kart_1",
+      "high/desktop/R16"
+    ],
+    "benchmark": "worlds/worlds-1.jpg",
+    "fix": "Instance the spectators and judges from the crew pack's LOD2/LOD3 parts, with printed faces, printed shirts and two or three cheer poses; give the judges referee stripes and clipboards that stay visible. Test: crowd figures in crops/high/R03-kart_5 show printed eyes, a mouth and bevel highlights, and the judge in high/desktop/R16 is unoccluded and distinct from the crowd.",
+    "priority": 0.375,
+    "selected": false
+  },
+  {
+    "id": "G-landmark-grounds-and-seams",
+    "category": "scenery",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS4",
+    "evidence": [
+      "high/desktop/R06",
+      "high/desktop/R09",
+      "high/desktop/R17"
+    ],
+    "benchmark": "2k-drive/drive-1.jpg",
+    "fix": "Extend terrain to the backdrop so no pale band shows between ground and hills, and weld the R09 terrain crack. Dress the landmark grounds and the Hill Wheatley plaza with brick hedges, path tiles, benches and a fountain. Break up the R09 pine field with clearings and mixed species. Test: no sky-coloured pixel below the horizon in high/desktop/R09 (now 78); the high/desktop/R06 region x 0-340, y 400-500 shows only terrain or trees; no flat empty baseplate or paving over 20% of R06, R09 or R17.",
+    "priority": 0.375,
+    "selected": false
+  },
+  {
+    "id": "G-low-near-lod-prints",
+    "category": "characters",
+    "expectedGain": 0.3,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS7",
+    "evidence": [
+      "ab/crop-R02-preview",
+      "ab/crop-R02-preview-captain",
+      "crops/low/R02-preview",
+      "crops/low/R03-kart_1"
+    ],
+    "benchmark": "2k-drive/drive-4.jpg",
+    "fix": "On Low, draw LOD1 for the player's crew and any crew within 8 m of the camera, or bake the eight face prints and the uniform front print into LOD2's texture. Test: crops/low/R02-preview and crops/low/R02-preview-captain show a printed mouth on every visible face and the uniform front print, and the Low phone perf rows stay inside budget. This protects the characters gate under the A/B rule, whose close-up pairs are Low tier.",
+    "priority": 0.3,
+    "selected": true
+  }
+]

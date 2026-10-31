@@ -48,6 +48,11 @@ edits a reviewer's output.
 - **A/B rule:** a category's score may differ from the last loop only in the direction both critics' A/B verdicts
   agree on (new build better → it may rise; worse → it may fall). Otherwise the tally holds the previous score and
   records it under "held".
+- **A/B void (added loop 3):** when the judge shows a category's A/B pairs are invalid (wrong tier or wrong build,
+  measured against the captures), it may set `"abWeight": {"<category>": 0}`. That category then takes the judged
+  score, and the tally records the void under `abVoid`. A void needs evidence in the ruling; disagreement between
+  the critics alone is not grounds. First used in loop 3: the close-up pairs showed the Low tier because the pair
+  files had no tier in their names, so Low overwrote High. That rig bug is fixed from loop 4.
 - **Backlog:** priority = expectedGain × weight ÷ effort cost (weight 1.5 below the gate, 1.0 otherwise, 0.3 once
   1 above; cost S = 1, M = 2, L = 4). The best large (L) gap always takes a reserved **big-lever** slot; the rest
   fill 8 effort points. A category that falls by 0.5 or more forces a regression gap to the top.

@@ -1,0 +1,999 @@
+{
+ "attendant_pose": {
+  "arm_deg": -78.0,
+  "note": "arms, hands and items are separate nodes; their rest rotations hold the pushing pose",
+  "splay_deg": 6.0,
+  "wrist_deg": 25.0
+ },
+ "body_variant": "skirt",
+ "captain": {
+  "bodyScale": 1.12,
+  "headScale": 1.25,
+  "note": "cap_arm_* hang down (-Y) in pivot space; rest rot.x swings them forward",
+  "seat": [
+   0.0,
+   0.66,
+   -0.1
+  ]
+ },
+ "color0": "team file: linear albedo x baked AO; shared file: grey AO with _SLOT",
+ "detail": "no-micro",
+ "division": "modified",
+ "faces": {
+  "att0": {
+   "expression": "determined",
+   "uvOffset": [
+    0.121094,
+    0.0
+   ]
+  },
+  "att1": {
+   "expression": "laughing",
+   "uvOffset": [
+    0.726562,
+    0.0
+   ]
+  },
+  "att2": {
+   "expression": "cheering",
+   "uvOffset": [
+    0.484375,
+    0.0
+   ]
+  },
+  "att3": {
+   "expression": "determined",
+   "uvOffset": [
+    0.121094,
+    0.0
+   ]
+  },
+  "cap": {
+   "expression": "shouting",
+   "uvOffset": [
+    0.242188,
+    0.0
+   ]
+  }
+ },
+ "files": {
+  "shared": "shared-lod2.glb",
+  "team": "silks-stirrups-lod2.glb"
+ },
+ "hipHeight": 0.58,
+ "items": {
+  "att0": {
+   "colour": "#F4F4F4",
+   "item": "towel"
+  },
+  "att1": {
+   "colour": "#36AEBF",
+   "item": "mat"
+  },
+  "att2": {
+   "colour": "#E4ADC8",
+   "item": "soap"
+  },
+  "att3": {
+   "colour": "#D09168",
+   "item": "loofah"
+  }
+ },
+ "knobs": {
+  "bevel_segs": 0,
+  "curve_segs": 1,
+  "edge": 0.0105,
+  "round_segs": 8,
+  "stud_segs": 6,
+  "studs": "none"
+ },
+ "lod": 2,
+ "nodes": {
+  "att0_arm_l": {
+   "part": "att0_torso",
+   "pos": [
+    0.875,
+    1.13,
+    -1.3
+   ],
+   "rot": [
+    -1.361357,
+    0.0,
+    0.10472
+   ],
+   "src": "shared",
+   "tris": 12
+  },
+  "att0_arm_r": {
+   "part": "att0_torso",
+   "pos": [
+    0.365,
+    1.13,
+    -1.3
+   ],
+   "rot": [
+    -1.361357,
+    0.0,
+    -0.10472
+   ],
+   "src": "shared",
+   "tris": 12
+  },
+  "att0_hand_l": {
+   "part": "att0_torso",
+   "pos": [
+    0.90531,
+    1.07004,
+    -1.01789
+   ],
+   "rot": [
+    -0.925825,
+    0.073548,
+    0.036158
+   ],
+   "src": "shared",
+   "tris": 12
+  },
+  "att0_hand_r": {
+   "part": "att0_torso",
+   "pos": [
+    0.33469,
+    1.07004,
+    -1.01789
+   ],
+   "rot": [
+    -0.925825,
+    -0.073548,
+    -0.036158
+   ],
+   "src": "shared",
+   "tris": 12
+  },
+  "att0_hat": {
+   "part": "att0_torso",
+   "pos": [
+    0.62,
+    1.51,
+    -1.3
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "src": "team",
+   "tris": 54
+  },
+  "att0_head": {
+   "part": "att0_torso",
+   "pos": [
+    0.62,
+    1.2,
+    -1.3
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "src": "shared",
+   "tris": 44
+  },
+  "att0_item": {
+   "part": "att0_torso",
+   "pos": [
+    0.91169,
+    1.03498,
+    -0.9633
+   ],
+   "rot": [
+    -0.925825,
+    0.073548,
+    0.036158
+   ],
+   "src": "shared",
+   "tris": 26
+  },
+  "att0_leg_l": {
+   "part": "att0_leg_l",
+   "pos": [
+    0.62,
+    0.58,
+    -1.3
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "src": "shared",
+   "tris": 20
+  },
+  "att0_leg_r": {
+   "part": "att0_leg_r",
+   "pos": [
+    0.62,
+    0.58,
+    -1.3
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "src": "shared",
+   "tris": 20
+  },
+  "att0_torso": {
+   "part": "att0_torso",
+   "pos": [
+    0.62,
+    0.58,
+    -1.3
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "src": "team",
+   "tris": 70
+  },
+  "att1_arm_l": {
+   "part": "att1_torso",
+   "pos": [
+    -0.365,
+    1.13,
+    -1.3
+   ],
+   "rot": [
+    -1.361357,
+    0.0,
+    0.10472
+   ],
+   "src": "shared",
+   "tris": 12
+  },
+  "att1_arm_r": {
+   "part": "att1_torso",
+   "pos": [
+    -0.875,
+    1.13,
+    -1.3
+   ],
+   "rot": [
+    -1.361357,
+    0.0,
+    -0.10472
+   ],
+   "src": "shared",
+   "tris": 12
+  },
+  "att1_hand_l": {
+   "part": "att1_torso",
+   "pos": [
+    -0.33469,
+    1.07004,
+    -1.01789
+   ],
+   "rot": [
+    -0.925825,
+    0.073548,
+    0.036158
+   ],
+   "src": "shared",
+   "tris": 12
+  },
+  "att1_hand_r": {
+   "part": "att1_torso",
+   "pos": [
+    -0.90531,
+    1.07004,
+    -1.01789
+   ],
+   "rot": [
+    -0.925825,
+    -0.073548,
+    -0.036158
+   ],
+   "src": "shared",
+   "tris": 12
+  },
+  "att1_hat": {
+   "part": "att1_torso",
+   "pos": [
+    -0.62,
+    1.51,
+    -1.3
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "src": "team",
+   "tris": 54
+  },
+  "att1_head": {
+   "part": "att1_torso",
+   "pos": [
+    -0.62,
+    1.2,
+    -1.3
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "src": "shared",
+   "tris": 44
+  },
+  "att1_item": {
+   "part": "att1_torso",
+   "pos": [
+    -0.32831,
+    1.03498,
+    -0.9633
+   ],
+   "rot": [
+    -0.925825,
+    0.073548,
+    0.036158
+   ],
+   "src": "shared",
+   "tris": 10
+  },
+  "att1_leg_l": {
+   "part": "att1_leg_l",
+   "pos": [
+    -0.62,
+    0.58,
+    -1.3
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "src": "shared",
+   "tris": 20
+  },
+  "att1_leg_r": {
+   "part": "att1_leg_r",
+   "pos": [
+    -0.62,
+    0.58,
+    -1.3
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "src": "shared",
+   "tris": 20
+  },
+  "att1_torso": {
+   "part": "att1_torso",
+   "pos": [
+    -0.62,
+    0.58,
+    -1.3
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "src": "team",
+   "tris": 70
+  },
+  "att2_arm_l": {
+   "part": "att2_torso",
+   "pos": [
+    1.09962,
+    1.13,
+    -0.63278
+   ],
+   "rot": [
+    -1.361357,
+    -0.349066,
+    0.10472
+   ],
+   "src": "shared",
+   "tris": 12
+  },
+  "att2_arm_r": {
+   "part": "att2_torso",
+   "pos": [
+    0.62038,
+    1.13,
+    -0.80722
+   ],
+   "rot": [
+    -1.361357,
+    -0.349066,
+    -0.10472
+   ],
+   "src": "shared",
+   "tris": 12
+  },
+  "att2_hand_l": {
+   "part": "att2_torso",
+   "pos": [
+    1.03162,
+    1.07004,
+    -0.35732
+   ],
+   "rot": [
+    -0.925825,
+    -0.275517,
+    0.036158
+   ],
+   "src": "shared",
+   "tris": 12
+  },
+  "att2_hand_r": {
+   "part": "att2_torso",
+   "pos": [
+    0.49541,
+    1.07004,
+    -0.55249
+   ],
+   "rot": [
+    -0.925825,
+    -0.422614,
+    -0.036158
+   ],
+   "src": "shared",
+   "tris": 12
+  },
+  "att2_hat": {
+   "part": "att2_torso",
+   "pos": [
+    0.86,
+    1.51,
+    -0.72
+   ],
+   "rot": [
+    0.0,
+    -0.349066,
+    0.0
+   ],
+   "src": "team",
+   "tris": 54
+  },
+  "att2_head": {
+   "part": "att2_torso",
+   "pos": [
+    0.86,
+    1.2,
+    -0.72
+   ],
+   "rot": [
+    0.0,
+    -0.349066,
+    0.0
+   ],
+   "src": "shared",
+   "tris": 44
+  },
+  "att2_item": {
+   "part": "att2_torso",
+   "pos": [
+    1.01894,
+    1.03498,
+    -0.30384
+   ],
+   "rot": [
+    -0.925825,
+    -0.275517,
+    0.036158
+   ],
+   "src": "shared",
+   "tris": 12
+  },
+  "att2_leg_l": {
+   "part": "att2_leg_l",
+   "pos": [
+    0.86,
+    0.58,
+    -0.72
+   ],
+   "rot": [
+    0.0,
+    -0.349066,
+    0.0
+   ],
+   "src": "shared",
+   "tris": 20
+  },
+  "att2_leg_r": {
+   "part": "att2_leg_r",
+   "pos": [
+    0.86,
+    0.58,
+    -0.72
+   ],
+   "rot": [
+    0.0,
+    -0.349066,
+    0.0
+   ],
+   "src": "shared",
+   "tris": 20
+  },
+  "att2_torso": {
+   "part": "att2_torso",
+   "pos": [
+    0.86,
+    0.58,
+    -0.72
+   ],
+   "rot": [
+    0.0,
+    -0.349066,
+    0.0
+   ],
+   "src": "team",
+   "tris": 70
+  },
+  "att3_arm_l": {
+   "part": "att3_torso",
+   "pos": [
+    -0.62038,
+    1.13,
+    -0.80722
+   ],
+   "rot": [
+    -1.361357,
+    0.349066,
+    0.10472
+   ],
+   "src": "shared",
+   "tris": 12
+  },
+  "att3_arm_r": {
+   "part": "att3_torso",
+   "pos": [
+    -1.09962,
+    1.13,
+    -0.63278
+   ],
+   "rot": [
+    -1.361357,
+    0.349066,
+    -0.10472
+   ],
+   "src": "shared",
+   "tris": 12
+  },
+  "att3_hand_l": {
+   "part": "att3_torso",
+   "pos": [
+    -0.49541,
+    1.07004,
+    -0.55249
+   ],
+   "rot": [
+    -0.925825,
+    0.422614,
+    0.036158
+   ],
+   "src": "shared",
+   "tris": 12
+  },
+  "att3_hand_r": {
+   "part": "att3_torso",
+   "pos": [
+    -1.03162,
+    1.07004,
+    -0.35732
+   ],
+   "rot": [
+    -0.925825,
+    0.275517,
+    -0.036158
+   ],
+   "src": "shared",
+   "tris": 12
+  },
+  "att3_hat": {
+   "part": "att3_torso",
+   "pos": [
+    -0.86,
+    1.51,
+    -0.72
+   ],
+   "rot": [
+    0.0,
+    0.349066,
+    0.0
+   ],
+   "src": "team",
+   "tris": 54
+  },
+  "att3_head": {
+   "part": "att3_torso",
+   "pos": [
+    -0.86,
+    1.2,
+    -0.72
+   ],
+   "rot": [
+    0.0,
+    0.349066,
+    0.0
+   ],
+   "src": "shared",
+   "tris": 44
+  },
+  "att3_item": {
+   "part": "att3_torso",
+   "pos": [
+    -0.47074,
+    1.03498,
+    -0.50337
+   ],
+   "rot": [
+    -0.925825,
+    0.422614,
+    0.036158
+   ],
+   "src": "shared",
+   "tris": 12
+  },
+  "att3_leg_l": {
+   "part": "att3_leg_l",
+   "pos": [
+    -0.86,
+    0.58,
+    -0.72
+   ],
+   "rot": [
+    0.0,
+    0.349066,
+    0.0
+   ],
+   "src": "shared",
+   "tris": 20
+  },
+  "att3_leg_r": {
+   "part": "att3_leg_r",
+   "pos": [
+    -0.86,
+    0.58,
+    -0.72
+   ],
+   "rot": [
+    0.0,
+    0.349066,
+    0.0
+   ],
+   "src": "shared",
+   "tris": 20
+  },
+  "att3_torso": {
+   "part": "att3_torso",
+   "pos": [
+    -0.86,
+    0.58,
+    -0.72
+   ],
+   "rot": [
+    0.0,
+    0.349066,
+    0.0
+   ],
+   "src": "team",
+   "tris": 70
+  },
+  "body": {
+   "part": "body",
+   "pos": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "src": "shared",
+   "tris": 248
+  },
+  "cap_arm_l": {
+   "part": "cap_arm_l",
+   "pos": [
+    0.2856,
+    1.276,
+    -0.1
+   ],
+   "rot": [
+    -1.15,
+    0.0,
+    0.0
+   ],
+   "src": "shared",
+   "tris": 12
+  },
+  "cap_arm_r": {
+   "part": "cap_arm_r",
+   "pos": [
+    -0.2856,
+    1.276,
+    -0.1
+   ],
+   "rot": [
+    -1.15,
+    0.0,
+    0.0
+   ],
+   "src": "shared",
+   "tris": 12
+  },
+  "cap_hand_l": {
+   "part": "cap_arm_l",
+   "pos": [
+    0.2856,
+    1.14332,
+    0.19647
+   ],
+   "rot": [
+    -1.15,
+    0.0,
+    0.0
+   ],
+   "src": "shared",
+   "tris": 12
+  },
+  "cap_hand_r": {
+   "part": "cap_arm_r",
+   "pos": [
+    -0.2856,
+    1.14332,
+    0.19647
+   ],
+   "rot": [
+    -1.15,
+    0.0,
+    0.0
+   ],
+   "src": "shared",
+   "tris": 12
+  },
+  "cap_hat": {
+   "part": "cap_head",
+   "pos": [
+    0.0,
+    1.7419,
+    -0.1
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "src": "team",
+   "tris": 54
+  },
+  "cap_head": {
+   "part": "cap_head",
+   "pos": [
+    0.0,
+    1.3544,
+    -0.1
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "src": "shared",
+   "tris": 44
+  },
+  "cap_torso": {
+   "part": "cap_torso",
+   "pos": [
+    0.0,
+    0.66,
+    -0.1
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "src": "team",
+   "tris": 70
+  },
+  "duck": {
+   "part": "duck",
+   "pos": [
+    0.3,
+    1.03,
+    0.72
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "src": "shared",
+   "tris": 30
+  },
+  "flag": {
+   "part": "flag",
+   "pos": [
+    -0.3,
+    1.0,
+    -0.72
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "src": "shared",
+   "tris": 22
+  },
+  "skirt": {
+   "part": "body",
+   "pos": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "src": "shared",
+   "tris": 20
+  },
+  "water": {
+   "part": "water",
+   "pos": [
+    0.0,
+    0.86,
+    0.0
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "src": "shared",
+   "tris": 8
+  },
+  "wheel_0": {
+   "part": "wheel_0",
+   "pos": [
+    0.56,
+    0.3,
+    0.6
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "src": "shared",
+   "tris": 60
+  },
+  "wheel_1": {
+   "part": "wheel_1",
+   "pos": [
+    -0.56,
+    0.3,
+    0.6
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "src": "shared",
+   "tris": 60
+  },
+  "wheel_2": {
+   "part": "wheel_2",
+   "pos": [
+    0.56,
+    0.3,
+    -0.6
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "src": "shared",
+   "tris": 60
+  },
+  "wheel_3": {
+   "part": "wheel_3",
+   "pos": [
+    -0.56,
+    0.3,
+    -0.6
+   ],
+   "rot": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "src": "shared",
+   "tris": 60
+  }
+ },
+ "offsets_note": "add printOffset to TEXCOORD_0 of *_torso and faceOffset to *_head, only where the UV lies outside the empty 16 px corner",
+ "palette": {
+  "beak": "#F07F22",
+  "black": "#1D1D22",
+  "cap": "#2FA84F",
+  "duck": "#F5D547",
+  "enamel": "#F7F5EF",
+  "flag": "#2FA84F",
+  "hat": "#2FA84F",
+  "hub": "#A9ADB2",
+  "iron": "#3B3B42",
+  "item": null,
+  "pants": "#E2E2DC",
+  "rim": "#D6226E",
+  "shirt": "#D6226E",
+  "shoe": "#1D1D22",
+  "skin": "#E9BE98",
+  "trim": "#D6226E",
+  "tub": "#E8E8E8",
+  "tyre": "#1D1D22",
+  "water": "#7CCBE8"
+ },
+ "printOffset": null,
+ "rot_order": "YXZ (three.js Euler), radians",
+ "slots": [
+  "tub",
+  "trim",
+  "flag",
+  "shirt",
+  "cap",
+  "hat",
+  "skin",
+  "pants",
+  "shoe",
+  "item",
+  "rim",
+  "enamel",
+  "tyre",
+  "hub",
+  "iron",
+  "duck",
+  "beak",
+  "black",
+  "water"
+ ],
+ "team": "silks-stirrups",
+ "tris": {
+  "budget": {
+   "figure": 400,
+   "tub": 1200
+  },
+  "figures": {
+   "att0": 282,
+   "att1": 266,
+   "att2": 268,
+   "att3": 268,
+   "cap": 216
+  },
+  "total": 1868,
+  "tub": 568
+ },
+ "units": "metres; kart space: Y up, +Z forward, +X the kart's left",
+ "water": {
+  "note": "the sheet sits at y = 0.5 + 0.48 * fill; rest is 75 %",
+  "restFill": 0.75
+ }
+}

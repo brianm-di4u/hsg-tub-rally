@@ -1,0 +1,12 @@
+{
+  "perf": {
+    "pass": true,
+    "checked": 52,
+    "failed": []
+  },
+  "fidelity": null,
+  "ip": {
+    "pass": true,
+    "note": "developer check: Blender crews keep rounded-cube heads, straight box torsos and block hands (no cylinder heads, C-hands or trapezoid torsos); team hats are original designs; no LEGO name or logo in source, UI or captures; critics re-check"
+  }
+}

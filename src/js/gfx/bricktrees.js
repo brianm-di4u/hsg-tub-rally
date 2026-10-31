@@ -15,8 +15,13 @@ const TREES = {
     greens: [PAL.green, PAL.brightGreen, '#3E8E3A', PAL.darkGreen] },
   magnolia: { trunk: [[0.2, 2.2]], layers: [[0, 2.4, 0, 1.4, 0.4, 0], [0, 3.1, 0, 1.8, 0.45, Q], [0, 3.85, 0, 1.5, 0.4, 0], [0, 4.5, 0, 0.9, 0.35, Q]],
     greens: [PAL.darkGreen, '#2E6B3A', '#1F5E37'], flowers: true },
-  pine: { trunk: [[0.15, 2.4]], layers: [2.6, 2.3, 2.0, 1.65, 1.3, 0.95, 0.6].map((w, i) => [0, 2.3 + i * 1.35, 0, w, 0.32, i % 2 ? Q : 0]).concat([[0, 11.9, 0, 0.3, 0.45, 0]]),
-    greens: [PAL.darkGreen, '#1F5E37', '#2C6A3F', PAL.olive] },
+  // a narrow, taller spruce mixed into the pine stands, and a maple of offset canopy clusters among the oaks
+  spruce: { trunk: [[0.13, 12.6]], layers: [1.9, 1.75, 1.6, 1.45, 1.3, 1.1, 0.9, 0.7, 0.5].map((w, i) => [0, 2.0 + i * 1.2, 0, w, 0.36, i % 2 ? Q : 0]).concat([[0, 12.9, 0, 0.25, 0.4, 0]]),
+    greens: ['#1D4F33', PAL.darkGreen, '#285E3A'] },
+  maple: { trunk: [[0.26, 3.4]], layers: [[0, 3.6, 0, 1.6, 0.5, 0], [1.1, 4.3, 0.4, 1.2, 0.55, Q], [-1.0, 4.5, -0.5, 1.3, 0.55, 0], [0.2, 5.3, -0.9, 1.1, 0.5, Q], [-0.3, 5.6, 0.8, 1.0, 0.45, 0], [0.1, 6.3, 0, 0.9, 0.4, Q]],
+    greens: ['#6EAA3C', PAL.brightGreen, '#8DB33F', '#C77B30'] },
+  pine: { trunk: [[0.15, 11.6]], layers: [2.6, 2.3, 2.0, 1.65, 1.3, 0.95, 0.6].map((w, i) => [0, 2.3 + i * 1.35, 0, w, 0.32, i % 2 ? Q : 0]).concat([[0, 11.9, 0, 0.3, 0.45, 0]]),
+    greens: [PAL.darkGreen, '#1F5E37', '#2C6A3F', '#3E7D44'] },
 };
 
 function treeGeo(THREE, kind) {
@@ -37,6 +42,10 @@ function fanGeo(THREE) {
   g.box([-0.07, 1.1, -0.06], [0.07, 1.15, 0.06], SKIN);
   g.box([-0.15, 1.15, -0.13], [0.15, 1.44, 0.13], SKIN);
   g.box([-0.16, 1.36, -0.15], [0.16, 1.5, 0.1], hair);
+  // printed face on the front of the head: two eyes and a smile
+  const ink = hex('#1E1B18');
+  for (const ex of [-0.065, 0.065]) g.box([ex - 0.022, 1.29, 0.13], [ex + 0.022, 1.335, 0.136], ink);
+  g.box([-0.06, 1.215, 0.13], [0.06, 1.235, 0.136], ink);
   for (const [part, sx] of [[1, 1], [2, -1]]) {
     g.setPart(part);
     const x0 = sx > 0 ? 0.2 : -0.29, x1 = sx > 0 ? 0.29 : -0.2;
@@ -49,11 +58,56 @@ function fanGeo(THREE) {
 const SHIRTS = [PAL.red, PAL.blue, PAL.yellow, PAL.green, PAL.orange, PAL.white, PAL.azure, PAL.magenta, PAL.lime, PAL.mediumBlue, PAL.pink, PAL.tan];
 const SKINS = ['#F1C9A5', '#E0AC7E', '#C68C5D', '#A86F4C', '#8D5A3B', '#6B4329'];
 
+// verge dressing scattered by the track builder: brick shrubs (instance greens), flower clusters (instance colours)
+// and studded grey rocks, one instanced draw per kind; items: { shrub: [{x,y,z,sc,yaw}], flower, rock }
+function shrubGeo(THREE) {
+  const g = new Geo();
+  g.obox([0, 0.22, 0], [0.55, 0.22, 0.45], MARK, 0); g.obox([0.08, 0.6, -0.05], [0.4, 0.18, 0.34], MARK, Q); g.obox([-0.05, 0.86, 0.04], [0.22, 0.1, 0.2], MARK, 0);
+  return g.build(THREE);
+}
+function flowerGeo(THREE) {
+  const g = new Geo(), stem = hex(PAL.darkGreen);
+  for (const [x, z, h] of [[0, 0, 0.42], [0.22, 0.12, 0.34], [-0.18, 0.16, 0.3], [0.06, -0.22, 0.36], [-0.2, -0.12, 0.26]]) {
+    g.box([x - 0.025, 0, z - 0.025], [x + 0.025, h, z + 0.025], stem);
+    g.box([x - 0.075, h, z - 0.075], [x + 0.075, h + 0.07, z + 0.075], MARK);
+  }
+  g.obox([0, 0.05, 0], [0.32, 0.05, 0.3], stem, 0);
+  return g.build(THREE);
+}
+function rockGeo(THREE) {
+  const g = new Geo(), c = hex(PAL.darkGrey), l = hex(PAL.lightGrey);
+  g.obox([0, 0.25, 0], [0.6, 0.25, 0.45], c, 0); g.obox([0.15, 0.6, 0.05], [0.35, 0.15, 0.3], l, Q);
+  return g.build(THREE);
+}
+const FLOWERS = [PAL.red, PAL.yellow, PAL.white, PAL.pink, PAL.orange, PAL.magenta];
+export function buildGroundDressing(THREE, items) {
+  const out = [], m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), v = new THREE.Vector3(), s = new THREE.Vector3(), col = new THREE.Color();
+  for (const [kind, geoFn, colours] of [['shrub', shrubGeo, ['#2F7A3A', PAL.green, '#3E8E3A', PAL.darkGreen]], ['flower', flowerGeo, FLOWERS], ['rock', rockGeo, null]]) {
+    const list = items[kind] || [];
+    if (!list.length) continue;
+    const geo = geoFn(THREE), mesh = new THREE.InstancedMesh(geo, worldMat({ pattern: 'studs', gloss: 0.5, instSlots: !!colours }), list.length);
+    list.forEach((p, i) => {
+      q.setFromAxisAngle(up, p.yaw);
+      m4.compose(v.set(p.x, p.y - 0.04, p.z), q, s.set(p.sc, p.sc * (0.85 + 0.3 * hash(i, 13)), p.sc));
+      mesh.setMatrixAt(i, m4);
+      if (colours) mesh.setColorAt(i, col.set(colours[Math.floor(hash(i, 17) * colours.length)]));
+    });
+    mesh.name = 'dress:' + kind; mesh.userData.caster = kind !== 'flower';
+    out.push({ mesh, count: list.length, tris: geo.attributes.position.count / 3 * list.length });
+  }
+  return out;
+}
+
 // boards: { pine: [{x,y,z,sc}], oak, magnolia, crowd }; returns [{ mesh, count }] like the billboards did
 export function buildBrickFlora(THREE, boards, track, opts = {}) {
   const out = [], m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), v = new THREE.Vector3(), s = new THREE.Vector3(), col = new THREE.Color();
-  for (const kind of ['oak', 'magnolia', 'pine']) {
-    const list = boards[kind];
+  // every third pine is a spruce and every third oak a maple (by position, so a course always looks the same)
+  const split = (from, to) => { const keep = [], moved = []; for (const p of boards[from] || []) (hash(Math.round(p.x * 3 + p.z * 7), 41) < 0.34 ? moved : keep).push(p); return [keep, moved]; };
+  const lists = { magnolia: boards.magnolia };
+  [lists.oak, lists.maple] = split('oak');
+  [lists.pine, lists.spruce] = split('pine');
+  for (const kind of ['oak', 'maple', 'magnolia', 'pine', 'spruce']) {
+    const list = lists[kind];
     if (!list || !list.length) continue;
     const geo = treeGeo(THREE, kind), T = TREES[kind];
     // canopy footprint radius at scale 1 (turned layers reach out to their corners)
@@ -88,8 +142,9 @@ export function buildBrickFlora(THREE, boards, track, opts = {}) {
       }
       // barrier: two white rails on blue posts across the front of the board
       const fx = p.x + dx * 0.8, fz = p.z + dz * 0.8;
-      barrier.obox([fx, p.y + 0.95, fz], [W / 2, 0.06, 0.05], white, yaw + Math.PI / 2);
-      barrier.obox([fx, p.y + 0.55, fz], [W / 2, 0.05, 0.05], white, yaw + Math.PI / 2);
+      // (obox's local x runs along the board when turned by the board's yaw, so the rails join the posts)
+      barrier.obox([fx, p.y + 0.95, fz], [W / 2, 0.06, 0.05], white, yaw);
+      barrier.obox([fx, p.y + 0.55, fz], [W / 2, 0.05, 0.05], white, yaw);
       for (let k = 0; k <= 3; k++) { const u = k / 3 - 0.5; barrier.obox([fx + tx * u * W, p.y + 0.5, fz + tz * u * W], [0.06, 0.5, 0.06], blue, yaw); }
     });
     const geo = fanGeo(THREE), n = fans.length;

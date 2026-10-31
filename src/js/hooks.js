@@ -115,6 +115,19 @@ export function installHooks(App, api) {
           return { calls: App.renderer.info.draws, tris: App.renderer.info.tris, cpuMs: App.cpuMs != null ? +App.cpuMs.toFixed(2) : null, tier: App.tier, mode: App.renderer.mode,
             w: App.renderer.size.w, h: App.renderer.size.h, renderer, software: /swiftshader|llvmpipe|software|basic render/i.test(renderer) };
         }
+        case 'seeThroughNear': { // transparent or fading meshes whose bounds come within a.r m of the camera
+          const cam = App.renderer.camera.position, out = [], r = (args[0] && args[0].r) || 12;
+          App.renderer.scene.traverseVisible((o) => {
+            if (!o.isMesh || !o.geometry) return;
+            const m = o.material, d = m.defines || {};
+            if (!(m.transparent || m.alphaToCoverage || 'FADE' in d || 'NEAR_FADE' in d)) return;
+            if (!o.geometry.boundingSphere) o.geometry.computeBoundingSphere();
+            const bs = o.geometry.boundingSphere.clone().applyMatrix4(o.matrixWorld);
+            const dist = bs.center.distanceTo(cam) - bs.radius;
+            if (dist < r) out.push({ name: o.name || o.parent?.name || o.type, dist: +dist.toFixed(1), transparent: !!m.transparent, a2c: !!m.alphaToCoverage, fade: m.uniforms?.uFade?.value });
+          });
+          return out;
+        }
         case 'sceneTris': { // triangles per visible mesh (×instances), largest first; casters also draw in the shadow pass
           const rows = [];
           App.renderer.scene.traverseVisible((o) => {

@@ -4,7 +4,7 @@
 export const TIERS = {
   low: { aa: false, boards: 0.5, fogFar: 230, particles: 0.4, dprCap: 0.85, shadow: 0 },
   medium: { aa: true, boards: 1, fogFar: 330, particles: 1, dprCap: 1.5, shadow: 1024, shadowR: 40, shadowCrowd: false },
-  high: { aa: true, boards: 1, fogFar: 400, particles: 1, dprCap: 2, shadow: 2048, shadowR: 55, shadowCrowd: true },
+  high: { aa: true, boards: 1, fogFar: 400, particles: 1, dprCap: 2, shadow: 2048, shadowR: 55, shadowCrowd: true, ao: true },
 };
 
 export function pickTier(setting) {

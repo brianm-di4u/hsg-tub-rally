@@ -259,11 +259,11 @@ body[data-screen="results"] .touch, body[data-screen="standings"] .touch, body[d
   .team-grid { grid-template-columns: repeat(4, 1fr); }
   /* HUD: water gauge below the lap/time block, minimap top right under the place badge */
   .hud-bl { bottom: auto; top: 86px; transform: scale(0.75); transform-origin: top left; }
-  .hud-map { top: 66px; bottom: auto; left: auto; right: max(10px, env(safe-area-inset-right)); width: 78px; height: 78px; transform: none; }
+  .hud-map { top: 82px; bottom: auto; left: auto; right: max(10px, env(safe-area-inset-right)); width: 74px; height: 74px; transform: none; }
 }
 @media (pointer: coarse) and (max-height: 500px) and (min-aspect-ratio: 1/1) {
   .hud-bl { bottom: auto; top: 86px; transform: scale(0.75); transform-origin: top left; }
-  .hud-map { right: max(10px, env(safe-area-inset-right)); left: auto; top: 66px; bottom: auto; width: 78px; height: 78px; transform: none; }
+  .hud-map { right: max(10px, env(safe-area-inset-right)); left: auto; top: 82px; bottom: auto; width: 74px; height: 74px; transform: none; }
 }
 
 /* the logo drop shadow applies to the logo art only (it doubled the tagline) */
@@ -271,3 +271,92 @@ body[data-screen="results"] .touch, body[data-screen="standings"] .touch, body[d
 .logo canvas { filter: drop-shadow(0 6px 0 rgba(0,0,0,0.35)); }
 /* steering pad: as big and as readable as the action buttons */
 @media (pointer: coarse) { .t-steer-knob { width: 140px; height: 50px; border-radius: 16px; left: calc(50% - 70px + var(--steer, 0) * 60px); } .t-steer-knob::before, .t-steer-knob::after { top: 14px; border-width: 10px; } }
+
+/* ---------- loop 3: the menus and HUD as brick parts ----------
+   buttons are bricks (bevelled plastic face, darker moulded base, studs on top); panels are studded plates;
+   HUD boxes, cards and chips are smooth tiles with a top highlight and a bottom bevel */
+.mbtn { position: relative; --stud: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 12' preserveAspectRatio='xMidYMax meet'%3E%3Cpath d='M3 13V5.5Q3 2 6.5 2H33.5Q37 2 37 5.5V13' fill='%23FFD978' stroke='%231A1410' stroke-width='3'/%3E%3Crect x='8' y='4.5' width='11' height='2.5' rx='1.2' fill='%23fff' opacity='.6'/%3E%3C/svg%3E"); border-radius: 6px;
+  background: linear-gradient(180deg, #FFE08A 0%, #F6B73C 18%, var(--gold) 70%, #E0912E 100%);
+  box-shadow: inset 0 3px 0 rgba(255,255,255,0.5), inset 0 -5px 0 rgba(120,60,10,0.28), 0 5px 0 var(--ink); }
+/* studs: one per quarter of the brick's width (two on the short row buttons), standing on the top edge */
+.mbtn::before { content: ''; position: absolute; left: 6%; right: 6%; top: -12px; height: 12px; pointer-events: none;
+  background: var(--stud) 0 100% / 25% 100% repeat-x; }
+.menu.row .mbtn::before { left: 14%; right: 14%; background-size: 50% 100%; }
+.menu { gap: 17px; }
+.scr-title .menu > .mbtn:first-child { --stud: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 12' preserveAspectRatio='xMidYMax meet'%3E%3Cpath d='M3 13V5.5Q3 2 6.5 2H33.5Q37 2 37 5.5V13' fill='%23FF7F6E' stroke='%231A1410' stroke-width='3'/%3E%3Crect x='8' y='4.5' width='11' height='2.5' rx='1.2' fill='%23fff' opacity='.6'/%3E%3C/svg%3E"); min-height: 58px; font-size: 23px; color: #fff; text-shadow: 2px 2px 0 var(--ink);
+  background: linear-gradient(180deg, #FF7A66 0%, #E0412F 20%, #C8322A 72%, #A3251E 100%); }
+.mbtn[aria-disabled="true"] { filter: saturate(0.2); }
+.panel { position: relative; border-radius: 10px; padding-top: 38px;
+  background: radial-gradient(circle 10px at 50% 44%, rgba(255,255,255,0.2) 0 78%, transparent 84%) 0 5px / 32px 26px space no-repeat,
+    radial-gradient(circle 12px at 50% 56%, rgba(5,20,35,0.5) 0 76%, transparent 84%) 0 5px / 32px 26px space no-repeat,
+    linear-gradient(180deg, var(--lake) 0%, var(--lake-deep) 100%);
+  box-shadow: 0 8px 0 #0E2740, 0 8px 0 4px var(--ink), inset 0 3px 0 rgba(255,255,255,0.2), inset 0 -5px 0 rgba(0,0,0,0.28); }
+.tcard, .ccard, .chip { border-radius: 6px; box-shadow: inset 0 2px 0 rgba(255,255,255,0.2), inset 0 -4px 0 rgba(0,0,0,0.3), 0 3px 0 var(--ink); }
+.tcard.sel, .chip.sel { box-shadow: inset 0 0 0 2px var(--steam), inset 0 -4px 0 rgba(0,0,0,0.3), 0 3px 0 var(--ink); }
+.ccard.postcard { box-shadow: inset 0 0 0 6px #F7F0DC, 0 3px 0 #7a5a35; }
+.hud-item .tickets, .hud-call, .hud-task { border-radius: 6px; box-shadow: inset 0 3px 0 rgba(255,255,255,0.22), inset 0 -4px 0 rgba(0,0,0,0.3), 0 4px 0 rgba(0,0,0,0.4); }
+.hud-task { padding-top: 22px;
+  background: radial-gradient(circle 5px at 50% 50%, rgba(255,255,255,0.25) 0 70%, transparent 76%) center 4px / 22px 14px repeat-x,
+    radial-gradient(circle 7px at 50% 62%, rgba(5,20,35,0.45) 0 72%, transparent 80%) center 4px / 22px 14px repeat-x, rgba(30,78,121,0.94); }
+.fineprint { border-radius: 6px; }
+/* landscape screens: Grand Prix across the top, the other modes as two columns of bricks below it */
+@media (min-aspect-ratio: 1/1) {
+  .scr-title .menu { display: grid; grid-template-columns: 1fr 1fr; gap: 17px 12px; width: min(480px, 92vw); }
+  .scr-title .menu > .mbtn:first-child, .scr-title .menu > .mbtn:last-child { grid-column: 1 / -1; }
+  .scr-title .menu > .mbtn:last-child { justify-self: center; width: calc(50% - 6px); }
+}
+@media (max-height: 500px) and (min-aspect-ratio: 1/1) {
+  .menu { gap: 16px 10px; }
+  .scr-title .menu { width: min(400px, 50vw); gap: 14px 8px; }
+  .scr-title .menu > .mbtn:first-child { min-height: 46px; font-size: 18px; }
+  .mbtn::before { top: -9px; height: 9px; }
+  .panel { padding-top: 30px; background-position: 0 2px, 0 2px, 0 0; }
+}
+/* team select: the confirm and back bricks stay pinned to the bottom of the panel while the team list scrolls
+   (on phones the panel is shorter than its contents) */
+.panel.teams > .menu.row { position: sticky; bottom: 0; z-index: 2; margin-top: 4px; padding: 16px 0 8px; background: linear-gradient(180deg, rgba(24,63,99,0) 0, var(--lake-deep) 12px); }
+@media (max-height: 500px) and (min-aspect-ratio: 1/1) {
+  .panel.teams > .menu.row { display: flex; padding: 12px 0 2px; }
+  .panel.teams > .menu.row .mbtn { font-size: 14px; min-height: 36px; padding: 4px 12px; }
+}
+@media (max-aspect-ratio: 4/5) { .panel.teams > .menu.row { flex-wrap: nowrap; gap: 10px; } .panel.teams > .menu.row .mbtn { font-size: 15px; padding: 8px 12px; } }
+/* phone team select: everything fits above the pinned buttons without scrolling */
+@media (max-aspect-ratio: 4/5) {
+  .scr-teams .panel.teams { max-height: 68dvh; }
+  .scr-teams .stats { grid-template-columns: 1fr 1fr; gap: 4px 12px; margin-top: 4px; }
+  .scr-teams .stat span { width: 64px; }
+  .scr-teams .team-info p { font-size: 11.5px; line-height: 1.3; }
+}
+@media (max-height: 500px) and (min-aspect-ratio: 1/1) {
+  .scr-teams .panel.teams > canvas:first-child { max-height: 24px; }
+  .scr-teams .team-info p:first-of-type { display: none; }
+  .scr-teams .team-info p { font-size: 11px; line-height: 1.25; }
+  .scr-teams .stats { margin-top: 2px; }
+  .scr-teams .team-grid .tcard { min-height: 34px; }
+}
+/* phone landscape team select: two columns, the team grid on the left and the details, stats and buttons on the
+   right, so everything fits the short screen without scrolling */
+@media (max-height: 500px) and (min-aspect-ratio: 1/1) {
+  .scr-teams .panel.teams { display: grid; grid-template-columns: 1.35fr 1fr; grid-template-rows: auto 1fr auto; column-gap: 12px; row-gap: 6px; max-width: min(640px, 64vw); overflow: hidden; }
+  .scr-teams .panel.teams > canvas:first-child { grid-column: 1 / -1; justify-self: center; }
+  .scr-teams .panel.teams > .team-grid { grid-column: 1; grid-row: 2 / 4; grid-template-columns: repeat(3, 1fr); align-self: start; }
+  .scr-teams .panel.teams > .team-info { grid-column: 2; grid-row: 2; }
+  .scr-teams .panel.teams > .menu.row { grid-column: 2; grid-row: 3; position: static; padding: 4px 0 0; background: none; margin: 0; justify-content: flex-start; }
+  .scr-teams .team-info p:first-of-type { display: block; }
+  .scr-teams .stats { grid-template-columns: 1fr; gap: 2px; }
+  .scr-teams .stat { font-size: 11px; }
+  .scr-teams .stat span { width: 62px; }
+}
+@media (max-height: 500px) and (min-aspect-ratio: 1/1) {
+  .scr-teams .panel.teams > .menu.row { flex-wrap: nowrap; gap: 8px; }
+  .scr-teams .panel.teams > .menu.row .mbtn { font-size: 12.5px; white-space: nowrap; padding: 4px 10px; min-height: 34px; }
+}
+
+/* ---------- loop 5: race readouts on bevelled tiles (the same plastic tile as the water gauge) ---------- */
+.hud-tl, .hud-tr, .hud-bl .hud-pips { background: rgba(16,30,48,0.78); border: 3px solid var(--ink); border-radius: 8px;
+  box-shadow: inset 0 3px 0 rgba(255,255,255,0.18), inset 0 -4px 0 rgba(0,0,0,0.35), 0 3px 0 rgba(0,0,0,0.35); }
+.hud-tl { padding: 6px 10px 6px 8px; }
+.hud-tl .hud-time { margin: 2px 0 0 0; }
+.hud-tr { padding: 4px 8px; }
+.hud-bl .hud-pips { padding: 3px 4px 2px; margin-top: 6px; }
+.pip { text-shadow: none; }

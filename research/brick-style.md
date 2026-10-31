@@ -303,8 +303,9 @@ except its colour is exported once per LOD; each team adds only what is truly it
   animated parts it merges onto), the rest transform (pos, and rot in YXZ) and its triangles. It also holds:
   - `palette` (slot to sRGB hex) and `items` (each attendant's item and colour);
   - `body_variant` (`feet` or `skirt`);
-  - `printOffset`, added to torso UVs, and per-figure `faces[].uvOffset`, added to head UVs. Both apply only
-    where the UV is outside the empty corner, and only at LOD0–1.
+  - `printOffset`, added to torso UVs (LOD0–1), and per-figure `faces[].uvOffset`, added to head UVs
+    (LOD0–2; LOD2 heads carry the printed face too). Both apply only where the UV is outside the empty
+    corner; the sidecars set them to `null` where they don't apply.
   - The shared torsos point at the first team's cells and every shared head at the neutral face; each team's
     front and back cells sit side by side, so one offset serves both.
 - **Pose.** Arms, hands and items are separate nodes. Their rest rotations hold the pose: attendants push
@@ -315,43 +316,45 @@ except its colour is exported once per LOD; each team adds only what is truly it
 
 | LOD | Shared file | 12 team files together | Total |
 |---|---|---|---|
-| LOD0 | 946 KB | 947 KB | 1.9 MB |
-| LOD1 | 354 KB | 398 KB | 0.75 MB |
-| LOD2 | 79 KB | 294 KB | 0.37 MB |
+| LOD0 | 1,024 KB | 947 KB | 2.0 MB |
+| LOD1 | 438 KB | 398 KB | 0.84 MB |
+| LOD2 | 76 KB | 294 KB | 0.37 MB |
 | LOD3 | 51 KB | 167 KB | 0.22 MB |
 
-The first export (one full mesh per team per LOD) was about 28 MB.
+The first export (one full mesh per team per LOD) was about 28 MB. The rolled-rim tube (decision 10) added
+78 KB at LOD0 and 84 KB at LOD1.
 
 **Levels.**
 
 | LOD | Knobs (bevel, studs, round, curve) | Detail | Prints | Budget figure / tub |
 |---|---|---|---|---|
 | LOD0 | 2, 16 geo, 24, 4 | full | atlas UVs | 7,200 / 30,000 |
-| LOD1 | 1, 8 geo, 12, 2 | full (teeth, nostrils and spring coils dropped) | atlas UVs | 2,700 / 9,300 |
-| LOD2 | 0, none, 8, 1 | no-micro (chamfered head and crowns, eye dots) | colour rows | 400 / 1,200 |
+| LOD1 | 1, 8 geo, 12, 2 | full (teeth, nostrils and spring coils dropped) | atlas UVs | 2,700 / **11,000** |
+| LOD2 | 0, none, 8, 1 | no-micro (chamfered head and crowns) | face by UV, torso colour rows | 400 / 1,200 |
 | LOD3 | 0, none, 6, 0 | blocks (hip is the torso's bottom row; a hand is its arm's end face) | colour rows | 150 / 400 |
 
 **Triangles** (largest figure of the five, including hat, item and trims; tub with its feet or skirt):
 
 | Team | LOD0 | LOD1 | LOD2 | LOD3 |
 |---|---|---|---|---|
-| `engine-six` (helmet, traditional) | 6,358 / 26,672 | 2,674 / 8,216 | 364 / 596 | 134 / 236 |
-| `lather-linen` (turban, traditional) | 6,650 / 26,672 | 2,654 / 8,216 | 390 / 596 | 132 / 236 |
-| `velvet-mob` (fedora, traditional) | 5,650 / 26,672 | 2,362 / 8,216 | 364 / 596 | 134 / 236 |
-| `gator-gang` (snout hood, traditional) | 6,742 / 26,672 | 2,318 / 8,216 | 356 / 596 | 134 / 236 |
-| `bubble-patrol` (police cap, modified) | 4,940 / 22,444 | 2,096 / 6,964 | 346 / 568 | 134 / 212 |
-| `trail-shredders` (bike helmet, modified) | 5,256 / 22,444 | 2,074 / 6,964 | 312 / 568 | 134 / 212 |
-| `out-of-towners` (antenna cap, modified) | 6,490 / 22,444 | 2,170 / 6,964 | 336 / 568 | 142 / 212 |
-| `silks-stirrups` (jockey cap, modified) | 5,322 / 22,444 | 2,142 / 6,964 | 302 / 568 | 134 / 212 |
-| `steam-rangers` (campaign hat, stock) | 5,392 / 22,444 | 2,140 / 6,964 | 318 / 568 | 134 / 212 |
-| `suds-posse` (cowboy hat, stock) | 5,562 / 22,444 | 2,274 / 6,964 | 352 / 568 | **150** / 212 |
-| `flamingo-flock` (beak hood, stock) | 5,554 / 22,444 | 2,218 / 6,964 | 380 / 568 | 134 / 212 |
-| `tub-ninjas` (headband, stock) | 5,066 / 22,444 | 2,162 / 6,964 | 278 / 568 | 132 / 212 |
-| Whole kart (5 figures + tub), range | 44.3k–57.7k | 16.1k–20.3k | 1.8k–2.4k | 824–914 |
+| `engine-six` (helmet, traditional) | 6,358 / 29,688 | 2,674 / 10,860 | 344 / 596 | 134 / 236 |
+| `lather-linen` (turban, traditional) | 6,650 / 29,688 | 2,654 / 10,860 | 370 / 596 | 132 / 236 |
+| `velvet-mob` (fedora, traditional) | 5,650 / 29,688 | 2,362 / 10,860 | 344 / 596 | 134 / 236 |
+| `gator-gang` (snout hood, traditional) | 6,742 / 29,688 | 2,318 / 10,860 | 336 / 596 | 134 / 236 |
+| `bubble-patrol` (police cap, modified) | 4,940 / 25,540 | 2,096 / 9,768 | 326 / 568 | 134 / 212 |
+| `trail-shredders` (bike helmet, modified) | 5,256 / 25,540 | 2,074 / 9,768 | 292 / 568 | 134 / 212 |
+| `out-of-towners` (antenna cap, modified) | 6,490 / 25,540 | 2,170 / 9,768 | 316 / 568 | 142 / 212 |
+| `silks-stirrups` (jockey cap, modified) | 5,322 / 25,540 | 2,142 / 9,768 | 282 / 568 | 134 / 212 |
+| `steam-rangers` (campaign hat, stock) | 5,392 / 25,540 | 2,140 / 9,768 | 298 / 568 | 134 / 212 |
+| `suds-posse` (cowboy hat, stock) | 5,562 / 25,540 | 2,274 / 9,768 | 332 / 568 | **150** / 212 |
+| `flamingo-flock` (beak hood, stock) | 5,554 / 25,540 | 2,218 / 9,768 | 360 / 568 | 134 / 212 |
+| `tub-ninjas` (headband, stock) | 5,066 / 25,540 | 2,162 / 9,768 | 258 / 568 | 132 / 212 |
+| Whole kart (5 figures + tub), range | 47.4k–60.8k | 18.9k–22.9k | 1.7k–2.3k | 824–914 |
 
-The shared files hold 45,648 / 15,852 / 1,396 / 586 tris (both body variants included). Skirted tubs carry
+The shared files hold 48,744 / 18,656 / 1,296 / 586 tris (both body variants included). Skirted tubs carry
 the shared chassis studs under their skirt; that costs 1.7k at LOD0 and 0.6k at LOD1, within budget. Suds
-Posse at LOD3 sits exactly on the 150 budget.
+Posse at LOD3 sits exactly on the 150 budget. LOD2 figures lost 20 tris each when the printed face replaced
+the eye dots.
 
 **Hats** (each original; one stud at full detail):
 
@@ -428,3 +431,16 @@ as exported, prints by offset. Every crew is distinguishable from both sides.
 8. The water sheet rests at 75 % fill (y 0.86); the runtime moves it with `0.5 + 0.48 * fill`.
 9. Leg, boot and trim colours are not in `teams.js`; `brickfig.TEAM_STYLE` sets them per archetype. The pants
    and shoe colours reach the palette.
+10. **Rolled rim (loop-3 review, G-tub-faceting).** At LOD1 the rim had 6 segments per rounded end and a
+    4-step roll with hard edges, so it read as an octagon in the team-select close-up. At LOD0–1 the rim is
+    now its own closed round tube, one smooth group, with 56 segments per rounded end. Each straight piece is
+    about 2.6 cm, roughly 20 px in the 2x crop. The tube's cross-section has 8 sides at LOD1 and 12 at LOD0.
+    - The bowl went from 6 to 16 segments per end (12 to 16 at LOD0), and the skirt and water follow the bowl.
+    - The wall and the enamel meet the tube on its surface and close inside it. That makes a clean crease
+      under the lip, and the bowl doesn't pay for the rim's resolution.
+    - **Budget:** the LOD1 tub budget rose from 9,300 to 11,000, as agreed with the runtime session.
+      Traditional tubs are 10,860 and skirted tubs 9,768. LOD0 stays under 30,000 (29,688).
+    - Check render: `renders/crew/check_lod1_rim.png` (`scripts/crewcheck.py`).
+11. **LOD2 faces.** LOD2 heads project the face cell exactly like LOD0–1. Shared heads point at the neutral
+    face, and the sidecar's `faces[].uvOffset` moves each figure to its expression. LOD2 torsos keep their
+    colour rows. Check render: `renders/crew/check_lod2_faces.png`.

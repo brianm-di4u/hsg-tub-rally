@@ -3,6 +3,7 @@
 // free. Colours stay in gamma space (no colour management, no tone mapping).
 import { initMaterials, setFog, setSun, setTime, setLightTint } from './n64mat.js';
 import { setHemi } from './brickmat.js';
+import { SSAO } from './ssao.js';
 
 export const RES_MODES = { authentic: 240, crisp: 480, native: 0 };
 
@@ -28,6 +29,8 @@ export class Renderer {
     this.sunDir = new THREE.Vector3(0.4, 0.8, 0.3).normalize();
     this.size = { w: 0, h: 0 };
     this.info = { draws: 0, tris: 0 };
+    // ambient occlusion (High): the scene goes through a multisampled target and the AO composite (native mode only)
+    this.ssao = opts.ao ? new SSAO(THREE, { samples: this.aa ? 4 : 0 }) : null;
   }
   setMode(mode) { this.mode = RES_MODES[mode] != null ? mode : 'native'; this.resize(true); }
   resize(force = false) {
@@ -40,6 +43,7 @@ export class Renderer {
     if (!force && w === this.size.w && h === this.size.h) return false;
     this.size = { w, h };
     this.gl.setSize(w, h, false);
+    if (this.ssao) this.ssao.setSize(w, h);
     this.camera.aspect = w / h;
     // portrait phones get a wider vertical field of view so the road still fits
     this.baseFov = cw >= ch ? 62 : 78;
@@ -53,9 +57,10 @@ export class Renderer {
     const fog = env.fog || [90, 330];
     setFog(fogC, fog[0], fog[1]);
     if (env.sun) { setSun(env.sun, env.amb, env.diff); this.sunDir.set(env.sun[0], env.sun[1], env.sun[2]).normalize(); }
-    // ambient and reflections: the sky above (between its zenith and horizon colours), the baseplate below
+    // ambient and reflections: the sky above (between its zenith and horizon colours), the baseplate below (a muted
+    // green: a saturated one tinted shaded buff walls olive)
     const sky = env.sky || ['#7FB6E0', '#D9ECF5'], c = new THREE.Color(sky[0]).lerp(new THREE.Color(sky[1]), 0.55);
-    setHemi('#' + c.getHexString(), env.time === 'dusk' ? '#3E3A4A' : env.time === 'sunset' ? '#6B5A3C' : '#6F8F4E');
+    setHemi('#' + c.getHexString(), env.time === 'dusk' ? '#3E3A4A' : env.time === 'sunset' ? '#6B5A3C' : '#7E866A');
     setLightTint(env.lightTint || (env.time === 'dusk' ? [1.0, 0.8, 0.86] : env.time === 'sunset' ? [1.0, 0.86, 0.78] : [1, 1, 1]));
     this.gl.setClearColor(new THREE.Color(fogC), 1);
     this.camera.far = fog[1] + 60;
@@ -65,7 +70,8 @@ export class Renderer {
     setTime(time);
     this.gl.info.reset();
     if (this.shadow && this.shadowFocus) this.shadow.render(this.gl, this.scene, this.shadowFocus, this.sunDir);
-    this.gl.render(this.scene, this.camera);
+    if (this.ssao && !RES_MODES[this.mode]) this.ssao.render(this.gl, this.scene, this.camera);
+    else this.gl.render(this.scene, this.camera);
     const r = this.gl.info.render;
     this.info.draws = r.calls; this.info.tris = r.triangles;
   }

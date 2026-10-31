@@ -220,6 +220,274 @@
       },
       "calibration": null,
       "date": "2026-10-31"
+    },
+    {
+      "loop": 2,
+      "scores": {
+        "characters": 6.5,
+        "materials": 6,
+        "scenery": 6,
+        "lighting": 6,
+        "animation": 6,
+        "ui": 6,
+        "typography": 6,
+        "readability": 6,
+        "mobile": 6,
+        "authenticity": 6.5
+      },
+      "judged": {
+        "characters": 6.5,
+        "materials": 6,
+        "scenery": 6,
+        "lighting": 6,
+        "animation": 6,
+        "ui": 6,
+        "typography": 6.5,
+        "readability": 6,
+        "mobile": 6,
+        "authenticity": 6.5
+      },
+      "total": 61,
+      "best": 61,
+      "stalls": 0,
+      "verdict": "continue",
+      "held": [
+        "typography 6.5→6 (A/B new/tie)"
+      ],
+      "ab": {
+        "characters": [
+          "new",
+          "new"
+        ],
+        "materials": [
+          "new",
+          "new"
+        ],
+        "scenery": [
+          "new",
+          "new"
+        ],
+        "lighting": [
+          "new",
+          "tie"
+        ],
+        "animation": [
+          "new",
+          "new"
+        ],
+        "ui": [
+          "new",
+          "old"
+        ],
+        "typography": [
+          "new",
+          "tie"
+        ],
+        "readability": [
+          "new",
+          "new"
+        ],
+        "mobile": [
+          "new",
+          "old"
+        ],
+        "authenticity": [
+          "new",
+          "new"
+        ]
+      },
+      "measured": {
+        "perf": true,
+        "fidelity": null,
+        "ip": true
+      },
+      "critics": {
+        "critic-claude": {
+          "characters": 6.5,
+          "materials": 6,
+          "scenery": 6,
+          "lighting": 6,
+          "animation": 6,
+          "ui": 6.5,
+          "typography": 6.5,
+          "readability": 6.5,
+          "mobile": 6.5,
+          "authenticity": 6.5
+        },
+        "critic-codex": {
+          "characters": 7,
+          "materials": 6,
+          "scenery": 6,
+          "lighting": 5.5,
+          "animation": 6,
+          "ui": 6,
+          "typography": 6.5,
+          "readability": 6.5,
+          "mobile": 5.5,
+          "authenticity": 7
+        },
+        "prosecutor": {
+          "characters": 6.5,
+          "materials": 5.5,
+          "scenery": 5.5,
+          "lighting": 5.5,
+          "animation": 5.5,
+          "ui": 5.5,
+          "typography": 6,
+          "readability": 6,
+          "mobile": 5.5,
+          "authenticity": 6
+        },
+        "advocate": {
+          "characters": 7,
+          "materials": 6,
+          "scenery": 6,
+          "lighting": 6,
+          "animation": 6,
+          "ui": 6.5,
+          "typography": 6.5,
+          "readability": 6.5,
+          "mobile": 6.5,
+          "authenticity": 7
+        }
+      },
+      "calibration": null,
+      "date": "2026-10-31"
+    },
+    {
+      "loop": 3,
+      "scores": {
+        "characters": 7,
+        "materials": 6,
+        "scenery": 6,
+        "lighting": 6,
+        "animation": 6,
+        "ui": 6.5,
+        "typography": 6,
+        "readability": 6.5,
+        "mobile": 6.5,
+        "authenticity": 6.5
+      },
+      "judged": {
+        "characters": 7,
+        "materials": 6,
+        "scenery": 6,
+        "lighting": 6,
+        "animation": 6,
+        "ui": 6.5,
+        "typography": 6.5,
+        "readability": 6.5,
+        "mobile": 6.5,
+        "authenticity": 6.5
+      },
+      "total": 63,
+      "best": 63,
+      "stalls": 0,
+      "verdict": "continue",
+      "held": [
+        "typography 6.5→6 (A/B tie/tie)"
+      ],
+      "abVoid": [
+        "characters"
+      ],
+      "ab": {
+        "materials": [
+          "new",
+          "new"
+        ],
+        "scenery": [
+          "new",
+          "new"
+        ],
+        "lighting": [
+          "new",
+          "new"
+        ],
+        "animation": [
+          "new",
+          "new"
+        ],
+        "ui": [
+          "new",
+          "new"
+        ],
+        "typography": [
+          "tie",
+          "tie"
+        ],
+        "readability": [
+          "new",
+          "new"
+        ],
+        "mobile": [
+          "new",
+          "new"
+        ],
+        "authenticity": [
+          "new",
+          "new"
+        ]
+      },
+      "measured": {
+        "perf": true,
+        "fidelity": null,
+        "ip": true
+      },
+      "critics": {
+        "critic-claude": {
+          "characters": 7,
+          "materials": 6,
+          "scenery": 6,
+          "lighting": 6,
+          "animation": 6.5,
+          "ui": 6.5,
+          "typography": 6.5,
+          "readability": 6.5,
+          "mobile": 7,
+          "authenticity": 6.5
+        },
+        "critic-codex": {
+          "characters": 7,
+          "materials": 6,
+          "scenery": 6,
+          "lighting": 6,
+          "animation": 6,
+          "ui": 6.5,
+          "typography": 6.5,
+          "readability": 6.5,
+          "mobile": 6,
+          "authenticity": 7
+        },
+        "prosecutor": {
+          "characters": 6.5,
+          "materials": 5.5,
+          "scenery": 5.5,
+          "lighting": 5.5,
+          "animation": 5.5,
+          "ui": 6,
+          "typography": 6,
+          "readability": 6,
+          "mobile": 6,
+          "authenticity": 6
+        },
+        "advocate": {
+          "characters": 7,
+          "materials": 6.5,
+          "scenery": 6.5,
+          "lighting": 6.5,
+          "animation": 6.5,
+          "ui": 7,
+          "typography": 7,
+          "readability": 6.5,
+          "mobile": 7,
+          "authenticity": 7
+        }
+      },
+      "calibration": {
+        "materials": 7,
+        "lighting": 6.5
+      },
+      "date": "2026-10-31"
     }
   ]
 }

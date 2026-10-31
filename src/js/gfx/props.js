@@ -64,10 +64,25 @@ export function buildProp(type, g, p, yaw, sc = 1, glow = null) {
       }
       break;
     }
-    case 'jug': { // the plaza's thermal-water jug fountain: a stone basin and a spout column
-      g.cyl([x, y, z], 3.2 * sc, 3.4 * sc, 0.7 * sc, 10, hex('#B9AE9A'), { top: hex('#5FB8D8') });
-      g.cyl([x, y + 0.7 * sc, z], 0.6 * sc, 0.5 * sc, 1.9 * sc, 8, hex('#9A968C'));
-      for (let i = 0; i < 4; i++) { const a = (i / 4) * Math.PI * 2; g.box([x + Math.sin(a) * 0.55 * sc - 0.08, y + 1.9 * sc, z + Math.cos(a) * 0.55 * sc - 0.08], [x + Math.sin(a) * 0.85 * sc + 0.08, y + 2.05 * sc, z + Math.cos(a) * 0.85 * sc + 0.08], hex('#8A6A3A')); }
+    case 'jug': { // the plaza's thermal-water jug fountain, the arena's centrepiece: a studded stone basin of clear
+      // water around a pedestal, and on it a giant brick stoneware jug (blue band, handle) pouring into the basin
+      const S = (v) => v * sc, stone = hex('#B9AE9A'), ware = hex('#D9C49A'), band = hex('#2E6FB0'), water = hex('#4FA9D8');
+      g.cyl([x, y, z], S(4.4), S(4.2), S(0.6), 20, stone, { top: stone });
+      g.cyl([x, y, z], S(3.9), S(3.9), S(0.5), 20, water, { top: water });
+      g.cyl([x, y, z], S(1.0), S(0.85), S(2.0), 12, hex('#9A968C'));
+      const jy = y + S(2.0);
+      g.cyl([x, jy, z], S(1.25), S(1.5), S(1.0), 16, ware);
+      g.cyl([x, jy + S(1.0), z], S(1.5), S(1.5), S(0.35), 16, band);
+      g.cyl([x, jy + S(1.35), z], S(1.5), S(0.55), S(1.0), 16, ware);
+      g.cyl([x, jy + S(2.35), z], S(0.45), S(0.45), S(0.6), 12, ware);
+      g.cyl([x, jy + S(2.95), z], S(0.62), S(0.62), S(0.18), 12, band);
+      // handle on one side, a stream from the lip on the other, falling into the basin
+      // (T scales its offsets by sc; box half-sizes are scaled here)
+      g.obox(T(1.75, 3.5, 0), [S(0.18), S(0.12), S(0.22)], ware, yaw);
+      g.obox(T(1.9, 3.0, 0), [S(0.14), S(0.55), S(0.22)], ware, yaw);
+      g.obox(T(1.6, 2.5, 0), [S(0.18), S(0.12), S(0.22)], ware, yaw);
+      g.obox(T(-1.2, 5.0, 0), [S(0.58), S(0.1), S(0.16)], ware, yaw);
+      g.obox(T(-1.75, 2.78, 0), [S(0.12), S(2.22), S(0.12)], water, yaw);
       break;
     }
     case 'eagle': { // eagle on a limestone pylon (Row main entrance)

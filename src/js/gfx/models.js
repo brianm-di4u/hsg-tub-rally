@@ -44,7 +44,7 @@ export function loadModel(name, opts = {}) {
     const facade = opts.facades && opts.facades[slot];
     // brick courses on walls (1 uv unit = 4 m), studs on flat roofs and ledges
     const pat = slot === 'wall' ? { pattern: 'bricks', uvScale: 4, tile: 1.12, patAmt: 0.8 } : slot === 'roof' || slot === 'trim' ? { pattern: ['bricks', 'studs'], uvScale: 4, tile: 1.12, patAmt: 0.7 } : {};
-    const mat = facade && hasArt(facade) ? litMat({ map: tex(facade), flatTint: true, tint: opts.wallTint || '#ffffff', ...pat, patAmt: 0.55 }) : litMat({ ...pat, gloss: slot === 'glass' ? 0.9 : 0.5 });
+    const mat = facade && hasArt(facade) ? litMat({ map: tex(facade), flatTint: true, tint: opts.wallTint || '#ffffff', ...pat, patAmt: 0.55, footAO: true }) : litMat({ ...pat, gloss: slot === 'glass' ? 0.9 : 0.5, footAO: true });
     const mesh = new THREE.Mesh(g, mat);
     mesh.name = slot; mesh.matrixAutoUpdate = false; mesh.updateMatrix();
     mesh.userData.caster = true;

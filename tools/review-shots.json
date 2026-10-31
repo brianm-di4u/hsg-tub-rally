@@ -290,7 +290,7 @@
     },
     {
       "id": "R09",
-      "title": "Goat Rock and the Gulpha Gorge ford",
+      "title": "Goat Rock overlook from the Goat Rock Trail",
       "cats": [
         "scenery",
         "authenticity"
@@ -301,7 +301,9 @@
           {
             "track": "goat-rock-gulpha",
             "team": "steam-rangers",
-            "seed": 6
+            "seed": 6,
+            "count": 1,
+            "mode": "timetrial"
           }
         ],
         [
@@ -309,7 +311,19 @@
         ],
         [
           "step",
-          600
+          1
+        ],
+        [
+          "look",
+          "landmark:goat-rock",
+          34,
+          0.35,
+          3.8
+        ],
+        [
+          "act",
+          "hud",
+          false
         ]
       ],
       "wait": "idle"
@@ -620,6 +634,32 @@
         [
           "wait",
           300
+        ]
+      ],
+      "wait": "idle"
+    },
+    {
+      "id": "R19",
+      "title": "Gulpha Creek ford on the Gulpha Gorge Trail",
+      "cats": [
+        "scenery",
+        "authenticity"
+      ],
+      "setup": [
+        [
+          "race",
+          {
+            "track": "goat-rock-gulpha",
+            "team": "steam-rangers",
+            "seed": 6
+          }
+        ],
+        [
+          "skip"
+        ],
+        [
+          "step",
+          1500
         ]
       ],
       "wait": "idle"

@@ -69,10 +69,13 @@ const J = got.judge, prev = hist.loops.filter((l) => l.loop < N).sort((a, b) => 
 const key = JSON.parse((() => { try { return fs.readFileSync(path.join(loopDir, 'ab-key.json'), 'utf8'); } catch { return 'null'; } })());
 const decode = (w) => (w === 'tie' || !key ? 'tie' : w === key.newSide ? 'new' : 'old');
 const abv = {}, held = [];
+// the judge may void a category's A/B verdicts (abWeight[c] === 0) when the pairs are shown to be invalid (wrong tier
+// or build); that category then takes the judged score, and the void is recorded (reviews/PROTOCOL.md)
+const voided = CATS.filter((c) => J.abWeight && J.abWeight[c] === 0);
 const judged = Object.fromEntries(CATS.map((c) => [c, J.scores[c].score]));
 const scores = { ...judged };
 for (const c of CATS) {
-  if (!prev || !key) continue;
+  if (!prev || !key || voided.includes(c)) continue;
   const v = ['critic-claude', 'critic-codex'].map((r) => decode(got[r].ab[c].winner));
   abv[c] = v;
   const agree = v[0] === v[1] ? v[0] : 'split';
@@ -89,7 +92,7 @@ const stalls = newBest ? 0 : (prev.stalls || 0) + 1;
 const pass = CATS.every((c) => scores[c] >= GATE[c]) && MEASURED.every((m) => measured[m] === true);
 const verdict = pass ? 'stop-pass' : stalls >= STALLS ? 'stop-stagnant' : N >= CAP ? 'stop-cap' : 'continue';
 const critics = Object.fromEntries(['critic-claude', 'critic-codex', 'prosecutor', 'advocate'].filter((r) => got[r]).map((r) => [r, Object.fromEntries(CATS.map((c) => [c, got[r].scores[c].score]))]));
-const entry = { loop: N, scores, judged, total, best: Math.max(best, total), stalls, verdict, held, ab: abv, measured, critics, calibration: J.calibration || null, date: new Date().toISOString().slice(0, 10) };
+const entry = { loop: N, scores, judged, total, best: Math.max(best, total), stalls, verdict, held, abVoid: voided, ab: abv, measured, critics, calibration: J.calibration || null, date: new Date().toISOString().slice(0, 10) };
 hist.loops = [...hist.loops.filter((l) => l.loop !== N), entry].sort((a, b) => a.loop - b.loop);
 fs.writeFileSync(histPath, JSON.stringify(hist, null, 2) + '\n');
 
@@ -124,6 +127,7 @@ fs.writeFileSync(path.join(REV, 'HISTORY.md'), `# Review history (judged scores 
 
 console.log(`loop ${N}: ${CATS.map((c) => `${c} ${scores[c]}`).join(', ')} · total ${total.toFixed(1)}${prev ? ` (${total - prev.total >= 0 ? '+' : ''}${(total - prev.total).toFixed(1)})` : ''} · best ${entry.best.toFixed(1)} · stalls ${stalls} → ${verdict}`);
 if (held.length) console.log(`held by the A/B rule: ${held.join('; ')}`);
+if (voided.length) console.log(`A/B voided by the judge (invalid pairs): ${voided.join(', ')}`);
 console.log(`measured gates: ${MEASURED.map((m) => `${m} ${mark(measured[m])}`).join(', ')}`);
 console.log(`\nbacklog (big lever + ${CAPACITY} points):`);
 for (const g of gaps.slice(0, 14)) console.log(`  ${g.bigLever ? '★' : g.selected ? '▶' : ' '} ${g.priority.toFixed(2).padStart(5)}  ${g.workstream.padEnd(4)} ${g.effort} ${g.id}: ${g.fix.slice(0, 110)}`);

@@ -4,12 +4,13 @@
 import { Renderer } from './gfx/renderer.js';
 import { buildTrackWorld } from './gfx/trackmesh.js';
 import { buildSky } from './gfx/sky.js';
-import { KartView, setCrewDetail } from './gfx/karts3d.js';
+import { KartView, setCrewDetail, FootBlobs } from './gfx/karts3d.js';
 import { Fx } from './gfx/fx.js';
 import { TIERS, pickTier, Governor } from './gfx/tiers.js';
 import { ChaseCam } from './gfx/camera.js';
 import { SunShadow } from './gfx/shadows.js';
-import { setShadowDefault, setLite } from './gfx/brickmat.js';
+import { loadCrew } from './gfx/crew3d.js';
+import { setShadowDefault, setLite, setAlphaCoverage, setFocus } from './gfx/brickmat.js';
 import { labKartGeo, labCrowd, labStats } from './gfx/perflab.js';
 import { loadPackTextures } from './gfx/textures.js';
 import { loadModel, cloneModel, hasModel } from './gfx/models.js';
@@ -62,17 +63,22 @@ async function boot() {
   INPUT.autoPush = !!App.save.settings.autoPush;
   App.loading++;
   await loadPackTextures();
+  // the Blender crews: optional (a missing pack or an old browser keeps the crews built in code)
+  try { await loadScript('assets/crew.js'); await loadScript('assets/crew-prints.js'); await loadCrew(window.THREE); } catch (e) { console.warn(e.message); }
   App.tier = pickTier(App.save.settings.quality);
   App.governor = new Governor(App.tier, (App.save.settings.quality || 'auto') === 'auto');
   const TT = TIERS[App.tier];
-  App.renderer = new Renderer($('#gl'), { mode: App.save.settings.res, antialias: TT.aa, dprCap: TT.dprCap });
+  App.renderer = new Renderer($('#gl'), { mode: App.save.settings.res, antialias: TT.aa, dprCap: TT.dprCap, ao: !!TT.ao });
   // sun shadows on the tiers that afford them: every brick material made from here on samples the map
   setShadowDefault(!!TT.shadow);
   setLite(App.tier === 'low');
+  setAlphaCoverage(!!TT.aa);
   if (TT.shadow) App.renderer.shadow = App.shadow = new SunShadow(window.THREE, TT.shadow, TT.shadowR);
   App.renderer.resize(true);
   App.cam = new ChaseCam(App.renderer.camera);
   setCrewDetail(App.tier, App.renderer.camera);
+  App.footBlobs = new FootBlobs(window.THREE);
+  App.renderer.scene.add(App.footBlobs.mesh);
   SHADOW_DIR = new window.THREE.Vector3();
   App.fx = new Fx(window.THREE, App.renderer.scene);
   App.frameEvents = [];
@@ -127,10 +133,18 @@ export function loadCourse(id) {
   if (App.sky) { App.renderer.scene.remove(App.sky); disposeTree(App.sky); }
   App.track = new Track(json);
   const T = TIERS[App.tier];
-  const env = { ...(json.env || {}), boards: T.boards };
+  const env = { ...(json.env || {}), boards: T.boards, kit: App.tier !== 'low' };
   if (env.fog) env.fog = [Math.min(env.fog[0], T.fogFar * 0.4), Math.min(env.fog[1], T.fogFar)];
   App.renderer.setEnv(env);
   App.world = buildTrackWorld(THREE, App.track, env);
+  // Hot Springs Mountain rises right behind Bathhouse Row: a peak in the ridge ring toward the Row's bathhouses
+  const row = (json.landmarks || []).filter((l) => /fordyce|quapaw|buckstaff|maurice|hale|superior|lamar|ozark/.test(l.id));
+  if (row.length >= 3) {
+    // the mountain lies behind the Row: the mean direction from the road out to each bathhouse
+    let dx = 0, dz = 0;
+    for (const l of row) { const ls = l.s ?? l.at * App.track.length, q = App.track.point(ls, l.d || 0), o = App.track.point(ls, 0), m = Math.hypot(q.x - o.x, q.z - o.z) || 1; dx += (q.x - o.x) / m; dz += (q.z - o.z) / m; }
+    env.peaks = [[Math.atan2(dx, dz), 1.3, 110]];
+  }
   App.sky = buildSky(THREE, env);
   // keep the sky inside the far plane (Low's shorter fog pulls the far plane in; a clipped dome shows as a disc)
   App.sky.scale.setScalar(Math.min(1, (App.renderer.camera.far - 15) / 400));
@@ -141,12 +155,14 @@ export function loadCourse(id) {
   return App.track;
 }
 
-// Hero landmarks (Blender models) stand beside the road with their facade (+Z) facing it.
+// Hero landmarks (Blender models) stand beside the road with their facade (+Z) facing it. Models that carry their own
+// window panels skip the painted facade, whose windows would show beside them out of register.
+const MODELLED_WINDOWS = new Set(['arlington']);
 function placeLandmarks(track, world) {
   for (const lm of track.json.landmarks || []) {
     if (!hasModel(lm.model)) continue;
     App.loading++;
-    loadModel(lm.model, { facades: lm.facades }).then((tpl) => {
+    loadModel(lm.model, { facades: MODELLED_WINDOWS.has(lm.model) ? null : lm.facades }).then((tpl) => {
       if (App.world !== world) return;
       const s = lm.s ?? lm.at * track.length, side = lm.side || Math.sign(lm.d) || 1;
       const c = track.at(s), edge = side > 0 ? c.wr : c.wl;
@@ -189,8 +205,11 @@ export async function startRace(opts = {}) {
   if (o.mode === 'battle') App.race = makeBattle(track, { human: o.team, seed: o.seed, classId: o.classId, autoplay: o.autoplay, count: o.count });
   else if (o.mode === 'row') App.race = makeHeat(track, { teams: o.heatTeams, human: o.team, seed: o.seed, stops: o.stops, label: o.label, autoplay: o.autoplay, classId: o.classId });
   else App.race = makeRace(track, { laps: o.laps, classId: o.classId, player: o.team, seed: o.seed, mode: o.mode, noItems: o.noItems ?? o.mode === 'timetrial', count, autoplay: o.autoplay, rivals: o.rivals });
-  App.views = App.race.karts.map((k) => {
-    const v = new KartView(window.THREE, k.team);
+  // dusk and sunset courses: a fill lifts the crews off the darker road
+  const dusk = /dusk|sunset/.test((track.json && track.json.env && track.json.env.time) || '');
+  App.views = App.race.karts.map((k, i) => {
+    const v = new KartView(window.THREE, k.team, { hero: i === App.race.player });
+    v.mat.uniforms.uFill.value = dusk ? 0.22 : 0;
     App.renderer.scene.add(v.shadow);
     App.renderer.scene.add(v.mesh);
     return v;
@@ -408,7 +427,7 @@ function setPreview(teamId) {
   if (App.preview && App.preview.team === teamId) return;
   if (App.preview) { App.renderer.scene.remove(App.preview.view.mesh); App.renderer.scene.remove(App.preview.view.shadow); App.preview.view.geo.dispose(); App.preview = null; }
   if (!teamId) return;
-  const view = new KartView(window.THREE, teamId);
+  const view = new KartView(window.THREE, teamId, { hero: true });
   App.renderer.scene.add(view.mesh); App.renderer.scene.add(view.shadow);
   App.preview = { team: teamId, view, k: { id: 0, vf: 0, yawRate: 0, drift: 0, steer: 0, boostT: 0, air: false, state: 'run', items: { towel: true, mat: true, soap: true, loofah: true }, runPhase: 0, water: { gal: 38, cap: 38, tf: 0, tr: 0 } } };
 }
@@ -533,7 +552,7 @@ function frame(t) {
     drawRace(r, alpha, dt);
     tubLoop(r.player >= 0 ? r.karts[r.player] : null, dt, !App.paused && !App.testPaused && r.phase !== 'done');
     const down = App.governor.frame(dt, !App.paused && !App.testPaused);
-    if (down) { App.tier = down; if (down === 'low' && App.shadow) App.shadow.setEnabled(false); const env = App.track.json.env || {}; App.renderer.setEnv({ ...env, fog: env.fog ? [Math.min(env.fog[0], TIERS[down].fogFar * 0.4), Math.min(env.fog[1], TIERS[down].fogFar)] : undefined }); }
+    if (down) { App.tier = down; if (App.renderer.ssao) { App.renderer.ssao.dispose(); App.renderer.ssao = null; } if (down === 'low' && App.shadow) App.shadow.setEnabled(false); const env = App.track.json.env || {}; App.renderer.setEnv({ ...env, fog: env.fog ? [Math.min(env.fog[0], TIERS[down].fogFar * 0.4), Math.min(env.fog[1], TIERS[down].fogFar)] : undefined }); }
   } else {
     tubLoop(null, dt, false);
     drawAttract(dt);
@@ -558,12 +577,23 @@ function drawRace(r, alpha, dt) {
     const p = App.prev[i] || k;
     const pose = { x: p.x + (k.x - p.x) * alpha, y: p.y + (k.y - p.y) * alpha, z: p.z + (k.z - p.z) * alpha, yaw: lerpAngle(p.yaw, k.yaw, alpha) };
     pose.groundY = tr.surface(pose.x, pose.z, k.s).h;
+    // the ground's normal under the tub, from the surface 1.2 m either side (lays the contact shadow and ring on it)
+    const hx = tr.surface(pose.x + 1.2, pose.z, k.s).h - tr.surface(pose.x - 1.2, pose.z, k.s).h, hz = tr.surface(pose.x, pose.z + 1.2, k.s).h - tr.surface(pose.x, pose.z - 1.2, k.s).h;
+    const gl = Math.hypot(hx, 2.4, hz); pose.gn = [-hx / gl, 2.4 / gl, -hz / gl];
     App.views[i].update(k, pose, App.paused ? 0 : dt, App.time);
-    // a rival tub right in front of the chase camera fades (screen door) so the player's own tub stays in view; only
-    // while it is nearer the camera than the player's tub, and never in close-up shots
-    if (i !== r.player && r.player >= 0) { const cam = App.renderer.camera.position, dd = Math.hypot(cam.x - pose.x, cam.z - pose.z), pp = r.karts[r.player], dp = Math.hypot(cam.x - pp.x, cam.z - pp.z); App.views[i].mat.uniforms.uFade.value = !App.camOverride && dd < 4.5 && dd < dp ? Math.min(0.75, (4.5 - dd) / 3) : 0; }
-    if (i === r.player || (r.player < 0 && i === 0)) App.camPose = { k, pose };
+    // a rival tub in the sightline from the chase camera to the player's tub steps aside (fades out over a short band,
+    // since a half-faded tub that close reads as a ghost) so the player's own tub stays in view; never in close-ups
+    if (i !== r.player && r.player >= 0) {
+      const cam = App.renderer.camera.position, pp = r.karts[r.player], ax = pp.x - cam.x, az = pp.z - cam.z, l2 = ax * ax + az * az || 1;
+      const t = Math.max(0, Math.min(1, ((pose.x - cam.x) * ax + (pose.z - cam.z) * az) / l2)), off = Math.hypot(pose.x - cam.x - ax * t, pose.z - cam.z - az * t);
+      App.views[i].mat.uniforms.uFade.value = !App.camOverride && t > 0.02 && t < 0.9 && off < 2.4 ? Math.min(1, (2.4 - off) / 0.5) : 0;
+    }
+    if (i === r.player || (r.player < 0 && i === 0)) { App.camPose = { k, pose }; setFocus(pose.x, pose.y, pose.z); }
   });
+  App.footBlobs.set(App.views);
+  // the player's marker waits out the countdown (READY sits where it floats)
+  const pv = App.views[r.player];
+  if (pv && pv.marker) pv.marker.visible = r.phase !== 'countdown';
   if (App.ghost && App.ghostView) {
     const gp = ghostPose(App.ghost, r.time);
     App.ghostView.mesh.visible = !!gp;
@@ -623,14 +653,15 @@ function drawAttract(dt) {
     App.preview.k.runPhase = App.time * 3;
     App.preview.pose = pose;
     App.preview.view.update(App.preview.k, pose, dt, App.time);
+    App.footBlobs.set([App.preview.view]);
     // on wide screens the menu panel sits on the left, so aim left of the tub to show it on the right; on tall
     // (portrait) screens the panel fills the bottom, so step back and aim below the tub to lift it into the top third
     const aspect = App.renderer.size.w / App.renderer.size.h, wide = aspect > 1.3 ? 1 : 0, tall = aspect < 0.8 ? 1 : 0;
-    const back = 5.5 + tall * 2.5;
+    const back = 5.5 + tall * 3.2;
     cam.position.set(pc.x - pc.tz * 3.2 - pc.tx * back, pc.y + 2.6 + tall * 0.6, pc.z + pc.tx * 3.2 - pc.tz * back);
     const lx = -(pp.z - cam.position.z), lz = pp.x - cam.position.x, ll = Math.hypot(lx, lz) || 1;
-    cam.lookAt(pp.x - (lx / ll) * 2.6 * wide, pp.y + 0.9 - tall * 3.2, pp.z - (lz / ll) * 2.6 * wide);
-  }
+    cam.lookAt(pp.x - (lx / ll) * 2.6 * wide, pp.y + 0.9 - tall * 4.4, pp.z - (lz / ll) * 2.6 * wide);
+  } else App.footBlobs.set([]);
   if (App.camOverride) { const o = App.camOverride; cam.position.set(o.pos[0], o.pos[1], o.pos[2]); cam.lookAt(o.target[0], o.target[1], o.target[2]); }
   if (cam.fov !== App.renderer.baseFov) { cam.fov = App.renderer.baseFov; cam.updateProjectionMatrix(); }
   if (App.sky) App.sky.position.copy(cam.position).setY(0);

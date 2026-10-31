@@ -1,0 +1,12 @@
+{
+  "perf": {
+    "pass": true,
+    "checked": 52,
+    "failed": []
+  },
+  "fidelity": null,
+  "ip": {
+    "pass": true,
+    "note": "developer check: crews unchanged in silhouette (rounded-cube heads, straight torsos, mitten fists); spectators gained printed dot eyes and a smile on the same box heads; no LEGO name or logo in source, UI or captures; critics re-check"
+  }
+}

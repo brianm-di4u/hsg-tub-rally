@@ -1,0 +1,213 @@
+[
+  {
+    "id": "G-team-select-mobile",
+    "category": "mobile",
+    "expectedGain": 1.25,
+    "severity": 4,
+    "effort": "S",
+    "workstream": "WS6",
+    "evidence": [
+      "high/landscape/R02",
+      "high/mobile/R02",
+      "ab/high-landscape-R02",
+      "ab/high-mobile-R02"
+    ],
+    "benchmark": "2k-drive/drive-3.jpg",
+    "fix": "Make Choose and Back a fixed footer outside the panel's scroll region (flex column, footer flex: none, panel max-height 100dvh minus safe areas); landscape: two columns, the 4x3 team grid on the left, details, stats and both buttons on the right; portrait: cap the tub preview height so panel plus footer fit 844 px. Test: at 844x390 and 390x844, both buttons fully inside the viewport, Handling and Water rows unclipped, and the tub's wheels clear of the panel. Gain split +0.75 mobile, +0.25 ui, +0.25 typography. Merges G-mobile-selector; severity 4 (regression from a known-good layout).",
+    "priority": 1.875,
+    "selected": true
+  },
+  {
+    "id": "G-barrier-rail-orientation",
+    "category": "scenery",
+    "expectedGain": 0.75,
+    "severity": 4,
+    "effort": "S",
+    "workstream": "WS5",
+    "evidence": [
+      "high/desktop/R13",
+      "high/desktop/R15",
+      "high/desktop/R05",
+      "high/desktop/R03",
+      "high/desktop/R01",
+      "strips/high/R14",
+      "high/desktop/R08"
+    ],
+    "fix": "Build each rail segment from consecutive post positions (yaw from the post-to-post vector, length equal to post spacing), keep runs at least 0.3 m on the sidewalk side of the curb, end every run on a post, and skip segments whose footprint hits a spectator or lamp. In the same prop pass, run a continuous 1x1 core through each pine's full height and replace the tan pine tint with a green. Test: in R01, R03, R05, R13 and R15 no rail pixel lies road-side of the curb line and every rail ends at a post; in R08, column x722-730 shows no sky between tiers. Gain split +0.5 scenery, +0.25 readability.",
+    "priority": 1.125,
+    "selected": true
+  },
+  {
+    "id": "G-marker-on-rival",
+    "category": "readability",
+    "expectedGain": 0.75,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS6",
+    "evidence": [
+      "high/desktop/R04",
+      "high/mobile/R04",
+      "high/mobile/R03",
+      "high/desktop/R03",
+      "strips/high/R14"
+    ],
+    "fix": "Anchor the cone about 0.3 m above the player captain's hat, cap its on-screen width at 28 CSS px, keep it a camera-facing upright billboard (no yaw skew), and hide it during the countdown; if its screen box overlaps a rival crew, drop it to hat height or switch to a team-colour ground ring under the player's tub. Test: in desktop R03 and R04 and mobile R03 and R04 the tip is within 20 CSS px of the player captain's hat and overlaps no rival; in strips/high/R14 frames 3-8 it stays a symmetric upright triangle; no overlap with READY in R03. Gain split +0.5 readability, +0.25 mobile.",
+    "priority": 1.125,
+    "selected": true
+  },
+  {
+    "id": "G-no-ao-dusk-murk",
+    "category": "lighting",
+    "expectedGain": 1.25,
+    "severity": 4,
+    "effort": "M",
+    "workstream": "WS1",
+    "evidence": [
+      "crops/high/R03-kart_5",
+      "high/desktop/R07",
+      "high/desktop/R11",
+      "high/desktop/R06"
+    ],
+    "benchmark": "worlds/worlds-4.jpg",
+    "fix": "Half-res SSAO or GTAO on High and baked vertex AO on building bases and props on Medium and Low; a soft contact-shadow decal under each boot and wheel; at dusk and sunset, lamp light that pools on the road (point lights on High, projected light decals on Low) and about 30% more hemisphere fill. Test: road at the crew's toes in crops/high/R03-kart_5 at most 0.8x open road (now 88.5 vs 91.6); in R07 road within 3 m of a lit lamp at least 1.3x road between lamps; R11 pack-box RMS luminance deviation from road at least 35 (now about 22). These replace the crew/road >= 2.0 test, which black-uniformed teams fail at noon. Gain split +1.0 lighting, +0.25 readability. Merges G-contact-lighting.",
+    "priority": 0.938,
+    "selected": true
+  },
+  {
+    "id": "G-dither-speckle",
+    "category": "readability",
+    "expectedGain": 1,
+    "severity": 4,
+    "effort": "M",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R11",
+      "high/desktop/R15",
+      "high/desktop/R08",
+      "high/desktop/R09",
+      "strips/high/R16"
+    ],
+    "fix": "Replace the per-pixel screen-door fade with alpha-to-coverage under MSAA (or a stable 4x4 Bayer pattern plus a 1-px blur on the faded layer), keep tree trunks at least 9 m from the racing line so canopies rarely enter the fade band, and fade rivals only where they overlap the player's tub. Test: mean |dx| of L at most 3.0 in R11 x950-1250,y150-400 (now 11.4), R15 x0-140,y190-330 (now 12.9) and R08 x0-250,y60-250 (now 7.7). Gain split +0.5 readability, +0.25 materials, +0.25 scenery.",
+    "priority": 0.75,
+    "selected": true
+  },
+  {
+    "id": "G-surface-registration",
+    "category": "materials",
+    "expectedGain": 0.5,
+    "severity": 2,
+    "effort": "S",
+    "workstream": "WS4",
+    "evidence": [
+      "high/desktop/R06",
+      "high/desktop/R13",
+      "high/desktop/R08"
+    ],
+    "fix": "Snap the Arlington's navy window panels to the painted window grid, or remove the painted windows under them; weld road-strip vertices at centrelines and junctions and exclude road meshes from the seam-darkening term. Test: in R06 each panel covers exactly one painted window with no painted frame beside it; in R08 and R13 no dark line more than 15 L below the road and longer than 20 px outside painted markings.",
+    "priority": 0.75,
+    "selected": true
+  },
+  {
+    "id": "G-action-feedback",
+    "category": "animation",
+    "expectedGain": 0.75,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS3",
+    "evidence": [
+      "strips/high/R14",
+      "strips/high/R15",
+      "high/desktop/R17"
+    ],
+    "benchmark": "2k-drive/drive-3.jpg",
+    "fix": "Replace flat discs with smaller, partly transparent 1x1 round-plate and stud particles that tumble under gravity, with screen coverage over the player's tub capped at about 30%; emit white steam plates while hot steam charges; +4 degree FOV kick and 80 ms shake on slide release and hits; tilt the tub-water plane with lateral acceleration; on rail contact, push the tub back instead of passing through. Test: steam visible in R14 frames 3-8, water plane tilted in at least 3 frames, captain visible in R15 frames 3-6, no rail through the tub or crew in R14 frame 8.",
+    "priority": 0.563,
+    "selected": false
+  },
+  {
+    "id": "G-judges-hidden",
+    "category": "authenticity",
+    "expectedGain": 0.5,
+    "severity": 2,
+    "effort": "S",
+    "workstream": "WS5",
+    "evidence": [
+      "high/desktop/R16",
+      "strips/high/R16"
+    ],
+    "fix": "Stand both striped judges on the road side of the booth, facing traffic, with clipboards raised, and replace the flat rectangular flag board with a feather-flag shape (curved top, tapered free edge) set beside them. Test: both judges fully visible, unoccluded by booth or flag, in high/desktop/R16 and strips/high/R16 frames 1-3. Gain split +0.25 authenticity, +0.25 readability.",
+    "priority": 0.5,
+    "selected": false
+  },
+  {
+    "id": "G-ouachita-backdrop-vista",
+    "category": "authenticity",
+    "expectedGain": 1,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS4",
+    "evidence": [
+      "high/desktop/R06",
+      "high/desktop/R04",
+      "high/desktop/R14",
+      "high/desktop/R08"
+    ],
+    "fix": "Replace the blurred photographic panorama and pale band with 2-3 layers of brick-stepped green ridgelines, extend the terrain to meet them, and set the fog colour to the horizon sky; place the Arlington (or a far LOD of it) so it terminates the Central Avenue sightline. Test: in R06 no horizon band brighter than both neighbours (now L 183 vs 150 hills and 144 grass); the Arlington visible at the end of the road in R04 and R14. Gain split +0.5 authenticity, +0.25 scenery, +0.25 lighting. Merges G-world-edge.",
+    "priority": 0.5,
+    "selected": false
+  },
+  {
+    "id": "G-course-set-pieces",
+    "category": "authenticity",
+    "expectedGain": 0.75,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS4",
+    "evidence": [
+      "high/desktop/R09",
+      "high/desktop/R17",
+      "high/desktop/R13",
+      "high/desktop/R10"
+    ],
+    "fix": "R09: a stepped grey brick Goat Rock outcrop at the roadside and a translucent blue water ford across the road with spray (water, not the tan tiles added this loop); R17: a fountain centrepiece, benches and trees in Hill Wheatley Plaza; R13: one identifying Bridge Street feature; one hero prop per mountain course (R08, R10, R11, R12). Test: each named landmark visible in its capture. Gain split +0.5 authenticity, +0.25 scenery.",
+    "priority": 0.375,
+    "selected": false
+  },
+  {
+    "id": "G-figure-tub-detail",
+    "category": "characters",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS2",
+    "evidence": [
+      "crops/high/R03-player-rear",
+      "crops/high/R03-kart_5",
+      "crops/high/R04-kart_3",
+      "high/desktop/R04"
+    ],
+    "benchmark": "2k-drive/drive-4.jpg",
+    "fix": "Add a hair or hat-back print per team; re-bake torso prints at 512 px or more per face (or SDF decals); give each team its own back motif instead of the shared X; build the tub body from stacked curved-slope bricks with visible seams; add wheel tread and hub detail; cap specular and rim on dark albedo (the leg face is sun-specular, not only rim). Faces already vary and part joins already exist, so those are out of scope. Test: R03-player-rear shows head-back prints and print edges ramp 4 px or less at 2x; the R04-kart_3 raised leg is at most 1.6x the shaded leg's luminance (now (124,128,126)).",
+    "priority": 0.375,
+    "selected": false
+  },
+  {
+    "id": "G-painted-boxes",
+    "category": "materials",
+    "expectedGain": 1,
+    "severity": 4,
+    "effort": "L",
+    "workstream": "WS4",
+    "evidence": [
+      "high/desktop/R13",
+      "high/desktop/R04",
+      "crops/high/R03-kart_5",
+      "high/desktop/R17"
+    ],
+    "benchmark": "worlds/worlds-1.jpg",
+    "fix": "BIG LEVER for this loop. An instanced brick facade kit for commercial blocks (brick window frames with recessed transparent panes, sills, slope-brick awnings, pilasters and cornice plates) replacing painted fronts on boxes within about 80 m of the road; painted textures only as far LOD. Test: R04 and R13 facades show relief, with window recesses at least 15 L darker than the wall face, and crops/high/R03-kart_5 shows no magnified painted facade. Gain split +0.5 materials, +0.5 scenery. Merges G-building-depth.",
+    "priority": 0.375,
+    "bigLever": true,
+    "selected": true
+  }
+]

@@ -36,8 +36,17 @@ export class Fx {
     const pm = new THREE.ShaderMaterial({
       uniforms: { uScale: { value: 300 } },
       vertexShader: `attribute vec3 color; attribute float aSize; varying vec3 vC; uniform float uScale;
-        void main(){ vC = color; vec4 mv = modelViewMatrix * vec4(position,1.0); gl_PointSize = aSize * uScale / max(1.0, -mv.z); gl_Position = projectionMatrix * mv; }`,
-      fragmentShader: `varying vec3 vC; void main(){ vec2 d = gl_PointCoord - 0.5; if (dot(d,d) > 0.25) discard; gl_FragColor = vec4(vC, 1.0); }`,
+        void main(){ vC = color; vec4 mv = modelViewMatrix * vec4(position,1.0); gl_PointSize = min(aSize * uScale / max(1.0, -mv.z), uScale * 0.026) * smoothstep(1.5, 3.5, -mv.z); gl_Position = projectionMatrix * mv; }`,
+      // (point size shrinks to nothing within ~3 m of the camera, so no bead balloons at the lens)
+      // each particle is a glossy plastic bead: a sphere normal from the point coordinate, soft key light, a
+      // specular highlight and a darker rim, so spray and steam read as toy droplets rather than flat discs
+      fragmentShader: `varying vec3 vC; void main(){
+        vec2 d = (gl_PointCoord - 0.5) * 2.0; float r2 = dot(d, d); if (r2 > 1.0) discard;
+        vec3 n = vec3(d.x, -d.y, sqrt(1.0 - r2));
+        float diff = 0.6 + 0.4 * max(dot(n, vec3(-0.42, 0.56, 0.71)), 0.0);
+        float spec = pow(max(dot(n, vec3(-0.33, 0.5, 0.8)), 0.0), 28.0);
+        vec3 c = vC * diff * (1.0 - 0.3 * smoothstep(0.7, 1.0, r2)) + vec3(0.85 * spec);
+        gl_FragColor = vec4(c, 1.0); }`,
       transparent: false, depthWrite: true,
     });
     this.points = new THREE.Points(g, pm); this.points.frustumCulled = false;
@@ -106,8 +115,9 @@ export class Fx {
       const c = track.at(j.s), side = j.side, w = side > 0 ? c.wr : c.wl;
       const yaw = Math.atan2(c.tx, c.tz);
       const p = track.point(j.s, side * (w + 3.2));
-      buildProp('judge', g, [p.x, track.heightAt(c, side * (w + 3.2)), p.z], yaw + (side > 0 ? -Math.PI / 2 : Math.PI / 2), 1);
-      for (const ds of [-j.len / 2, j.len / 2]) {
+      buildProp('judge', g, [p.x, track.heightAt(c, side * (w + 3.2)), p.z], yaw + (side > 0 ? Math.PI / 2 : -Math.PI / 2), 1); // booth front (and its judges) toward the road
+      // the flag before the booth would stand between the chase camera and the judges: only the one after it
+      for (const ds of [j.len / 2]) {
         const q = track.point(j.s + ds, side * (w + 0.4)), cc = track.at(j.s + ds);
         buildProp('flag', g, [q.x, track.heightAt(cc, side * w), q.z], yaw, 1);
       }
@@ -116,6 +126,7 @@ export class Fx {
     for (const st of (race.row && race.row.stops) || []) {
       const c = track.at(st.s), yaw = Math.atan2(c.tx, c.tz);
       for (const side of [-1, 1]) for (const ds of [-st.len / 2, st.len / 2]) {
+        if (side < 0 && ds < 0) continue; // the booth side: no flag between the camera and the judges
         const cc = track.at(st.s + ds), w = side > 0 ? cc.wr : cc.wl, q = track.point(st.s + ds, side * (w + 0.4));
         buildProp('flag', g, [q.x, track.heightAt(cc, side * w), q.z], yaw, 1);
       }
@@ -126,7 +137,7 @@ export class Fx {
         g.quad(P(ca, -ca.wl), P(ca, ca.wr), P(cb, cb.wr), P(cb, -cb.wl), paint);
       }
       const pj = track.point(st.s, -(c.wl + 3.4));
-      buildProp('judge', g, [pj.x, track.heightAt(c, -(c.wl + 3.4)), pj.z], yaw + Math.PI / 2, 1);
+      buildProp('judge', g, [pj.x, track.heightAt(c, -(c.wl + 3.4)), pj.z], yaw - Math.PI / 2, 1);
     }
     if (race.row) { // finish line cones across Central at the Exchange Street crosswalk
       const c = track.at(race.row.s1), yaw = Math.atan2(c.tx, c.tz);
@@ -192,15 +203,16 @@ export class Fx {
       if (k.water.spillFx > 0.05 && !reduced) this.burst(k.x, k.y + 1.0, k.z, Math.ceil(k.water.spillFx * 3), [0.55, 0.82, 0.95], { speed: 2.5, up: 3, size: 0.2, life: 0.6 });
       // power slide: wheel spray while charging, then steam that grows and warms with each stage
       if (k.drift) {
-        const st = k.stage || 0, col = st === 2 ? [1, 0.55, 0.42] : st === 1 ? [0.97, 0.98, 1] : [0.78, 0.76, 0.72];
-        for (const sgn of [-1, 1]) this.burst(k.x - fx * 0.7 + fz * 0.55 * sgn, k.y + 0.15, k.z - fz * 0.7 - fx * 0.55 * sgn, 1 + st, col, { speed: 0.9 + st * 0.5, up: 1.2 + st * 0.9, size: 0.26 + st * 0.14, life: 0.35 + st * 0.15, grav: st ? -0.5 : 4 });
+        // stage 0 throws water spray, stage 1 white steam, stage 2 hot steam; all of it trails behind the tub
+        const st = k.stage || 0, col = st === 2 ? [1, 0.55, 0.42] : st === 1 ? [0.97, 0.98, 1] : [0.72, 0.87, 0.98];
+        for (const sgn of [-1, 1]) this.burst(k.x - fx * 0.7 + fz * 0.55 * sgn, k.y + 0.15, k.z - fz * 0.7 - fx * 0.55 * sgn, 2 + st, col, { speed: 0.7 + st * 0.4, up: 0.9 + st * 0.8, size: 0.24 + st * 0.12, life: 0.3 + st * 0.12, grav: st ? -0.5 : 6, vx: fz * sgn * 1.8 - fx * 0.4, vz: -fx * sgn * 1.8 - fz * 0.4, spread: 0.15 });
       }
-      if ((k.boostT > 0 || k.hoseT > 0) && !reduced) this.burst(k.x - fx * 1.6, k.y + 0.6, k.z - fz * 1.6, 2, k.hoseT > 0 ? [0.6, 0.85, 1] : [0.96, 0.96, 0.98], { speed: 0.6, up: 1, size: 0.35, life: 0.45, grav: -1, vx: -fx * 3, vz: -fz * 3 });
+      if ((k.boostT > 0 || k.hoseT > 0) && !reduced) this.burst(k.x - fx * 1.6, k.y + 0.6, k.z - fz * 1.6, 2, k.hoseT > 0 ? [0.6, 0.85, 1] : [0.96, 0.96, 0.98], { speed: 0.6, up: 1, size: 0.22, life: 0.4, grav: -1, vx: -fx * 1.5, vz: -fz * 1.5 });
       if (k.sprayT > 0) this.burst(k.x + fx * 1.4, k.y + 1.0, k.z + fz * 1.4, 3, [0.5, 0.8, 1], { speed: 0.5, up: 1.2, size: 0.16, life: 0.5, grav: 9, vx: fx * 16 + Math.sin(k.yaw) * 0, vz: fz * 16, spread: 0.2 });
       }
     }
     for (const { k, e } of events) {
-      if (e.type === 'hit' || e.type === 'fumble') this.burst(k.x, k.y + 1.1, k.z, reduced ? 6 : 18, [0.55, 0.82, 0.95], { speed: 4, up: 5, size: 0.24, life: 0.8 });
+      if (e.type === 'hit' || e.type === 'fumble') this.burst(k.x, k.y + 1.1, k.z, reduced ? 6 : 12, [0.55, 0.82, 0.95], { speed: 4, up: 5, size: 0.17, life: 0.8 }); // small enough to keep the crew in view
       if (e.type === 'pickup') this.burst(k.x, k.y + 1.6, k.z, 10, [0.9, 0.8, 1], { speed: 2, up: 2, size: 0.18, life: 0.5, grav: 0 });
       if (e.type === 'ticket') this.burst(k.x, k.y + 1.4, k.z, 5, [0.95, 0.76, 0.19], { speed: 1.5, up: 2, size: 0.15, life: 0.4, grav: 2 });
       if (e.type === 'bribe') this.burst(k.x, k.y + 1.6, k.z, 14, [0.95, 0.76, 0.19], { speed: 3, up: 4, size: 0.2, life: 0.8 });

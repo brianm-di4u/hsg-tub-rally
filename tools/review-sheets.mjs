@@ -67,8 +67,10 @@ if (abSet) {
     const o = old.shots.find((x) => x.id === s.id && x.viewport === s.viewport && x.tier === s.tier) || old.shots.find((x) => x.id === s.id && x.viewport === s.viewport);
     if (!o) continue;
     const both = [[path.join(GAME, 'screenshots', abSet, o.file), path.join(dir, s.file), `${s.tier}-${s.viewport}-${s.id}`]];
-    for (const c of s.crops) { const oc = o.crops.find((x) => path.basename(x.file) === path.basename(c.file)); if (oc) both.push([path.join(GAME, 'screenshots', abSet, oc.file), path.join(dir, c.file), `crop-${path.basename(c.file, '.png')}`]); }
-    if (s.strip && o.strip) both.push([path.join(GAME, 'screenshots', abSet, o.strip), path.join(dir, s.strip), `strip-${s.id}`]);
+    // close-up and strip pairs are named without the tier, so they come from the scored tier (high) only; Low ones
+    // used to overwrite them
+    if (s.tier === 'high') for (const c of s.crops) { const oc = o.crops.find((x) => path.basename(x.file) === path.basename(c.file)); if (oc) both.push([path.join(GAME, 'screenshots', abSet, oc.file), path.join(dir, c.file), `crop-${path.basename(c.file, '.png')}`]); }
+    if (s.tier === 'high' && s.strip && o.strip) both.push([path.join(GAME, 'screenshots', abSet, o.strip), path.join(dir, s.strip), `strip-${s.id}`]);
     for (const [fo, fn, name] of both) {
       const [a, b] = newIsA ? [fn, fo] : [fo, fn];
       pairs.push(await sheet([{ url: url(a), label: 'A' }, { url: url(b), label: 'B' }], 2, name.startsWith('strip') ? 960 : 640, path.join(dir, 'ab', `${name}.png`)));

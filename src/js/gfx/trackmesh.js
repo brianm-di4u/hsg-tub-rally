@@ -9,13 +9,13 @@ import { worldMat, PAL, snapPal } from './brickmat.js';
 import { tex, hasArt } from './textures.js';
 import { VERGE, LIMIT } from '../sim/track.js';
 import { buildProp, PROP_KIND } from './props.js';
-import { buildBrickFlora } from './bricktrees.js';
+import { buildBrickFlora, buildGroundDressing } from './bricktrees.js';
 
 const CHUNK = 60; // samples per chunk
 const SURF_TEX = ['asphalt', 'brick', 'concrete', 'dirt', 'dirt', 'concrete'];
 // road surfaces as toy plates: colour, tile size (m) and pattern; dirt reads as a studded tan plate
 const SURF = {
-  asphalt: { col: '#55585A', tile: 8.96, pattern: 'tiles', gloss: 0.15 }, // 32 × 32 road plates
+  asphalt: { col: '#55585A', tile: 8.96, pattern: 'grain', gloss: 0.32 }, // a fine grain, no seams (plate seams read as cracks across the lanes)
   brick: { col: PAL.reddishBrown, tile: 0.56, pattern: 'tiles', gloss: 0.2 }, // 2 × 2 tiles
   concrete: { col: PAL.lightGrey, tile: 1.12, pattern: 'tiles', gloss: 0.2 }, // 4 × 4 tiles
   dirt: { col: '#B97A4A', tile: 1.12, pattern: 'tiles', gloss: 0.2 }, // Ouachita clay: smooth tiles, studs stay off the road
@@ -69,6 +69,8 @@ export function buildTrackWorld(THREE, track, env = {}) {
     return (safe[k][i] = ok);
   };
 
+  // verge dressing collected while the terrain is built (half as dense on Low)
+  const dress = { shrub: [], flower: [], rock: [] }, dressEvery = (env.boards ?? 1) < 1 ? 4 : 2;
   for (let i = 0; i < n; i++) {
     const j = track.wrap(i + 1);
     if (!track.closed && j === i) break;
@@ -144,6 +146,13 @@ export function buildTrackWorld(THREE, track, env = {}) {
         const yA1 = verge === VERGE.CURB && Math.abs(dA1) <= edge1 + 0.01 ? track.heightAt(c1, side * w1) + 0.16 : track.heightAt(c1, dA1);
         const yB0 = track.heightAt(c0, dB0), yB1 = track.heightAt(c1, dB1);
         const steep = Math.abs(yB0 - yA0) / Math.max(1, Math.abs(dB0 - dA0));
+        // verge dressing on gentle grass a few metres past the edge: shrubs, flower clusters and rocks
+        if (m === 0 && steep < 0.35 && reach > 6 && i % (dressEvery) === 0) {
+          for (let r = 0; r < 2; r++) {
+            const hh = hash(i * 4 + r * 2 + (side > 0 ? 1 : 0), 31), d = side * (Math.max(w0, edge0) + 1.8 + r * 4 + hh * Math.min(reach - 6, 6)), kind = hh < 0.5 ? 'shrub' : hh < 0.82 ? 'flower' : 'rock';
+            dress[kind].push({ x: c0.x - c0.tz * d, y: track.heightAt(c0, d), z: c0.z + c0.tx * d, sc: kind === 'flower' ? 1.2 : 1.0 + hash(i * 2 + r, 33) * 0.9, yaw: hash(i * 2 + r, 35) * Math.PI * 2 });
+          }
+        }
         // whole-plate colour patches (no per-vertex noise: toy plates are one colour)
         const base = steep > 0.7 ? rockCol : hash(Math.floor(i / 6), m) < 0.22 ? grassDark : grassCol;
         const cA = base, cB = base;
@@ -174,7 +183,7 @@ export function buildTrackWorld(THREE, track, env = {}) {
   const NEON = ['#FF4FA3', '#4FE3FF', '#FFE14F', '#7CFF6B', '#FF8A3D'].map(hex);
   for (const b of track.json.buildings || []) {
     const ch = Math.floor(nearestSample(track, b.fp[0][0], b.fp[0][1]) / CHUNK);
-    buildBlock(geoFor, ch, b, mat);
+    buildBlock(geoFor, ch, b, mat, env.kit);
     if (env.neon && b.style !== 'bathhouse') {
       // a glowing band across the front at shop-sign height (generic colour strips; no lettering or logos)
       const geo = geoFor('neon', () => worldMat({ emissive: true }), ch);
@@ -182,7 +191,8 @@ export function buildTrackWorld(THREE, track, env = {}) {
       const len = Math.hypot(B[0] - A[0], B[1] - A[1]);
       if (len > 4) {
         const nx = -(B[1] - A[1]) / len * 0.08, nz = (B[0] - A[0]) / len * 0.08, y = b.base + 4.2, col = NEON[Math.floor(hash(Math.round(A[0] * 5 + A[1]), 4) * NEON.length)];
-        geo.quad([A[0] + nx, y, A[1] + nz], [B[0] + nx, y, B[1] + nz], [B[0] + nx, y + 0.45, B[1] + nz], [A[0] + nx, y + 0.45, A[1] + nz], col);
+        const lo = mul(col, 0.62), hi = mul(col, 0.92);
+        geo.quad([A[0] + nx, y, A[1] + nz], [B[0] + nx, y, B[1] + nz], [B[0] + nx, y + 0.45, B[1] + nz], [A[0] + nx, y + 0.45, A[1] + nz], null, null, [lo, lo, hi, hi]);
       }
     }
   }
@@ -202,6 +212,26 @@ export function buildTrackWorld(THREE, track, env = {}) {
       if (glow) pools.push([p.x, y, p.z]);
     }
   }
+  // creek fords (the sim's refill zones): a shallow sheet of clear blue tiles across the road and 1.5 m past each
+  // edge, with studded grey stepping stones along both banks
+  for (const zn of (track.zones || []).filter((z) => z.type === 'ford')) {
+    const ch = Math.min(nChunks - 1, Math.floor(zn.s0 / step / CHUNK));
+    const water = geoFor('ford', () => worldMat({ pattern: 'tiles', uvScale: 1, tile: 0.56, gloss: 0.95, transparent: true, alpha: 0.5, depthWrite: false }), ch);
+    const rocks = geoFor('rocks', () => mat({ pattern: 'studs', gloss: 0.4 }), ch), blue = hex('#3D9BE0'), grey = hex(PAL.darkGrey);
+    for (let s0 = zn.s0; s0 < zn.s1 - 0.01; s0 += 1) {
+      const s1 = Math.min(zn.s1, s0 + 1), c0 = track.at(s0), c1 = track.at(s1), n = 6;
+      const L0 = -(c0.wl + 1.5), R0 = c0.wr + 1.5, L1 = -(c1.wl + 1.5), R1 = c1.wr + 1.5;
+      for (let k = 0; k < n; k++) {
+        const a0 = L0 + ((R0 - L0) * k) / n, b0 = L0 + ((R0 - L0) * (k + 1)) / n, a1 = L1 + ((R1 - L1) * k) / n, b1 = L1 + ((R1 - L1) * (k + 1)) / n;
+        water.quad(P(c0, a0, 0.08), P(c0, b0, 0.08), P(c1, b1, 0.08), P(c1, a1, 0.08), blue, [[a0, s0], [b0, s0], [b1, s1], [a1, s1]]);
+      }
+    }
+    for (let s0 = zn.s0 - 2; s0 <= zn.s1 + 2; s0 += 2.2) for (const side of [-1, 1]) {
+      const c = track.at(s0), d = side * ((side > 0 ? c.wr : c.wl) + 2.2 + hash(Math.round(s0 * 10), side + 3) * 1.2);
+      const h = 0.25 + hash(Math.round(s0 * 10), side + 7) * 0.35, w = 0.35 + hash(Math.round(s0 * 10), side + 9) * 0.35, q = P(c, d, 0);
+      rocks.obox([q[0], q[1] + h - 0.1, q[2]], [w, h, w * 0.8], grey, hash(Math.round(s0 * 10), side + 11) * Math.PI);
+    }
+  }
   // upload
   let tris = 0, draws = 0;
   for (const [key, b] of Object.entries(buckets)) {
@@ -210,7 +240,7 @@ export function buildTrackWorld(THREE, track, env = {}) {
       if (/^(road:|terrain|sidewalk)/.test(key)) g.smooth();
       const mesh = new THREE.Mesh(g.build(THREE), b.mat);
       mesh.name = `${key}#${ci}`;
-      mesh.userData.caster = /^(bldg|facade:|props|wall|rail)/.test(key);
+      mesh.userData.caster = /^(bldg|kitwall|facade:|props|wall|rail|rocks)/.test(key);
       mesh.matrixAutoUpdate = false;
       group.add(mesh);
       tris += g.count / 3; draws++;
@@ -218,7 +248,7 @@ export function buildTrackWorld(THREE, track, env = {}) {
   }
   if (pools.length) { const m = lightPools(THREE, pools, track); group.add(m); draws++; tris += pools.length * 2; }
   // trees and crowds: brick-built and instanced (the painted billboards remain only for kinds without a model)
-  const flora = buildBrickFlora(THREE, boards, track, { fansPerBoard: env.boards < 1 ? 4 : 6 });
+  const flora = buildBrickFlora(THREE, boards, track, { fansPerBoard: env.boards < 1 ? 4 : 6 }).concat(buildGroundDressing(THREE, dress));
   flora.forEach((m) => { group.add(m.mesh); tris += m.tris; draws++; });
   const rest = Object.fromEntries(Object.entries(boards).filter(([k]) => !['oak', 'magnolia', 'pine', 'crowd'].includes(k)));
   const bb = buildBillboards(THREE, rest);
@@ -231,9 +261,9 @@ export function buildTrackWorld(THREE, track, env = {}) {
 function lightPools(THREE, list) {
   const c = document.createElement('canvas'); c.width = c.height = 64;
   const x = c.getContext('2d'), gr = x.createRadialGradient(32, 32, 0, 32, 32, 32);
-  gr.addColorStop(0, 'rgba(255,214,140,0.55)'); gr.addColorStop(0.5, 'rgba(255,190,110,0.22)'); gr.addColorStop(1, 'rgba(255,170,90,0)');
+  gr.addColorStop(0, 'rgba(255,214,140,0.5)'); gr.addColorStop(0.5, 'rgba(255,190,110,0.24)'); gr.addColorStop(1, 'rgba(255,170,90,0)');
   x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
-  const pos = [], uv = [], R = 4.2;
+  const pos = [], uv = [], R = 6.5; // wide enough to reach the near lane from the sidewalk
   for (const [px, py, pz] of list) {
     const y = py + 0.08, q = [[px - R, pz - R, 0, 0], [px + R, pz - R, 1, 0], [px + R, pz + R, 1, 1], [px - R, pz + R, 0, 1]];
     for (const k of [0, 2, 1, 0, 3, 2]) { pos.push(q[k][0], y, q[k][1]); uv.push(q[k][2], q[k][3]); }
@@ -251,10 +281,12 @@ function nearestSample(track, x, z) { return Math.floor(track.locate(x, z).s / t
 
 // Building: extruded footprint polygon (any number of corners, wound so each edge's right side is outside);
 // the front edge (b.front) takes the facade texture. Roof: flat (ear-clipped) with a parapet colour, or a
-// shallow hip on four-cornered bathhouses.
-function buildBlock(geoFor, ch, b, mat) {
+// shallow hip on four-cornered bathhouses. With `kit` (Medium and High), commercial blocks are built instead of
+// painted: brick walls, framed windows and striped shop awnings (buildFacadeKit).
+function buildBlock(geoFor, ch, b, mat, kit) {
   const style = b.style || 'store';
   const facadeTex = facadeFor(b, style);
+  if (kit && style !== 'bathhouse' && facadeTex.startsWith('store')) return buildFacadeKit(geoFor, ch, b, mat);
   // the facade painting reads as a printed brick wall: bond seams over the print
   const front = geoFor('facade:' + facadeTex, () => mat({ map: tex(facadeTex), pattern: 'bricks', uvScale: 5, tile: 1.12, patAmt: 0.55, gloss: 0.4 }), ch);
   const plain = geoFor('bldg', () => mat({ pattern: 'studs', gloss: 0.45 }), ch);
@@ -275,11 +307,86 @@ function buildBlock(geoFor, ch, b, mat) {
     front.quad([A[0], y0, A[1]], [B[0], y0, B[1]], [B[0], ym, B[1]], [A[0], ym, A[1]], null, [[0, 0], [len / 5, 0], [len / 5, vm], [0, vm]], [foot, foot, wc, wc]);
     if (y1 > ym) front.quad([A[0], ym, A[1]], [B[0], ym, B[1]], [B[0], y1, B[1]], [A[0], y1, A[1]], wc, [[0, vm], [len / 5, vm], [len / 5, b.h / 5], [0, b.h / 5]]);
   }
+  // relief in light trim bricks: a projecting cornice at the roof line, a string course at every storey (5 m, the
+  // facade print's repeat) and a quoin at each corner, so the walls throw shadows and break their silhouette
+  const trimC = hex(style === 'bathhouse' ? PAL.white : hsh < 0.5 ? PAL.tan : PAL.lightGrey);
+  for (let e = 0; e < n; e++) {
+    const A = fp[e], B = fp[(e + 1) % n], len = Math.hypot(B[0] - A[0], B[1] - A[1]);
+    if (len < 3) continue;
+    const dx = (B[0] - A[0]) / len, dz = (B[1] - A[1]) / len, nx = -dz, nz = dx, yaw = Math.atan2(-dz, dx);
+    const band = (y, hh, p) => plain.obox([(A[0] + B[0]) / 2 + nx * p / 2, y, (A[1] + B[1]) / 2 + nz * p / 2], [len / 2 + p / 2, hh, p / 2], trimC, yaw);
+    band(y1 - 0.22, 0.22, 0.42);
+    for (let y = y0 + 5; y < y1 - 1.5; y += 5) band(y, 0.08, 0.16);
+    plain.obox([A[0] + nx * 0.07 + dx * 0.3, (y0 + y1) / 2, A[1] + nz * 0.07 + dz * 0.3], [0.3, (y1 - y0) / 2, 0.07], trimC, yaw);
+  }
   if (style === 'bathhouse' && n === 4) {
     const cx = fp.reduce((s, p) => s + p[0], 0) / 4, cz = fp.reduce((s, p) => s + p[1], 0) / 4;
     const peak = [cx, y1 + Math.min(4, b.h * 0.3), cz];
     for (let e = 0; e < 4; e++) { const A = fp[e], B = fp[(e + 1) % 4]; plain.tri([A[0], y1, A[1]], [B[0], y1, B[1]], peak, roofC); }
     return;
+  }
+  for (const [i, j, k] of earClip(fp)) plain.tri([fp[i][0], y1, fp[i][1]], [fp[k][0], y1, fp[k][1]], [fp[j][0], y1, fp[j][1]], roofC);
+}
+
+// A commercial block built from parts instead of a painted front: running-bond brick walls in one of five brick
+// colours, a shop storey (4.2 m) of wide shop windows under striped slope awnings, and upper storeys (3.6 m) of
+// framed windows. Every window is dark glass set back behind a projecting sill, lintel and jambs, so it reads
+// recessed and throws a little shadow; the trim and glass skip the sun-shadow pass (walls, cornice and string
+// courses cast).
+const KIT_WALLS = ['#A3523A', '#82422A', '#B86B4B', '#D09168', '#E4CD9E'], KIT_AWN = ['#C91A09', '#237841', '#0055BF', '#FE8A18', '#81007B'];
+function buildFacadeKit(geoFor, ch, b, mat) {
+  const wall = geoFor('kitwall', () => mat({ pattern: 'bricks', uvScale: 1, tile: 1.12, patAmt: 0.85, gloss: 0.4 }), ch);
+  const trim = geoFor('kittrim', () => mat({ pattern: 'studs', gloss: 0.5 }), ch);
+  const glass = geoFor('kitglass', () => mat({ gloss: 0.95 }), ch);
+  const plain = geoFor('bldg', () => mat({ pattern: 'studs', gloss: 0.45 }), ch);
+  const fp = b.fp, y0 = b.base, y1 = b.base + b.h, n = fp.length, hsh = hash(Math.round(fp[0][0] * 7 + fp[0][1] * 13), 1);
+  const wc = hex(KIT_WALLS[Math.floor(hsh * KIT_WALLS.length)]), trimC = hex(hsh < 0.5 ? PAL.tan : PAL.white);
+  const awn = hex(KIT_AWN[Math.floor(hash(Math.round(fp[0][0] * 3), 5) * KIT_AWN.length)]), white = hex(PAL.white), under = mul(awn, 0.55);
+  const glassC = hex('#22364A'), shopC = hex('#2E4A5E'), roofC = hex(hsh < 0.5 ? PAL.darkGrey : PAL.lightGrey);
+  const shopTop = Math.min(y1 - 0.5, y0 + 4.2), storeys = [];
+  for (let y = shopTop; y + 3.0 <= y1 - 0.6; y += 3.6) storeys.push(y);
+  for (let e = 0; e < n; e++) {
+    const A = fp[e], B = fp[(e + 1) % n], len = Math.hypot(B[0] - A[0], B[1] - A[1]);
+    if (len < 0.01) continue;
+    const dx = (B[0] - A[0]) / len, dz = (B[1] - A[1]) / len, nx = -dz, nz = dx, yaw = Math.atan2(-dz, dx);
+    const P = (t, y, o) => [A[0] + dx * t + nx * o, y, A[1] + dz * t + nz * o];
+    const box = (t, y, o, hx, hy, hz, col, g = trim) => g.obox(P(t, y, o), [hx, hy, hz], col, yaw);
+    // wall, darker over its foot; u in metres along the wall for the brick bond
+    const side = e === (b.front ?? 0) ? wc : mul(wc, 0.86), foot = mul(side, 0.62), ym = Math.min(y1, y0 + 1.2);
+    wall.quad(P(0, y0, 0), P(len, y0, 0), P(len, ym, 0), P(0, ym, 0), null, [[0, 0], [len, 0], [len, 1], [0, 1]], [foot, foot, side, side]);
+    if (y1 > ym) wall.quad(P(0, ym, 0), P(len, ym, 0), P(len, y1, 0), P(0, y1, 0), side, [[0, 0], [len, 0], [len, 1], [0, 1]]);
+    if (len < 3) continue;
+    const nb = Math.max(1, Math.floor((len - 1) / 3.2)), bw = len / nb;
+    for (let k = 0; k < nb; k++) {
+      const t = (k + 0.5) * bw;
+      // shop storey: a wide window with a centre mullion under a striped slope awning
+      if (shopTop - y0 >= 3) {
+        const w = bw * 0.68, yb = y0 + 0.55, yt = y0 + 2.75;
+        glass.quad(P(t - w / 2, yb, 0.03), P(t + w / 2, yb, 0.03), P(t + w / 2, yt, 0.03), P(t - w / 2, yt, 0.03), shopC);
+        box(t, yb - 0.08, 0.1, w / 2 + 0.12, 0.08, 0.1, trimC);
+        for (const s of [-1, 1]) box(t + s * (w / 2 + 0.06), (yb + yt) / 2, 0.06, 0.06, (yt - yb) / 2, 0.06, trimC);
+        box(t, (yb + yt) / 2, 0.05, 0.035, (yt - yb) / 2, 0.035, trimC);
+        const ya = y0 + 3.25, t0 = t - bw * 0.45, strips = 4;
+        for (let i = 0; i < strips; i++) {
+          const a = t0 + (bw * 0.9 * i) / strips, c = t0 + (bw * 0.9 * (i + 1)) / strips, col = i % 2 ? white : awn;
+          trim.quad(P(a, ya, 0.02), P(a, ya - 0.45, 0.95), P(c, ya - 0.45, 0.95), P(c, ya, 0.02), col);
+          trim.quad(P(c, ya, 0.02), P(c, ya - 0.45, 0.95), P(a, ya - 0.45, 0.95), P(a, ya, 0.02), under);
+          trim.quad(P(a, ya - 0.68, 0.95), P(c, ya - 0.68, 0.95), P(c, ya - 0.45, 0.95), P(a, ya - 0.45, 0.95), col);
+        }
+      }
+      // upper storeys: a framed window per bay
+      for (const ys of storeys) {
+        const w = Math.min(1.3, bw * 0.5), yb = ys + 0.75, yt = ys + 2.55;
+        glass.quad(P(t - w / 2, yb, 0.03), P(t + w / 2, yb, 0.03), P(t + w / 2, yt, 0.03), P(t - w / 2, yt, 0.03), glassC);
+        box(t, yb - 0.07, 0.11, w / 2 + 0.14, 0.07, 0.11, trimC);
+        box(t, yt + 0.09, 0.07, w / 2 + 0.1, 0.09, 0.07, trimC);
+        for (const s of [-1, 1]) box(t + s * (w / 2 + 0.05), (yb + yt) / 2, 0.05, 0.05, (yt - yb) / 2, 0.05, trimC);
+      }
+    }
+    // cornice at the roof line, a string course over each storey, and a corner quoin (these cast)
+    box(len / 2, y1 - 0.22, 0.21, len / 2 + 0.21, 0.22, 0.21, trimC, plain);
+    for (const ys of [shopTop, ...storeys.slice(1)]) if (ys < y1 - 1) box(len / 2, ys, 0.08, len / 2 + 0.08, 0.08, 0.08, trimC, plain);
+    box(0.3, (y0 + y1) / 2, 0.07, 0.3, (y1 - y0) / 2, 0.07, trimC, plain);
   }
   for (const [i, j, k] of earClip(fp)) plain.tri([fp[i][0], y1, fp[i][1]], [fp[k][0], y1, fp[k][1]], [fp[j][0], y1, fp[j][1]], roofC);
 }

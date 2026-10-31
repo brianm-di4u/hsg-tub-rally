@@ -43,32 +43,52 @@ export function setShadowDefault(on) { S.shadowsDefault = !!on; }
 export const shadowsOn = () => S.shadowsDefault;
 // Low tier: a cheaper plastic (fixed-power specular, no sky reflection); patterns stay, they carry the look
 export function setLite(on) { S.lite = !!on; }
+// with MSAA on (Medium, High), see-through fades resolve through alpha to coverage; without it they dither
+export function setAlphaCoverage(on) { S.a2c = !!on; }
 function shared() {
   const THREE = T(), u = sharedUniforms();
   if (!S.hemiSky) {
     S.hemiSky = { value: new THREE.Color('#BFD9F2') };
     S.hemiGround = { value: new THREE.Color('#7E8F5A') };
     S.shadow = { uShadowMap: { value: null }, uShadowMatrix: { value: new THREE.Matrix4() }, uShadowOn: { value: 0 }, uShadowTexel: { value: 1 / 1024 } };
+    S.focus = { value: new THREE.Vector3(0, -1e4, 0) };
   }
-  return { ...u, uHemiSky: S.hemiSky, uHemiGround: S.hemiGround, ...S.shadow };
+  return { ...u, uHemiSky: S.hemiSky, uHemiGround: S.hemiGround, uFocus: S.focus, ...S.shadow };
 }
 // sky and ground colours for the ambient light and reflections (set per course from the sky and grass colours)
 export function setHemi(sky, ground) { shared(); S.hemiSky.value.set(sky); S.hemiGround.value.set(ground); }
 export function shadowUniforms() { shared(); return S.shadow; }
+// the point the chase camera looks at (the player's tub): trees keep out of the sightline to it (NEAR_FADE)
+export function setFocus(x, y, z) { shared(); S.focus.value.set(x, y, z); }
 
 const VERT_COMMON = `
   attribute vec3 color;
   varying vec3 vColor; varying vec2 vUv; varying vec3 vWorld; varying vec3 vNormal; varying float vFog;
-  uniform float uFogNear; uniform float uFogFar; uniform float uTime;`;
+  #ifdef FOOT_AO
+    varying float vFootY;
+  #endif
+  uniform float uFogNear; uniform float uFogFar; uniform float uTime; uniform vec3 uFocus;
+  #ifdef NEAR_FADE
+    varying float vNear;
+  #endif`;
 const FOG_V_MAIN = `vFog = clamp((-mv.z - uFogNear) / (uFogFar - uFogNear), 0.0, 1.0);`;
 
 const FRAG_COMMON = `
   uniform sampler2D map; uniform float uAlphaTest; uniform vec3 uTint; uniform float uBright; uniform float uAlpha;
-  uniform vec3 uLightTint; uniform vec3 uFogColor; uniform vec3 uSun; uniform float uAmb; uniform float uDiff;
+  uniform vec3 uLightTint; uniform vec3 uFogColor; uniform vec3 uSun; uniform float uAmb; uniform float uDiff; uniform vec3 uFocus;
   uniform vec3 uHemiSky; uniform vec3 uHemiGround; uniform float uGloss; uniform vec2 uPat; uniform float uPatAmt;
   uniform sampler2D uShadowMap; uniform mat4 uShadowMatrix; uniform float uShadowOn; uniform float uShadowTexel;
+  #ifdef NEAR_FADE
+    varying float vNear;
+  #endif
   varying vec3 vColor; varying vec2 vUv; varying vec3 vWorld; varying vec3 vNormal; varying float vFog;
+  #ifdef FOOT_AO
+    varying float vFootY;
+  #endif
 
+  // 4×4 ordered dither threshold: a regular screen, not per-pixel noise
+  float bayer2(vec2 a) { a = floor(a); return fract(dot(a, vec2(0.5, a.y * 0.75))); }
+  float bayer4(vec2 a) { return bayer2(0.5 * a) * 0.25 + bayer2(a); }
   float hash12(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 
   // moulded seam between tiles of size sz (metres) at surface coordinate m: 0 in the groove, 1 on the tile face;
@@ -134,14 +154,18 @@ const FRAG_COMMON = `
 
 const FRAG_MAIN = `
   void main() {
+    // see-through fades stay in the opaque pass: rivals between the chase camera and the player (FADE), trees within
+    // ~9 m of the camera (NEAR_FADE). With MSAA the coverage goes out as alpha (alpha to coverage) and resolves
+    // smoothly; without it, an ordered 4×4 dither
+    float cover = 1.0;
     #ifdef FADE
-      // screen-door fade (no blending, so it stays in the opaque pass): rivals between the camera and the player
-      if (uFade > 0.0 && fract(sin(dot(floor(gl_FragCoord.xy), vec2(12.9898, 78.233))) * 43758.5453) < uFade) discard;
+      cover = 1.0 - uFade;
     #endif
     #ifdef NEAR_FADE
-      // trees: the same screen door inside ~9 m of the camera, so a canopy beside the chase camera never walls off the view
-      float nf = 0.85 * (1.0 - smoothstep(4.0, 9.0, distance(cameraPosition, vWorld)));
-      if (nf > 0.0 && fract(sin(dot(floor(gl_FragCoord.xy), vec2(12.9898, 78.233))) * 43758.5453) < nf) discard;
+      cover *= vNear;
+    #endif
+    #ifndef A2C
+      if (cover < 1.0 && bayer4(gl_FragCoord.xy) >= cover) discard;
     #endif
     vec3 N = normalize(vNormal);
     #ifdef DOUBLE_SIDED
@@ -168,6 +192,10 @@ const FRAG_MAIN = `
       if (alpha < uAlphaTest) discard;
     #endif
     float ao = 1.0, gloss = uGloss, lit = 0.0;
+    #ifdef FOOT_AO
+      // placed models stand on their origin: walls darken over the bottom 1.3 m where they meet the ground
+      ao *= mix(0.6, 1.0, smoothstep(0.0, 1.3, vFootY));
+    #endif
     #ifdef PAT_STUDS
       // baseplate studs on upward faces: tilt the normal on each stud's bevel ring, darken the plate around its
       // base, and drop a small shadow on the side away from the sun
@@ -189,6 +217,11 @@ const FRAG_MAIN = `
         ao *= mix(1.0, 0.97, 1.0 - fade);
       }
     #endif
+    #ifdef PAT_GRAIN
+      // asphalt: a fine low-contrast grain of 0.3 m flecks that fades out with distance (no seams)
+      { vec2 gc = floor(vWorld.xz / 0.3); float gf = 1.0 - smoothstep(0.08, 0.3, max(fwidth(vWorld.x), fwidth(vWorld.z)));
+        albedo *= 1.0 + (hash12(gc) - 0.5) * 0.12 * gf * uPatAmt; }
+    #endif
     #ifdef PAT_TILES
       { float e; float s = seam(vUv * uPat.x, vec2(uPat.y), 0.018, e); float k = mix(1.0, 0.45 + 0.55 * s, uPatAmt); ao *= k; albedo *= mix(1.0, k, 0.6); lit = e * uPatAmt; }
     #endif
@@ -201,6 +234,9 @@ const FRAG_MAIN = `
         float id = hash12(vec2(floor(m.x / uPat.y), row));
         albedo *= 1.0 + (id - 0.5) * 0.06 * uPatAmt;
         float k = mix(1.0, 0.5 + 0.5 * s, uPatAmt); ao *= k; albedo *= mix(1.0, k, 0.6); lit = e * uPatAmt;
+        // each brick's top edge catches the light like a bevel
+        float fy = fract(m.y / ${BRICK.brick.toFixed(3)});
+        lit += smoothstep(0.78, 0.9, fy) * (1.0 - smoothstep(0.9, 0.97, fy)) * 1.6 * uPatAmt * (1.0 - smoothstep(0.02, 0.08, max(fwidth(m.y), 0.0)));
       }
     #endif
     float sh = 1.0;
@@ -213,16 +249,20 @@ const FRAG_MAIN = `
       vec3 c = plastic(albedo, N, V, gloss, ao, sh) + lit * 0.06;
     #endif
     #ifdef RIM
-      // a soft rim from the sky keeps dark crews readable against dark roads at dusk
-      c += uHemiSky * pow(1.0 - max(dot(N, V), 0.0), 3.0) * uRim;
+      // a soft rim from the sky, tinted by the part colour and capped so dark parts keep their colour; at dusk and
+      // sunset a fill (uFill) lifts the crews off the darker road
+      c += min(uHemiSky * pow(1.0 - max(dot(N, V), 0.0), 3.0) * uRim * (0.3 + 0.7 * albedo), vec3(0.22)) + albedo * uFill;
     #endif
     #ifdef FLASH
       c += uFlash;
     #endif
+    #ifdef A2C
+      alpha *= cover;
+    #endif
     gl_FragColor = vec4(mix(c, uFogColor, vFog), alpha * uAlpha);
   }`;
 
-const PATTERNS = { studs: 'PAT_STUDS', tiles: 'PAT_TILES', bricks: 'PAT_BRICKS' };
+const PATTERNS = { studs: 'PAT_STUDS', tiles: 'PAT_TILES', bricks: 'PAT_BRICKS', grain: 'PAT_GRAIN' };
 
 function base(opts, vertMain, extraV = '', extraUniforms = {}, extraF = '') {
   const THREE = T();
@@ -274,6 +314,19 @@ const INST_MAIN = `
       }
     #endif
     vColor = color;
+    #if defined(NEAR_FADE) && defined(USE_INSTANCING)
+      // whole trees step aside (all but at once, so no half-faded tree lingers) when their canopy is within ~8 m of the camera or
+      // in the sightline from the camera to the player's tub, so no half-faded slab hangs in front of the view
+      { vec3 io = (modelMatrix * instanceMatrix * vec4(0.0, 3.0, 0.0, 1.0)).xyz;
+        vec3 a = cameraPosition, ab = uFocus + vec3(0.0, 1.0, 0.0) - a;
+        float t = clamp(dot(io - a, ab) / max(dot(ab, ab), 1e-4), 0.0, 1.0);
+        float corridor = mix(1.0, smoothstep(0.8, 1.1, length((io - (a + ab * t)).xz) - length(instanceMatrix[0].xyz) * 2.0), step(0.02, t) * (1.0 - step(0.97, t)));
+        float reach = length(instanceMatrix[0].xyz) * 2.7; // canopy radius at this tree's scale
+        vNear = smoothstep(3.0, 3.3, length((io - a).xz) - reach) * corridor; }
+    #endif
+    #ifdef FOOT_AO
+      vFootY = pos.y;
+    #endif
     #if defined(INST_SLOTS) && defined(USE_INSTANCING_COLOR)
       if (color.r > 0.99 && color.g > 0.99 && color.b > 0.99) vColor = instanceColor;
       else if (color.r > 0.99 && color.g < 0.01 && color.b > 0.99) vColor = iSkin;
@@ -297,9 +350,13 @@ export function worldMat(opts = {}) {
     gl_Position = projectionMatrix * mv;`, INST_V);
   if (opts.instSlots) m.defines.INST_SLOTS = '';
   if (opts.cheer) m.defines.CHEER = '';
-  if (opts.nearFade) m.defines.NEAR_FADE = '';
+  if (opts.nearFade) { m.defines.NEAR_FADE = ''; a2c(m, opts); }
+  if (opts.footAO) m.defines.FOOT_AO = '';
   return m;
 }
+
+// opaque materials that fade: alpha to coverage when the canvas has MSAA
+function a2c(m, opts) { if (S.a2c && !opts.transparent) { m.alphaToCoverage = true; m.defines.A2C = ''; } }
 
 // placed models (landmarks, thrown items): same shading; kept separate for parity with n64mat.js
 export const litMat = worldMat;
@@ -310,7 +367,7 @@ export function partMat(opts = {}) {
   const THREE = T();
   const mats = [];
   for (let i = 0; i < MAX_PARTS; i++) mats.push(new THREE.Matrix4());
-  return base({ gloss: 0.7, ...opts }, `
+  const m = base({ gloss: 0.7, ...opts }, `
     mat4 pm = uParts[int(aPart + 0.5)];
     vec4 wp = modelMatrix * pm * vec4(position, 1.0);
     vColor = color; vUv = uv;
@@ -319,6 +376,8 @@ export function partMat(opts = {}) {
     ${FOG_V_MAIN}
     gl_Position = projectionMatrix * mv;`, `
     attribute float aPart;
-    uniform mat4 uParts[${MAX_PARTS}];`, { uParts: { value: mats }, uFlash: { value: new THREE.Vector3() }, uFade: { value: 0 }, uRim: { value: opts.rim ?? 0.35 } },
-  `#define FLASH\n#define FADE\n#define RIM\nuniform vec3 uFlash; uniform float uFade; uniform float uRim;`);
+    uniform mat4 uParts[${MAX_PARTS}];`, { uParts: { value: mats }, uFlash: { value: new THREE.Vector3() }, uFade: { value: 0 }, uRim: { value: opts.rim ?? 0.35 }, uFill: { value: 0 } },
+  `#define FLASH\n#define FADE\n#define RIM\nuniform vec3 uFlash; uniform float uFade; uniform float uRim; uniform float uFill;`);
+  a2c(m, opts);
+  return m;
 }

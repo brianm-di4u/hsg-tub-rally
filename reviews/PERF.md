@@ -87,3 +87,12 @@ loop's report so a regression still shows.
 
 Low-tier choices made to get there: crews at single-step bevels with no studs (≈ 480 tris per figure, ≈ 3k per tub,
 a plain-box version beyond 22 m), opaque tub water, no shadow map, the lighter shader, 0.85× resolution.
+
+## Re-runs on record
+- **Loop 4, first gate run:** two checks failed. The mid-phone estimate for Medium mountain came out at 31.9 ms
+  (≤ 25), and the file-url frame-cost test at 6.15 ms (< 6). That run's unthrottled Medium mobile mountain sample ran
+  at 782 fps, against 1,605–1,808 fps in two immediate re-runs. Other sessions' Codex and Chrome processes were
+  active at the time. The full perf set was re-run: 52/52 pass, and mountain estimates 14.0 ms. The frame-cost test
+  was re-run three times: 3.6–4.1 ms. `reviews/loop-4/perf.json` is the re-run; the first run is kept outside the
+  repo. Rule from here: a perf failure is re-run once in full, both runs are recorded here, and a failure that
+  repeats is fixed, not re-run.

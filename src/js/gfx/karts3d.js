@@ -10,6 +10,7 @@
 import { Geo, hex, mul, mix } from './geom.js';
 import { partMat, MAX_PARTS, shadowsOn, PAL } from './brickmat.js';
 import { partDepthMat } from './shadows.js';
+import { crewReady, buildCrewGeo, crewAtlas, crewPivots } from './crew3d.js';
 import { TEAM_BY_ID, TEAMS, DIVISIONS } from '../data/teams.js';
 
 // part indices
@@ -30,8 +31,24 @@ export const CREW_DETAIL = {
   lowFar: { seg: 0, head: 0, limb: 0, hand: 0, stud: 0, cyl: 6 },
 };
 let DETAIL = CREW_DETAIL.medium, FAR = CREW_DETAIL.far, FAR_AT = 32, lodCam = null, clearWater = true;
+// Blender crews (crew3d.js), when their pack loaded: LOD per tier for near and far tubs
+const CREW_LOD = { high: [1, 2], medium: [1, 2], low: [2, 3] };
+let LOD = CREW_LOD.medium;
 // set once at boot from the quality tier; the camera decides near/far per tub each frame
-export function setCrewDetail(tier, camera) { DETAIL = CREW_DETAIL[tier] || CREW_DETAIL.medium; FAR = tier === 'low' ? CREW_DETAIL.lowFar : CREW_DETAIL.far; clearWater = tier !== 'low'; FAR_AT = tier === 'low' ? 22 : tier === 'high' ? 45 : 32; lodCam = camera; }
+export function setCrewDetail(tier, camera) { DETAIL = CREW_DETAIL[tier] || CREW_DETAIL.medium; FAR = tier === 'low' ? CREW_DETAIL.lowFar : CREW_DETAIL.far; LOD = CREW_LOD[tier] || CREW_LOD.medium; clearWater = tier !== 'low'; FAR_AT = tier === 'low' ? 22 : tier === 'high' ? 40 : 24; lodCam = camera; }
+
+// rest pivots the animation works from: the code-built crews' layout, or the Blender crews' (crewPivots(): part
+// name → { p: position, r: YXZ Euler }), whose captain parts carry their own scale and whose side attendants are
+// turned in by their rest yaw
+const LEGACY_PIVOTS = { wheels: [[0.56, 0.3, 0.6], [-0.56, 0.3, 0.6], [0.56, 0.3, -0.6], [-0.56, 0.3, -0.6]], flag: [-0.3, 1.0, -0.72], duck: [0.3, 1.05, 0.72],
+  capT: [0, 0.72, -0.1], capRx: 0.05, capS: 1.12, capH: [0, 1.22, -0.06], headS: 1.2, arms: [[0.27, 1.12, -0.02], [-0.27, 1.12, -0.02]], armRx: -0.15,
+  att: ATT_POS.map(([x, z]) => [x, 0.66, z, 0]), water: 0.46 };
+function packPivots() {
+  const P = crewPivots(), p = (n) => P[n].p;
+  return { wheels: [0, 1, 2, 3].map((i) => p('wheel_' + i)), flag: p('flag'), duck: p('duck'), capT: p('cap_torso'), capRx: P.cap_torso.r[0], capS: 1,
+    capH: p('cap_head'), headS: 1, arms: [p('cap_arm_l'), p('cap_arm_r')], armRx: P.cap_arm_l.r[0],
+    att: [0, 1, 2, 3].map((i) => [...p('att' + i + '_torso'), P['att' + i + '_torso'].r[1]]), water: 0.48 };
+}
 
 // ---------- print atlas: faces and team uniforms, drawn in code (512 px, 8×8 cells of 64; cell 0,0 transparent) ----------
 const CELL = 64, ATLAS = 512;
@@ -311,20 +328,41 @@ function blob(THREE) {
   return blobTex;
 }
 
+// soft contact shadows under every pusher, for all tubs in one instanced draw: the sun shadow alone barely darkens
+// the road at their toes, and Low has no sun shadow
+export class FootBlobs {
+  constructor(THREE, max = 64) {
+    const g = new THREE.PlaneGeometry(0.66, 0.66); g.rotateX(-Math.PI / 2);
+    this.mesh = new THREE.InstancedMesh(g, new THREE.MeshBasicMaterial({ map: blob(THREE), color: 0x000000, transparent: true, opacity: 0.36, depthWrite: false }), max);
+    this.mesh.renderOrder = 1; this.mesh.frustumCulled = false; this.mesh.count = 0;
+    this.m = new THREE.Matrix4(); this.max = max;
+  }
+  // views: KartViews whose feet were placed this frame
+  set(views) {
+    let n = 0;
+    for (const v of views) for (let i = 0; i < 4 && n < this.max; i++) { this.m.makeTranslation(v.feet[i * 3], v.feet[i * 3 + 1], v.feet[i * 3 + 2]); this.mesh.setMatrixAt(n++, this.m); }
+    this.mesh.count = n; this.mesh.instanceMatrix.needsUpdate = true;
+  }
+}
+
 export class KartView {
   constructor(THREE, teamId, opts = {}) {
     this.THREE = THREE;
-    const near = buildKartGeo(THREE, teamId, DETAIL), far = buildKartGeo(THREE, teamId, FAR);
+    // the Blender crews when their pack is loaded, else the crews built in code
+    // the player's own tub (opts.hero) gets the detailed LOD on every tier: it fills the chase view
+    const pk = crewReady() && buildCrewGeo(THREE, teamId, opts.hero ? Math.min(1, LOD[0]) : LOD[0]), pf = pk && buildCrewGeo(THREE, teamId, LOD[1]), packed = !!(pk && pf);
+    const near = packed ? pk : buildKartGeo(THREE, teamId, DETAIL), far = packed ? pf : buildKartGeo(THREE, teamId, FAR);
     this.near = near.geo; this.farGeo = far.geo; far.water.dispose();
+    this.pv = packed ? packPivots() : LEGACY_PIVOTS;
     const ghost = opts.ghost ? { transparent: true, alpha: 0.42, depthWrite: false } : {};
-    this.mat = partMat({ map: printAtlas(THREE), decal: true, ...ghost });
+    this.mat = partMat({ map: packed ? crewAtlas() : printAtlas(THREE), decal: true, ...ghost });
     this.mesh = new THREE.Mesh(this.near, this.mat);
     this.mesh.frustumCulled = false;
     this.mesh.matrixAutoUpdate = false;
     // see-through water on the same part palette
     // (opaque on Low: blending costs more than it shows at that size)
     const wm = partMat(clearWater || opts.ghost ? { transparent: true, alpha: opts.ghost ? 0.3 : 0.72, depthWrite: false, gloss: 0.95 } : { gloss: 0.95 });
-    wm.uniforms.uParts = this.mat.uniforms.uParts;
+    wm.uniforms.uParts = this.mat.uniforms.uParts; wm.uniforms.uFade = this.mat.uniforms.uFade; // the water steps aside with its tub
     this.water = new THREE.Mesh(near.water, wm);
     this.water.frustumCulled = false;
     this.water.renderOrder = 3;
@@ -333,7 +371,8 @@ export class KartView {
     this.geo = { dispose: () => { this.near.dispose(); this.farGeo.dispose(); this.water.geometry.dispose(); } };
     if (!opts.ghost) { this.mesh.userData.caster = true; this.mesh.userData.depthMat = partDepthMat(THREE, this.mat.uniforms.uParts, MAX_PARTS); this.mesh.userData.depthGeo = this.farGeo; }
     this.wheelA = 0; this.roll = 0; this.pitch = 0; this.flash = 0; this.circleA = 0;
-    this.tmp = { m: new THREE.Matrix4(), q: new THREE.Quaternion(), e: new THREE.Euler(), v: new THREE.Vector3(), s: new THREE.Vector3(1, 1, 1) };
+    this.feet = new Float32Array(12); // world position under each pusher, for FootBlobs
+    this.tmp = { m: new THREE.Matrix4(), q: new THREE.Quaternion(), e: new THREE.Euler(), v: new THREE.Vector3(), s: new THREE.Vector3(1, 1, 1), body: new THREE.Quaternion(), spin: new THREE.Quaternion(), up: new THREE.Vector3(0, 1, 0) };
     // soft contact shadow under the tub and its crew
     const sg = new THREE.PlaneGeometry(2, 2);
     sg.rotateX(-Math.PI / 2);
@@ -341,15 +380,22 @@ export class KartView {
     this.shadow.scale.set(1.3, 1, 1.9);
     this.shadow.renderOrder = 1;
   }
-  // a team-colour marker floating over the player's tub, so it reads in a pack
+  // the player's tub in a pack: a team-colour ring on the road around it (outlined in black), and a small marker
+  // just over the captain's hat (a marker any higher lands on the rival ahead in the chase view)
   showMarker(teamId) {
     const THREE = this.THREE, C = TEAM_BY_ID[teamId].colors;
-    const g = new THREE.ConeGeometry(0.26, 0.42, 4); g.rotateX(Math.PI); g.rotateY(Math.PI / 4);
+    const g = new THREE.ConeGeometry(0.17, 0.28, 4); g.rotateX(Math.PI); g.rotateY(Math.PI / 4);
     this.marker = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: new THREE.Color(C.flag), fog: false }));
-    const edge = new THREE.Mesh(new THREE.ConeGeometry(0.32, 0.52, 4).rotateX(Math.PI).rotateY(Math.PI / 4), new THREE.MeshBasicMaterial({ color: 0x1e1b18, side: THREE.BackSide, fog: false }));
+    const edge = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.36, 4).rotateX(Math.PI).rotateY(Math.PI / 4), new THREE.MeshBasicMaterial({ color: 0x1e1b18, side: THREE.BackSide, fog: false }));
     this.marker.add(edge);
-    this.marker.position.set(0, 2.75, 0);
+    this.marker.position.set(0, 2.2, 0);
     this.mesh.add(this.marker);
+    // the ring rides on the contact-shadow plane (an ellipse through its 1.3 × 1.9 m scale)
+    const ringMat = (color, opacity) => new THREE.MeshBasicMaterial({ color, transparent: true, opacity, depthWrite: false, fog: false, polygonOffset: true, polygonOffsetFactor: -2 });
+    const outline = new THREE.Mesh(new THREE.RingGeometry(0.8, 0.98, 48).rotateX(-Math.PI / 2), ringMat(0x1e1b18, 0.55));
+    const ring = new THREE.Mesh(new THREE.RingGeometry(0.84, 0.94, 48).rotateX(-Math.PI / 2), ringMat(new THREE.Color(C.flag), 0.95));
+    outline.position.y = ring.position.y = 0.01; outline.renderOrder = 2; ring.renderOrder = 3;
+    this.shadow.add(outline, ring);
   }
   setPart(i, x, y, z, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) {
     const t = this.tmp;
@@ -376,30 +422,36 @@ export class KartView {
     this.tmp.q.setFromEuler(this.tmp.e);
     this.tmp.v.set(x, y + bounce, z);
     M.compose(this.tmp.v, this.tmp.q, this.tmp.s.set(1, 1, 1));
+    this.tmp.body.copy(this.tmp.q);
     this.mesh.matrixWorldNeedsUpdate = true;
     this.shadow.position.set(x, pose.groundY + 0.05, z);
-    this.shadow.rotation.y = yaw;
+    // the contact shadow (and the player's ring on it) lies on the road's slope, so it doesn't sink into a crowned
+    // or banked road
+    if (pose.gn) { this.tmp.q.setFromUnitVectors(this.tmp.up, this.tmp.v.set(pose.gn[0], pose.gn[1], pose.gn[2])); this.tmp.spin.setFromAxisAngle(this.tmp.up, yaw); this.shadow.quaternion.multiplyQuaternions(this.tmp.q, this.tmp.spin); }
+    else this.shadow.rotation.y = yaw;
     // with sun shadows on, the blob is only a soft contact shadow under the tub
     this.shadow.material.opacity = (k.air ? 0.2 : 0.42) * (shadowsOn() ? 0.6 : 1);
     // parts
+    const P = this.pv;
     this.setPart(BODY, 0, 0, 0);
     this.wheelA += (v / 0.3) * dt;
-    const wp = [[0.56, 0.3, 0.6], [-0.56, 0.3, 0.6], [0.56, 0.3, -0.6], [-0.56, 0.3, -0.6]];
     const steerA = -k.steer * 0.35;
-    WHEEL.forEach((p, i) => this.setPart(p, wp[i][0], wp[i][1], wp[i][2], this.wheelA, i < 2 ? steerA : 0, 0));
+    WHEEL.forEach((p, i) => { const w = P.wheels[i]; this.setPart(p, w[0], w[1], w[2], this.wheelA, i < 2 ? steerA : 0, 0); });
     const sway = Math.sin(time * 6 + k.id) * 0.15 + Math.min(0.5, Math.abs(v) * 0.02);
-    this.setPart(FLAG, -0.3, 1.0, -0.72, 0, sway * 0.6, 0);
-    this.setPart(DUCK, 0.3, 1.05 + Math.abs(Math.sin(time * 5 + k.id)) * 0.04, 0.72, 0, 0.4, Math.sin(time * 3) * 0.1);
+    this.setPart(FLAG, P.flag[0], P.flag[1], P.flag[2], 0, sway * 0.6, 0);
+    this.setPart(DUCK, P.duck[0], P.duck[1] + Math.abs(Math.sin(time * 5 + k.id)) * 0.04, P.duck[2], 0, 0.4, Math.sin(time * 3) * 0.1);
     // judge stops (Rules of the Row): the crew act out the task from its own clock (deterministic)
     const task = k.state === 'judge' && k.task ? k.task : null, tt = task ? task.t : 0;
     const fl = k.state === 'circle' || k.state === 'rescue' || (task && task.id === 'yodel');
     // captain: steering arms and a lean
     const lean = -k.steer * 0.2;
-    this.setPart(CAP_T, 0, 0.72, -0.1, 0.05, 0, lean, 1.12, 1.12, 1.12);
-    this.setPart(CAP_H, Math.sin(lean) * -0.5, 1.22, -0.06, 0, -k.steer * 0.3, lean * 0.5, 1.2, 1.2, 1.2);
-    const armUp = fl ? -1.2 + Math.sin(time * 14) * 0.6 : -0.15;
-    this.setPart(CAP_LA, 0.27, 1.12, -0.02, armUp - k.steer * 0.25, 0, 0);
-    this.setPart(CAP_RA, -0.27, 1.12, -0.02, (fl ? -1.2 - Math.sin(time * 14) * 0.6 : -0.15) + k.steer * 0.25, 0, 0);
+    const ct = P.capT, ch = P.capH, cs = P.capS, hs = P.headS;
+    this.setPart(CAP_T, ct[0], ct[1], ct[2], P.capRx, 0, lean, cs, cs, cs);
+    this.setPart(CAP_H, ch[0] + Math.sin(lean) * -(ch[1] - ct[1]), ch[1], ch[2], 0, -k.steer * 0.3, lean * 0.5, hs, hs, hs);
+    // arm swing relative to the rest pose (the code-built arms rest at -0.15 rad, the Blender arms reach forward)
+    const armUp = fl ? -1.05 + Math.sin(time * 14) * 0.6 : 0, armDn = fl ? -1.05 - Math.sin(time * 14) * 0.6 : 0, [al, ar] = P.arms;
+    this.setPart(CAP_LA, al[0], al[1], al[2], P.armRx + armUp - k.steer * 0.25, 0, 0);
+    this.setPart(CAP_RA, ar[0], ar[1], ar[2], P.armRx + armDn + k.steer * 0.25, 0, 0);
     // attendants: push-run behind the tub, or circle it after a fumble (real rule 7)
     const ph = k.runPhase;
     const ring = task && task.id === 'ring';
@@ -408,8 +460,8 @@ export class KartView {
     else if (circling) this.circleA += dt * (Math.PI * 2 / 1.4); else this.circleA = 0;
     const jacks = task && task.id === 'jacks', pushups = task && task.id === 'pushups';
     ATT.forEach((parts, i) => {
-      let [ax, az] = ATT_POS[i];
-      let face = 0, leanF = Math.min(0.5, 0.15 + Math.abs(v) * 0.02);
+      let [ax, hip, az, face] = P.att[i];
+      let leanF = Math.min(0.5, 0.15 + Math.abs(v) * 0.02);
       if (circling) {
         const a = this.circleA + (i * Math.PI) / 2; // evenly spaced, so no two crew share a spot
         ax = Math.sin(a) * 1.5; az = Math.cos(a) * 1.7;
@@ -422,15 +474,19 @@ export class KartView {
       let splay = 0;
       if (jacks) { const j = Math.abs(Math.sin(tt * 6 + i * 0.5)); hop = j * 0.28; splay = j * 0.35; swing = 0; leanF = 0; }
       if (pushups) { leanF = 1.25; hop = -0.32 + Math.abs(Math.sin(tt * 4 + i * 0.6)) * 0.12; swing = 0.5; }
-      this.setPart(parts[0], ax, 0.66 + hop, az, leanF, face, 0, 1, 1, dropped ? 0.96 : 1);
-      this.setPart(parts[1], ax, 0.66 + hop, az, swing, face, -splay);
-      this.setPart(parts[2], ax, 0.66 + hop, az, -swing, face, splay);
+      this.setPart(parts[0], ax, hip + hop, az, leanF, face, 0, 1, 1, dropped ? 0.96 : 1);
+      this.setPart(parts[1], ax, hip + hop, az, swing, face, -splay);
+      this.setPart(parts[2], ax, hip + hop, az, -swing, face, splay);
+      const e = M.elements;
+      this.feet[i * 3] = e[0] * ax + e[8] * az + e[12]; this.feet[i * 3 + 1] = pose.groundY + 0.06; this.feet[i * 3 + 2] = e[2] * ax + e[10] * az + e[14];
     });
     // water surface: height from fill, tilt from the slosh state
     const w = k.water, fill = w.cap ? w.gal / w.cap : 0;
-    const wy = 0.5 + 0.46 * fill;
-    this.setPart(WATER, 0, wy, 0, -w.tf * 0.8, 0, w.tr * 0.8, 1, 1, fill > 0.02 ? 0.95 : 0.0001);
-    if (this.marker) { this.marker.position.y = 2.75 + Math.sin(time * 3) * 0.08; this.marker.rotation.y = time * 1.5; }
+    const wy = 0.5 + P.water * fill;
+    // the water sheet tilts with the slosh state (exaggerated: at play size a true-to-sim tilt doesn't read)
+    this.setPart(WATER, 0, wy, 0, -w.tf * 2.0, 0, w.tr * 2.0, 1, 1, fill > 0.02 ? 0.95 : 0.0001);
+    // the marker stays upright whatever the tub's lean and drift: undo the body rotation, then spin about the vertical
+    if (this.marker) { this.marker.position.y = 2.2 + Math.sin(time * 3) * 0.08; this.marker.quaternion.copy(this.tmp.body).invert().multiply(this.tmp.spin.setFromAxisAngle(this.tmp.up, time * 1.5)); }
     // hit flash
     this.flash = Math.max(0, this.flash - dt * 3);
     this.mat.uniforms.uFlash.value.setScalar(this.flash * 0.6);
