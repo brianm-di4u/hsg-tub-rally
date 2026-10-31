@@ -1,0 +1,12 @@
+{
+  "perf": {
+    "pass": true,
+    "checked": 52,
+    "failed": []
+  },
+  "fidelity": null,
+  "ip": {
+    "pass": true,
+    "note": "developer check: crews and spectators unchanged in silhouette; judge sign spells JUDGE in a generic 3x5 brick font; no LEGO name or logo in source, UI or captures; critics re-check"
+  }
+}

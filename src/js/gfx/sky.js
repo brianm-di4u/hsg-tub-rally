@@ -51,7 +51,7 @@ export function buildSky(THREE, env = {}) {
   // the terrain ends.
   const ridgeCols = env.ridges || ['#7F9AB0', '#5F7F6E', '#40604A'], seed = env.ridgeSeed || 3;
   const LAYERS = [[352, 0.6, 14, 58], [334, 0.42, 8, 46], [316, 0.24, 4, 36]]; // radius, haze, valley floor, hump height
-  const rpos = [], rcol = [], rinf = [], N = 180, STEP = 6, BOT = -60;
+  const rpos = [], rcol = [], rinf = [], N = (env.boards ?? 1) < 1 ? 120 : 180, STEP = 6, BOT = -60; // Low: 3° columns
   const sunXZ = [sd[0] / sl, sd[2] / sl];
   const rnd = (i, k) => (((i * 2654435761) ^ (k * 2246822519)) >>> 0) / 4294967296;
   LAYERS.forEach(([R2, haze, floor, hump], li) => {
@@ -78,11 +78,28 @@ export function buildSky(THREE, env = {}) {
       const front = -(Math.sin(am) * sunXZ[0] + Math.cos(am) * sunXZ[1]);
       const t = (0.94 + 0.12 * rnd(i, li + 11)) * (1 + 0.16 * side + 0.08 * front), col = c.map((v) => Math.min(1, v * t));
       const foot = col.map((v, k) => v * 0.8 + B[k] * 0.2 * haze);
-      // u: metres along the ring (the crowns' grid); y: height; z: the column's top (crowns fill below it) or -1
+      // u: metres along the ring (the crowns' grid); y: height; z: the column's top (crowns fill below it), -1 for
+      // tree-line crowns, -2 for a terrace's lit top
       const quad = (b0, b1, y0, y1, c0q, c1q, top, r = R2) => { const cs = [c0q, c1q, c0q, c0q, c1q, c1q]; [[b0, y0], [b1, y1], [b1, y0], [b0, y0], [b0, y1], [b1, y1]].forEach(([b, y], k) => { rpos.push(...P(b, y, r)); rcol.push(...cs[k]); rinf.push(b * R2, y, top, haze); }); };
-      quad(a0, a1, BOT, Math.max(BOT + 1, h - 14), foot, col, h);
-      quad(a0, a1, Math.max(BOT + 1, h - 14), h - 1.2, col, col, h);
-      quad(a0, a1, h - 1.2, h, lip, lip, h);
+      const tread = (y, rA, rB, cq) => [[a0, rA], [a1, rB], [a1, rA], [a0, rA], [a0, rB], [a1, rB]].forEach(([b, r]) => { rpos.push(...P(b, y, r)); rcol.push(...cq); rinf.push(b * R2, y, -2, haze); });
+      // a tall hill steps back in three terraces (summit furthest): the elevated landmark cameras look down onto
+      // their lit tops, so a hillside reads as stepped slopes rather than one sheer face. Drawn far to near.
+      // (each lower riser ends in a lit lip under its terrace, so the steps read from the low chase camera too)
+      const y1 = Math.round(h * 0.42 / STEP) * STEP, y2 = Math.round(h * 0.72 / STEP) * STEP, D = 28, ledge = col.map((v) => Math.min(1, v * 1.28 + 0.03));
+      if (h >= 30 && y1 > 0 && y2 > y1) {
+        quad(a0, a1, y2 - 2, h - 1.2, col, col, h);
+        quad(a0, a1, h - 1.2, h, lip, lip, h);
+        tread(y2, R2 - D, R2, ledge);
+        quad(a0, a1, y1 - 2, y2 - 1.6, col, col, h, R2 - D);
+        quad(a0, a1, y2 - 1.6, y2, lip, lip, h, R2 - D);
+        tread(y1, R2 - 2 * D, R2 - D, ledge);
+        quad(a0, a1, BOT, y1 - 1.6, foot, col, h, R2 - 2 * D);
+        quad(a0, a1, y1 - 1.6, y1, lip, lip, h, R2 - 2 * D);
+      } else {
+        quad(a0, a1, BOT, Math.max(BOT + 1, h - 14), foot, col, h);
+        quad(a0, a1, Math.max(BOT + 1, h - 14), h - 1.2, col, col, h);
+        quad(a0, a1, h - 1.2, h, lip, lip, h);
+      }
       // a ragged tree line: one or two crowns of their own width and height standing on most columns
       const trees = col.map((v) => v * 0.8);
       for (let k = 0; k < 2; k++) {
@@ -110,9 +127,14 @@ export function buildSky(THREE, env = {}) {
         vec3 c = vC;
         if (vI.z > 0.0) {
           float depth = vI.z - vI.y, row = floor(vI.y / 6.0), fy = fract(vI.y / 6.0);
-          float cu = vI.x / 7.0 + row * 0.5, fu = fract(cu), id = h21(vec2(floor(cu), row)), id2 = h21(vec2(row, floor(cu)) + 7.0);
-          float hw = (0.46 - 0.15 * floor(fy * 3.0)) * (0.7 + 0.35 * id2), dx = abs(fu - 0.5), aa = fwidth(cu) * 0.75 + 1e-4;
-          float crown = (1.0 - smoothstep(hw - aa, hw + aa, dx)) * step(id, 0.8 * smoothstep(2.0, 5.0, depth));
+          float cw = 5.5 + 3.5 * h21(vec2(row, 3.7)); // each row's own spacing (5.5-9 m)
+          float cu = vI.x / cw + row * 0.37, fu = fract(cu), id = h21(vec2(floor(cu), row)), id2 = h21(vec2(row, floor(cu)) + 7.0);
+          // each crown sits off-centre in its cell, and the stand thins into clearings along the ring, so the
+          // slope doesn't read as a printed grid
+          float jit = (h21(vec2(floor(cu) * 1.7, row * 3.1)) - 0.5) * 0.36;
+          float hw = (0.36 - 0.11 * floor(fy * 3.0)) * (0.7 + 0.3 * id2), dx = abs(fu - 0.5 - jit), aa = fwidth(cu) * 0.75 + 1e-4;
+          float stand = 0.45 + 0.55 * smoothstep(-0.35, 0.45, sin(vI.x * 0.021 + row * 0.35) * sin(vI.x * 0.0071 + 1.3));
+          float crown = (1.0 - smoothstep(hw - aa, hw + aa, dx)) * step(id, 0.82 * stand * smoothstep(2.0, 5.0, depth));
           // the hazier the ring, the fainter its crowns (a far ring stays a soft blue-green, not snow-flecked)
           float k = 1.0 - 0.6 * vI.w;
           c *= mix(1.0, (fu < 0.5 ? 0.86 : 0.74) * (0.94 + 0.12 * id2), crown * k);

@@ -9,6 +9,8 @@ export const PROP_KIND = { pine: 'board', oak: 'board', magnolia: 'board', crowd
 const GREEN = hex('#2F4A3A'), GLOBE = hex('#F4F1E6'), STEEL = hex('#A9B0B6'), BLUE = hex('#2E6FD0');
 
 // glow: optional second builder for parts that light up after dark (lamp globes), drawn unlit
+// 3×5 brick lettering for signs
+const SIGN_FONT = { J: ['..#', '..#', '..#', '#.#', '###'], U: ['#.#', '#.#', '#.#', '#.#', '###'], D: ['##.', '#.#', '#.#', '#.#', '##.'], G: ['###', '#..', '#.#', '#.#', '###'], E: ['###', '#..', '##.', '#..', '###'] };
 export function buildProp(type, g, p, yaw, sc = 1, glow = null) {
   const [x, y, z] = p;
   const cy = Math.cos(yaw), sy = Math.sin(yaw);
@@ -49,8 +51,23 @@ export function buildProp(type, g, p, yaw, sc = 1, glow = null) {
     }
     case 'judge': { // judge stand: a small striped booth with a podium
       g.obox(T(0, 1.0, 0), [1.4, 1.0, 1.0], hex('#F4F1EA'), yaw, { top: hex('#C8322A') });
+      for (const by of [0.55, 1.45]) g.obox(T(0, by, 0), [1.42, 0.14, 1.02], hex('#C8322A'), yaw, { noBottom: true });
       g.obox(T(0, 2.5, 0), [1.6, 0.12, 1.2], hex('#C8322A'), yaw);
       for (const dx of [-1.4, 1.4]) g.cyl(T(dx, 0, 0.9), 0.06, 0.06, 2.5, 4, STEEL);
+      // a navy sign board standing on the roof across the booth (facing up and down the road, where the racers come
+      // from) spelling JUDGE on both faces in white 1×1 plates (a 3×5 brick font, each row's run of plates one
+      // brick), and a blue feather flag beside the booth, so the stop reads from down the road
+      g.obox(T(0, 3.05, 0.2), [0.06, 0.42, 1.35], hex('#0A3463'), yaw);
+      const px = 0.13, white = hex('#F4F4F4');
+      for (const f of [1, -1]) 'JUDGE'.split('').forEach((ch, li) => SIGN_FONT[ch].forEach((row, r) => {
+        for (let c = 0; c < 3; c++) {
+          if (row[c] !== '#' || (c > 0 && row[c - 1] === '#')) continue;
+          let n = 1; while (c + n < 3 && row[c + n] === '#') n++;
+          const u = (li * 4 + c + n / 2) * px - 1.235; // across the board from its left as seen from this face
+          g.obox(T(f * 0.08, 3.05 + 0.325 - r * px - px / 2, 0.2 - f * u), [0.02, px * 0.46, px * (n / 2 - 0.04)], white, yaw, { noBottom: true });
+        }
+      }));
+      buildProp('flag', g, T(1.95, 0, 0.7), yaw, sc);
       // two brick judges in striped shirts with clipboards, standing in front of the booth facing the road
       for (const dx of [-0.85, 0.85]) {
         const J = (lx, ly, lz) => T(dx + lx, ly, 1.45 + lz), blk = hex('#2B2E33'), wht = hex('#F4F4F4'), skin = hex(dx < 0 ? '#E0AC7E' : '#8D5A3B');

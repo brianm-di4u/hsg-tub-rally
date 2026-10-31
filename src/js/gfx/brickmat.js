@@ -135,7 +135,14 @@ const FRAG_COMMON = `
     if (uShadowOn < 0.5 || p.x < 0.0 || p.x > 1.0 || p.y < 0.0 || p.y > 1.0 || p.z > 1.0) return 1.0;
     // depth bias ~6 cm over the map's 240 m depth range (shadows.js): low parts like a tub's chassis still cast;
     // the normal offset above keeps flat ground free of acne
-    float z = p.z - 0.00025, o = uShadowTexel * 0.8;
+    #ifdef RIM
+      // crews cast from their far model, whose blocks stand a few cm proud of the rounded near parts: a looser bias
+      // keeps the near parts from shadowing themselves in hatching
+      float zb = 0.0008;
+    #else
+      float zb = 0.00025 + 0.0006 * (1.0 - abs(ndl));
+    #endif
+    float z = p.z - zb, o = uShadowTexel * 0.8;
     float s = 0.25 * (shadowLerp(p.xy + vec2(-o, -o), z) + shadowLerp(p.xy + vec2(o, -o), z) + shadowLerp(p.xy + vec2(-o, o), z) + shadowLerp(p.xy + vec2(o, o), z));
     vec2 edge = min(p.xy, 1.0 - p.xy);
     return mix(1.0, s, smoothstep(0.0, 0.06, min(edge.x, edge.y)));
@@ -234,7 +241,13 @@ const FRAG_MAIN = `
     #ifdef PAT_STUDS
       // baseplate studs on upward faces: tilt the normal on each stud's bevel ring, darken the plate around its
       // base, and drop a small shadow on the side away from the sun
-      if (Ng.y > 0.9) {
+      // (roofs: only near-flat faces take studs; a pitched roof, even a shallow one, is laid in tile rows below)
+      #ifdef ROOF
+        const float STUD_Y = 0.995;
+      #else
+        const float STUD_Y = 0.9;
+      #endif
+      if (Ng.y > STUD_Y) {
         vec2 cell = vWorld.xz / ${BRICK.pitch.toFixed(3)};
         vec2 fw = fwidth(cell);
         float fade = (1.0 - smoothstep(0.12, 0.32, max(fw.x, fw.y))) * uPatAmt;
@@ -253,9 +266,18 @@ const FRAG_MAIN = `
         // each 4×4-stud plate is its own part, a shade lighter or darker, so the baseplate keeps a pattern where the
         // studs themselves are too small to draw
         albedo *= 1.0 + (hash12(floor(cell / 4.0)) - 0.5) * 0.09 * uPatAmt;
+        // and the baseplates themselves: a moulded groove every 16 studs, which still reads where the studs don't
+        { float pe; float ps = seam(vWorld.xz, vec2(${(16 * BRICK.pitch).toFixed(2)}), 0.03, pe); ao *= mix(1.0, 0.55 + 0.45 * ps, uPatAmt * (1.0 - fade * 0.6)); lit += pe * 0.5 * uPatAmt;
+          albedo *= 1.0 + (hash12(floor(vWorld.xz / ${(16 * BRICK.pitch).toFixed(2)}) + 3.1) - 0.5) * 0.1 * uPatAmt * (1.0 - fade); }
       } else if (Ng.y > 0.25) {
         // slopes are terraced plates: a groove and a lit lip every plate of rise, each plate a shade apart
-        float py = vWorld.y / ${BRICK.plate.toFixed(3)}, f = fract(py), aw = fwidth(py) + 1e-4;
+        // (roof tiles are laid a brick high, so the rows still read from across the street)
+        #ifdef ROOF
+          float py = vWorld.y / ${BRICK.brick.toFixed(3)};
+        #else
+          float py = vWorld.y / ${BRICK.plate.toFixed(3)};
+        #endif
+        float f = fract(py), aw = fwidth(py) + 1e-4;
         float fadeT = 1.0 - smoothstep(0.25, 0.6, aw);
         ao *= 1.0 - 0.28 * fadeT * (1.0 - smoothstep(0.0, 0.12 + aw, f)) * uPatAmt;
         lit += fadeT * smoothstep(0.82, 0.9, f) * (1.0 - smoothstep(0.94, 1.0, f)) * 2.0 * uPatAmt;
@@ -351,6 +373,7 @@ function base(opts, vertMain, extraV = '', extraUniforms = {}, extraF = '') {
   if (opts.flatTint) defines.FLAT_TINT = '';
   if (opts.emissive) defines.EMISSIVE = '';
   if (opts.water) defines.WATERY = '';
+  if (opts.roof) defines.ROOF = '';
   if (opts.shadows ?? S.shadowsDefault) defines.USE_SHADOW = '';
   if (S.lite) defines.LITE = '';
   if (opts.side === THREE.DoubleSide) defines.DOUBLE_SIDED = '';

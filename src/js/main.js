@@ -4,6 +4,7 @@
 import { Renderer } from './gfx/renderer.js';
 import { buildTrackWorld } from './gfx/trackmesh.js';
 import { buildSky } from './gfx/sky.js';
+import { clearAround } from './gfx/bricktrees.js';
 import { KartView, setCrewDetail, FootBlobs } from './gfx/karts3d.js';
 import { Fx } from './gfx/fx.js';
 import { TIERS, pickTier, Governor } from './gfx/tiers.js';
@@ -210,17 +211,19 @@ export async function startRace(opts = {}) {
   const dusk = /dusk|sunset/.test((track.json && track.json.env && track.json.env.time) || '');
   App.views = App.race.karts.map((k, i) => {
     const v = new KartView(window.THREE, k.team, { hero: i === App.race.player });
-    v.mat.uniforms.uFill.value = dusk ? 0.22 : 0;
+    v.mat.uniforms.uFill.value = dusk ? 0.32 : 0;
+    if (dusk) v.mat.uniforms.uRim.value = 0.6;
     App.renderer.scene.add(v.shadow);
     App.renderer.scene.add(v.mesh);
     return v;
   });
   if (App.race.player >= 0 && App.views.length > 1) {
     App.views[App.race.player].showMarker(App.race.karts[App.race.player].team);
-    App.views.forEach((v, i) => { if (i !== App.race.player) v.showRing(App.race.karts[i].team, true); });
+    App.views.forEach((v, i) => { if (i !== App.race.player) v.showRing(App.race.karts[i].team, true, dusk); });
   }
   App.prev = App.race.karts.map(poseOf);
   App.fx.setRace(App.race, track); App.fx.clear(); App.frameEvents.length = 0;
+  if (App.world) clearAround(App.world, App.fx.booths);
   // Time Trial: record this run; race the saved best as a see-through ghost
   if (App.ghostView) { App.renderer.scene.remove(App.ghostView.mesh); App.ghostView.geo.dispose(); App.ghostView = null; }
   App.rec = null; App.ghost = null; App.newRecord = false;

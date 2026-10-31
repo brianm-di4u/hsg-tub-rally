@@ -397,10 +397,10 @@ export class KartView {
   }
   // a team-colour ring on the contact-shadow plane (an ellipse through its 1.3 × 1.9 m scale): bold and outlined for
   // the player; rivals get a slim, fainter one so their tubs read through the crews ahead in a pack
-  showRing(teamId, rival = false) {
+  showRing(teamId, rival = false, bright = false) {
     const THREE = this.THREE, C = TEAM_BY_ID[teamId].colors;
     const ringMat = (color, opacity) => new THREE.MeshBasicMaterial({ color, transparent: true, opacity, depthWrite: false, fog: false, polygonOffset: true, polygonOffsetFactor: -2 });
-    const ring = new THREE.Mesh(new THREE.RingGeometry(rival ? 0.86 : 0.84, rival ? 0.9 : 0.94, 48).rotateX(-Math.PI / 2), ringMat(new THREE.Color(C.flag), rival ? 0.6 : 0.95));
+    const ring = new THREE.Mesh(new THREE.RingGeometry(rival ? (bright ? 0.84 : 0.86) : 0.84, rival ? (bright ? 0.92 : 0.9) : 0.94, 48).rotateX(-Math.PI / 2), ringMat(new THREE.Color(C.flag), rival ? (bright ? 0.9 : 0.6) : 0.95));
     ring.position.y = 0.01; ring.renderOrder = 3;
     if (!rival) { const outline = new THREE.Mesh(new THREE.RingGeometry(0.8, 0.98, 48).rotateX(-Math.PI / 2), ringMat(0x1e1b18, 0.55)); outline.position.y = 0.01; outline.renderOrder = 2; this.shadow.add(outline); }
     this.shadow.add(ring);

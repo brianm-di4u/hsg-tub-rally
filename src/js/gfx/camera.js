@@ -48,8 +48,8 @@ export class ChaseCam {
     this.cam.position.set(cx + Math.sin(t * 47) * sh * 0.15, cy + Math.sin(t * 61) * sh * 0.12, cz);
     const look = 6 + portrait * 2;
     this.cam.lookAt(this.x + fx * look, this.y + 0.9 - portrait * 1.6, this.z + fz * look);
-    // impacts jolt the view: a pitch kick that rings down with the shake (up to ~1.5 degrees)
-    if (sh > 0) this.cam.rotateX(-sh * 0.028 * Math.cos(t * 29));
+    // impacts jolt the view: a dip of up to ~4 degrees that eases out with the shake, plus a small ring
+    if (sh > 0) this.cam.rotateX(-sh * sh * 0.07 + sh * 0.012 * Math.cos(t * 29));
     // lean into a power slide: up to 2.5 degrees of roll
     this.roll = snapped ? 0 : damp(this.roll, opts.reducedMotion ? 0 : (k.drift || 0) * 0.044, 6, dt);
     if (this.roll) this.cam.rotateZ(this.roll);

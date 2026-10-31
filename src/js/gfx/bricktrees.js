@@ -83,6 +83,23 @@ function rockGeo(THREE) {
   return g.build(THREE);
 }
 const FLOWERS = [PAL.red, PAL.yellow, PAL.white, PAL.pink, PAL.orange, PAL.magenta];
+// Clear spectators and trees out of the way of this race's judge booths (they are race items, placed after the
+// world is built): instances whose base lies within r metres of a booth are collapsed to nothing; every call first
+// restores the track's own placement
+export function clearAround(world, pts, rCrowd = 6, rTree = 5) {
+  world.traverse((o) => {
+    if (!o.isInstancedMesh || !(o.name === 'crowd' || o.name.startsWith('flora:'))) return;
+    const a = o.instanceMatrix.array;
+    if (!o.userData.orig) o.userData.orig = a.slice(); else a.set(o.userData.orig);
+    const r = o.name === 'crowd' ? rCrowd : rTree;
+    for (let i = 0; i < o.count; i++) {
+      const x = a[i * 16 + 12], z = a[i * 16 + 14];
+      if (pts.some(([px, pz]) => (x - px) ** 2 + (z - pz) ** 2 < r * r)) a.fill(0, i * 16, i * 16 + 16);
+    }
+    o.instanceMatrix.needsUpdate = true;
+  });
+}
+
 export function buildGroundDressing(THREE, items) {
   const out = [], m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), v = new THREE.Vector3(), s = new THREE.Vector3(), col = new THREE.Color();
   for (const [kind, geoFn, colours] of [['shrub', shrubGeo, ['#2F7A3A', PAL.green, '#3E8E3A', PAL.darkGreen]], ['flower', flowerGeo, FLOWERS], ['rock', rockGeo, null]]) {

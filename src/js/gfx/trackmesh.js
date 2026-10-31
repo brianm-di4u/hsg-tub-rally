@@ -216,8 +216,8 @@ export function buildTrackWorld(THREE, track, env = {}) {
   // edge, with studded grey stepping stones along both banks
   for (const zn of (track.zones || []).filter((z) => z.type === 'ford')) {
     const ch = Math.min(nChunks - 1, Math.floor(zn.s0 / step / CHUNK));
-    const water = geoFor('ford', () => worldMat({ pattern: 'tiles', uvScale: 1, tile: 0.56, gloss: 0.95, transparent: true, alpha: 0.7, depthWrite: false, water: true }), ch);
-    const rocks = geoFor('rocks', () => mat({ pattern: 'studs', gloss: 0.4 }), ch), blue = hex('#2E86D0'), grey = hex(PAL.darkGrey);
+    const water = geoFor('ford', () => worldMat({ pattern: 'tiles', uvScale: 1, tile: 0.56, gloss: 0.95, transparent: true, alpha: 0.95, depthWrite: false, water: true }), ch);
+    const rocks = geoFor('rocks', () => mat({ pattern: 'studs', gloss: 0.4 }), ch), blue = hex('#1E86C8'), grey = hex(PAL.darkGrey);
     for (let s0 = zn.s0; s0 < zn.s1 - 0.01; s0 += 1) {
       const s1 = Math.min(zn.s1, s0 + 1), c0 = track.at(s0), c1 = track.at(s1), n = 6;
       const L0 = -(c0.wl + 1.5), R0 = c0.wr + 1.5, L1 = -(c1.wl + 1.5), R1 = c1.wr + 1.5;
@@ -225,6 +225,8 @@ export function buildTrackWorld(THREE, track, env = {}) {
         const a0 = L0 + ((R0 - L0) * k) / n, b0 = L0 + ((R0 - L0) * (k + 1)) / n, a1 = L1 + ((R1 - L1) * k) / n, b1 = L1 + ((R1 - L1) * (k + 1)) / n;
         water.quad(P(c0, a0, 0.08), P(c0, b0, 0.08), P(c1, b1, 0.08), P(c1, a1, 0.08), blue, [[a0, s0], [b0, s0], [b1, s1], [a1, s1]]);
       }
+      const edge = geoFor('paint', () => mat({ gloss: 0.6 }), ch), wht = hex(PAL.white);
+      for (const [d0, d1, e0, e1] of [[-c0.wl, -c0.wl + 0.3, -c1.wl, -c1.wl + 0.3], [c0.wr - 0.3, c0.wr, c1.wr - 0.3, c1.wr]]) edge.quad(P(c0, d0, 0.11), P(c0, d1, 0.11), P(c1, e1, 0.11), P(c1, e0, 0.11), wht);
     }
     for (let s0 = zn.s0 - 2; s0 <= zn.s1 + 2; s0 += 2.2) for (const side of [-1, 1]) {
       const c = track.at(s0), d = side * ((side > 0 ? c.wr : c.wl) + 2.2 + hash(Math.round(s0 * 10), side + 3) * 1.2);
@@ -258,13 +260,15 @@ export function buildTrackWorld(THREE, track, env = {}) {
 }
 
 // warm light pools under the lamps after dark: additive soft discs laid on the ground
-function lightPools(THREE, list) {
+function lightPools(THREE, list, track) {
   const c = document.createElement('canvas'); c.width = c.height = 64;
   const x = c.getContext('2d'), gr = x.createRadialGradient(32, 32, 0, 32, 32, 32);
   gr.addColorStop(0, 'rgba(255,214,140,0.62)'); gr.addColorStop(0.45, 'rgba(255,196,118,0.34)'); gr.addColorStop(0.75, 'rgba(255,180,100,0.12)'); gr.addColorStop(1, 'rgba(255,170,90,0)');
   x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
   const pos = [], uv = [], R = 8.5; // wide enough to reach across the near lane from the sidewalk
-  for (const [px, py, pz] of list) {
+  for (const [lx, py, lz] of list) {
+    // centred 3 m out from the lamp toward the road, so the light lands in the lane the pack drives
+    const L = track.locate(lx, lz), c = track.at(L.s), toward = L.d > 0 ? -1 : 1, px = lx - c.tz * toward * 3, pz = lz + c.tx * toward * 3;
     const y = py + 0.08, q = [[px - R, pz - R, 0, 0], [px + R, pz - R, 1, 0], [px + R, pz + R, 1, 1], [px - R, pz + R, 0, 1]];
     for (const k of [0, 2, 1, 0, 3, 2]) { pos.push(q[k][0], y, q[k][1]); uv.push(q[k][2], q[k][3]); }
   }
@@ -289,7 +293,7 @@ function buildBlock(geoFor, ch, b, mat, kit) {
   if (kit && style !== 'bathhouse' && facadeTex.startsWith('store')) return buildFacadeKit(geoFor, ch, b, mat);
   // the facade painting reads as a printed brick wall: bond seams over the print
   const front = geoFor('facade:' + facadeTex, () => mat({ map: tex(facadeTex), pattern: 'bricks', uvScale: 5, tile: 1.12, patAmt: 0.55, gloss: 0.4 }), ch);
-  const plain = geoFor('bldg', () => mat({ pattern: 'studs', gloss: 0.45 }), ch);
+  const plain = geoFor('bldg', () => mat({ pattern: 'studs', gloss: 0.45, roof: true }), ch);
   const fp = b.fp, y0 = b.base, y1 = b.base + b.h, n = fp.length;
   const hsh = hash(Math.round(fp[0][0] * 7 + fp[0][1] * 13), 1);
   const painted = facadeTex !== 'storefront' && facadeTex !== 'fordyce-bay' || style === 'bathhouse';
@@ -338,7 +342,7 @@ function buildFacadeKit(geoFor, ch, b, mat) {
   const wall = geoFor('kitwall', () => mat({ pattern: 'bricks', uvScale: 1, tile: 1.12, patAmt: 0.85, gloss: 0.4 }), ch);
   const trim = geoFor('kittrim', () => mat({ pattern: 'studs', gloss: 0.5 }), ch);
   const glass = geoFor('kitglass', () => mat({ gloss: 0.95, glass: true }), ch);
-  const plain = geoFor('bldg', () => mat({ pattern: 'studs', gloss: 0.45 }), ch);
+  const plain = geoFor('bldg', () => mat({ pattern: 'studs', gloss: 0.45, roof: true }), ch);
   const fp = b.fp, y0 = b.base, y1 = b.base + b.h, n = fp.length, hsh = hash(Math.round(fp[0][0] * 7 + fp[0][1] * 13), 1);
   const wc = hex(KIT_WALLS[Math.floor(hsh * KIT_WALLS.length)]), trimC = hex(hsh < 0.5 ? PAL.tan : PAL.white);
   const awn = hex(KIT_AWN[Math.floor(hash(Math.round(fp[0][0] * 3), 5) * KIT_AWN.length)]), white = hex(PAL.white), under = mul(awn, 0.55);

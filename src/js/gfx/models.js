@@ -40,10 +40,18 @@ export function loadModel(name, opts = {}) {
     g.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
     g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
     g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    // a building whose facade art paints its windows keeps only its sloped glass (lanterns, skylights): the
+    // modelled upright panes stood proud of the painted openings, half a bay out of register
+    if (slot === 'glass' && opts.facades && Object.values(opts.facades).some((f) => f && hasArt(f))) {
+      const keep = [];
+      for (let t = 0; t < n; t += 3) if (Math.abs(nor[t * 3 + 1]) > 0.3) keep.push(t, t + 1, t + 2);
+      if (!keep.length) continue;
+      g.setIndex(keep);
+    }
     g.computeBoundingSphere();
     const facade = opts.facades && opts.facades[slot];
     // brick courses on walls (1 uv unit = 4 m), studs on flat roofs and ledges
-    const pat = slot === 'wall' ? { pattern: 'bricks', uvScale: 4, tile: 1.12, patAmt: 0.8 } : slot === 'roof' || slot === 'trim' ? { pattern: ['bricks', 'studs'], uvScale: 4, tile: 1.12, patAmt: 0.7 } : {};
+    const pat = name === 'goat-rock' ? { pattern: ['bricks', 'studs'], uvScale: 4, tile: 4.48, patAmt: 0.6 } : slot === 'wall' ? { pattern: 'bricks', uvScale: 4, tile: 1.12, patAmt: 0.8 } : slot === 'roof' || slot === 'trim' ? { pattern: ['bricks', 'studs'], uvScale: 4, tile: 1.12, patAmt: 0.7, roof: slot === 'roof' } : {};
     const mat = facade && hasArt(facade) ? litMat({ map: tex(facade), flatTint: true, tint: opts.wallTint || '#ffffff', ...pat, patAmt: 0.55, footAO: true }) : litMat({ ...pat, gloss: slot === 'glass' ? 0.9 : 0.5, footAO: true, glass: slot === 'glass' });
     const mesh = new THREE.Mesh(g, mat);
     mesh.name = slot; mesh.matrixAutoUpdate = false; mesh.updateMatrix();

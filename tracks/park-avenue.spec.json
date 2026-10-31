@@ -297,8 +297,8 @@
   "neon": true,
   "skyTex": "ridge-dusk",
   "music": "swing",
-  "amb": 0.42,
-  "diff": 0.45
+  "amb": 0.64,
+  "diff": 0.55
  },
  "meta": {
   "credits": "Streets \u00a9 OpenStreetMap contributors (ODbL); elevation USGS 3DEP",

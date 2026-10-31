@@ -40,15 +40,16 @@ export class Fx {
         void main(){ vC = color; vec4 mv = modelViewMatrix * vec4(position,1.0); gl_PointSize = min(aSize * uScale / max(1.0, -mv.z), uScale * 0.026) * smoothstep(1.5, 3.5, -mv.z); gl_Position = projectionMatrix * mv; }`,
       // (point size shrinks to nothing within ~3 m of the camera, so no bead balloons at the lens)
       // each particle is a glossy plastic bead: a sphere normal from the point coordinate, soft key light, a
-      // specular highlight and a darker rim, so spray and steam read as toy droplets rather than flat discs
+      // specular highlight and a glassy rim, translucent like trans-clear parts, so spray and steam read as toy
+      // droplets rather than flat discs
       fragmentShader: `varying vec3 vC; void main(){
         vec2 d = (gl_PointCoord - 0.5) * 2.0; float r2 = dot(d, d); if (r2 > 1.0) discard;
         vec3 n = vec3(d.x, -d.y, sqrt(1.0 - r2));
         float diff = 0.6 + 0.4 * max(dot(n, vec3(-0.42, 0.56, 0.71)), 0.0);
         float spec = pow(max(dot(n, vec3(-0.33, 0.5, 0.8)), 0.0), 28.0);
         vec3 c = vC * diff * (1.0 - 0.3 * smoothstep(0.7, 1.0, r2)) + vec3(0.85 * spec);
-        gl_FragColor = vec4(c, 1.0); }`,
-      transparent: false, depthWrite: true,
+        gl_FragColor = vec4(c + vec3(0.12) * smoothstep(0.6, 1.0, r2), mix(0.5, 0.85, smoothstep(0.5, 1.0, r2))); }`,
+      transparent: true, depthWrite: false,
     });
     this.points = new THREE.Points(g, pm); this.points.frustumCulled = false;
     this.group.add(this.points);
@@ -88,6 +89,7 @@ export class Fx {
   }
   // instanced billboards for pickups and tickets (positions fixed; visibility per frame via size)
   setRace(race, track) {
+    this.booths = []; // judge booths placed this race: [x, z] (main.js clears crowds and trees around them)
     // seeded spray so review captures repeat exactly (a fresh sequence per race)
     this.rand = makeRng(race ? race.seed || 1 : 1).next;
     const T = this.T;
@@ -116,6 +118,7 @@ export class Fx {
       const c = track.at(j.s), side = j.side, w = side > 0 ? c.wr : c.wl;
       const yaw = Math.atan2(c.tx, c.tz);
       const p = track.point(j.s, side * (w + 3.2));
+      this.booths.push([p.x, p.z]);
       buildProp('judge', g, [p.x, track.heightAt(c, side * (w + 3.2)), p.z], yaw + (side > 0 ? Math.PI / 2 : -Math.PI / 2), 1); // booth front (and its judges) toward the road
       // the flag before the booth would stand between the chase camera and the judges: only the one after it
       for (const ds of [j.len / 2]) {
@@ -138,6 +141,7 @@ export class Fx {
         g.quad(P(ca, -ca.wl), P(ca, ca.wr), P(cb, cb.wr), P(cb, -cb.wl), paint);
       }
       const pj = track.point(st.s, -(c.wl + 3.4));
+      this.booths.push([pj.x, pj.z]);
       buildProp('judge', g, [pj.x, track.heightAt(c, -(c.wl + 3.4)), pj.z], yaw - Math.PI / 2, 1);
     }
     if (race.row) { // finish line cones across Central at the Exchange Street crosswalk
@@ -210,12 +214,12 @@ export class Fx {
         // (0.85 s) and to hot orange by the hot tier (1.9 s), so the build-up shows before a tier is reached
         const st = k.stage || 0, ch = k.charge || 0, w = Math.min(1, ch / 0.85), h = Math.max(0, Math.min(1, (ch - 0.85) / 1.05));
         const col = [0.72 + 0.25 * w + 0.03 * h, 0.87 + 0.11 * w - 0.43 * h, 0.98 + 0.02 * w - 0.58 * h];
-        for (const sgn of [-1, 1]) this.burst(k.x - fx * 0.7 + fz * 0.55 * sgn, k.y + 0.15, k.z - fz * 0.7 - fx * 0.55 * sgn, 2 + st, col, { speed: 0.7 + st * 0.4, up: 0.9 + w * 0.6 + st * 0.5, size: 0.22 + w * 0.08 + st * 0.1, life: 0.3 + w * 0.15 + st * 0.1, grav: st || w > 0.7 ? -0.5 : 6, vx: fz * sgn * 1.8 - fx * 0.4, vz: -fx * sgn * 1.8 - fz * 0.4, spread: 0.15 });
+        for (const sgn of [-1, 1]) this.burst(k.x - fx * 0.7 + fz * 0.55 * sgn, k.y + 0.15, k.z - fz * 0.7 - fx * 0.55 * sgn, 2 + st, col, { speed: 0.7 + st * 0.4, up: st || w > 0.7 ? 1.6 + st * 0.5 : 0.9 + w * 0.6, size: 0.22 + w * 0.08 + st * 0.1, life: 0.3 + w * 0.15 + st * 0.15, grav: st || w > 0.7 ? -1.5 : 6, vx: fz * sgn * 1.8 - fx * (st || w > 0.7 ? 1.4 : 0.4), vz: -fx * sgn * 1.8 - fz * (st || w > 0.7 ? 1.4 : 0.4), spread: 0.15 });
       }
       // boost trail from the rear wheels, coloured by its kind: hot steam orange, warm steam white, hose blue
       if ((k.boostT > 0 || k.hoseT > 0) && !reduced) {
         const bc = k.hoseT > 0 ? [0.6, 0.85, 1] : k.boostKind === 'hot' ? [1, 0.58, 0.28] : [0.96, 0.96, 0.98];
-        for (const sgn of [-1, 1]) this.burst(k.x - fx * 0.8 + fz * 0.5 * sgn, k.y + 0.35, k.z - fz * 0.8 - fx * 0.5 * sgn, 2, bc, { speed: 0.5, up: 1.1, size: 0.26, life: 0.45, grav: -1.2, vx: -fx * 2.2, vz: -fz * 2.2, spread: 0.12 });
+        for (const sgn of [-1, 1]) this.burst(k.x - fx * 0.8 + fz * 0.5 * sgn, k.y + 0.35, k.z - fz * 0.8 - fx * 0.5 * sgn, 2, bc, { speed: 0.5, up: 1.1, size: 0.28, life: 0.5, grav: -1.2, vx: -fx * 2.2, vz: -fz * 2.2, spread: 0.12, grow: 2.6 });
       }
       if (k.sprayT > 0) this.burst(k.x + fx * 1.4, k.y + 1.0, k.z + fz * 1.4, 3, [0.5, 0.8, 1], { speed: 0.5, up: 1.2, size: 0.16, life: 0.5, grav: 9, vx: fx * 16 + Math.sin(k.yaw) * 0, vz: fz * 16, spread: 0.2 });
       }

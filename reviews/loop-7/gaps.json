@@ -1,0 +1,203 @@
+[
+  {
+    "id": "G-ford-reads-as-paving",
+    "category": "materials",
+    "expectedGain": 0.3,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R19",
+      "ab/high-desktop-R19"
+    ],
+    "benchmark": "bj-2",
+    "fix": "Regression: the clear-water change exposes the bed tiles. Give the ford a teal depth tint that hides the bed, a stronger Fresnel at the chase angle, a white edge foam line and ripple rings around wading tubs. Test: R19 ford mean B-R >= 30 (now -7 to +20 at x 460-660, y 330-400) and no tile seams visible through it.",
+    "priority": 0.45,
+    "selected": true
+  },
+  {
+    "id": "G-fx-translucent-steam",
+    "category": "animation",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS3",
+    "evidence": [
+      "strips/high/R14",
+      "high/desktop/R17",
+      "high/desktop/R19",
+      "strips/high/R15"
+    ],
+    "benchmark": "drive-3",
+    "fix": "Replace the opaque glossy ball clusters with translucent trans-clear parts (alpha 0.4-0.6, soft rim): steam emitted in world space with >= 1 m/s upward velocity that trails behind the tub and grows 1.7x; spill and splash as translucent blue round plates on arcs. Test: in strips/high/R14 frames 3-6 the puff tops climb >= 15 px at strip scale (now pinned at ~(172-175, 240-257)); road >= 30% visible through the R17 puffs (x 615-653, y 542-564).",
+    "priority": 0.375,
+    "selected": true
+  },
+  {
+    "id": "G-impact-kick-capture",
+    "category": "animation",
+    "expectedGain": 0.25,
+    "severity": 2,
+    "effort": "S",
+    "workstream": "WS3",
+    "evidence": [
+      "strips/high/R15",
+      "ab/strip-R15"
+    ],
+    "benchmark": "drive-3",
+    "fix": "The R15 strip starts after the fumble impact (frame 1 at 0:04.03 shows the crew already off the tub), so the new pitch kick cannot be seen. Re-time the capture so strip frame 1 is the impact tick; if the kick still does not read, raise it to 3 degrees with ~150 ms decay. Test: horizon shift >= 4 px at strip scale between R15 frames 1 and 2 (now 0 to -1 px).",
+    "priority": 0.375,
+    "selected": true
+  },
+  {
+    "id": "G-landscape-banner-overlap",
+    "category": "ui",
+    "expectedGain": 0.3,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS6",
+    "evidence": [
+      "high/landscape/R17",
+      "ab/high-landscape-R17",
+      "high/desktop/R17"
+    ],
+    "benchmark": "drive-3",
+    "fix": "Regression: the event banner covers the item tile from y~141 to ~177 device px in landscape R17. Place transient banners at the tile's measured bottom edge plus >= 8 CSS px, add banners to the automated HUD-rectangle overlap check in all three viewports, and label a count of 1 '1 TICKET'. Test: in landscape R17 the banner top is at y >= 193 device px with no tile pixels under it; R17 reads '1 TICKET' in all viewports.",
+    "priority": 0.3,
+    "selected": true
+  },
+  {
+    "id": "G-figure-shadow-acne",
+    "category": "lighting",
+    "expectedGain": 0.2,
+    "severity": 2,
+    "effort": "S",
+    "workstream": "WS1",
+    "evidence": [
+      "crops/high/R03-player-rear",
+      "ab/crop-R03-player-rear",
+      "crops/high/R03-kart_5"
+    ],
+    "benchmark": "bj-1",
+    "fix": "Regression: diagonal hatching on curved figure parts. Use a normal-offset or slope-scaled shadow bias of 1-2 texels on figure and tub meshes; keep the 6 cm constant bias for chassis contact. Test: no diagonal hatching at 3x on the head at x 600-800, y 230-330 of crops/high/R03-player-rear, and no stair-step band beside the chassis in crops/high/R03-kart_5.",
+    "priority": 0.3,
+    "selected": true
+  },
+  {
+    "id": "G-far-lawn-studs",
+    "category": "materials",
+    "expectedGain": 0.2,
+    "severity": 2,
+    "effort": "S",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R06",
+      "high/desktop/R05",
+      "high/desktop/R08"
+    ],
+    "benchmark": "worlds-1",
+    "fix": "Near lawns are studded; mid-distance lawns go flat. Carry stud relief, or a baseplate-seam grid with a stud-tint mip, out to ~60 m. Test: luma gradient on the R06 lawn (x 0-120, y 600-780; now 0.64 h / 1.37 v) and the R05 back lawn (x 1080-1270, y 560-680; now 0.19/0.83) reaches the R08 studded bank's 1.62/3.22.",
+    "priority": 0.3,
+    "selected": true
+  },
+  {
+    "id": "G-ford-route-edge",
+    "category": "readability",
+    "expectedGain": 0.2,
+    "severity": 2,
+    "effort": "S",
+    "workstream": "WS4",
+    "evidence": [
+      "high/desktop/R19"
+    ],
+    "benchmark": "drive-3",
+    "fix": "Run a white tile edge line or kerb along both sides of the route across the Gulpha plaza and ford, and replace the ribbed bank with stepped slope bricks. Test: in R19 the route edge is continuous from the player's tub to the far side of the ford.",
+    "priority": 0.3,
+    "selected": true
+  },
+  {
+    "id": "G-judge-stand-brick",
+    "category": "scenery",
+    "expectedGain": 0.2,
+    "severity": 2,
+    "effort": "S",
+    "workstream": "WS5",
+    "evidence": [
+      "high/desktop/R16",
+      "strips/high/R16"
+    ],
+    "benchmark": "worlds-1",
+    "fix": "Build the judge stand from bricks and tiles with a printed judges' sign and a table, judges in front facing the lane (also helps authenticity). Test: the R16 stand face shows seams or studs (now sigma-Y 7.8 over x 255-345, y 350-460) and every judge's face is visible.",
+    "priority": 0.3,
+    "selected": false
+  },
+  {
+    "id": "G-dusk-figure-light",
+    "category": "lighting",
+    "expectedGain": 0.4,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R07",
+      "high/mobile/R07",
+      "high/desktop/R11"
+    ],
+    "benchmark": "worlds-4",
+    "fix": "The near pool already reaches the left lane (Y 112.7); the centre lane under the pack and the figures stay dark. Space dusk lamps or widen their falloff so the centre lane between posts is lit, and add a warm rim/fill term on figures and tubs at dusk and sunset. Test: R07 centre lane at x 380-500, y 560-620 reads Y >= 70 (now 46.4); the player's crew torsos >= 2:1 against it (now 67-80 vs 46-48) and its tub >= 1.5:1 (now 39); R11 crew >= 1.6:1 (now 64-67 vs 47).",
+    "priority": 0.3,
+    "selected": false
+  },
+  {
+    "id": "G-row-glazing-registration",
+    "category": "materials",
+    "expectedGain": 0.4,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS4",
+    "evidence": [
+      "crops/high/R04-kart_3",
+      "high/desktop/R04",
+      "high/desktop/R16",
+      "high/desktop/R18"
+    ],
+    "benchmark": "worlds-1",
+    "fix": "Geometry panes sit half a bay off the facade texture's painted mullioned windows. Remove painted openings wherever geometry panes exist (or snap the panes to them); panes at most 2 cm proud inside a moulded frame; true round arches of at least 8 segments. Test: no painted window edge within 4 px of any pane in R04, crops/high/R04-kart_3, R16 and R18.",
+    "priority": 0.3,
+    "selected": false
+  },
+  {
+    "id": "G-hairpin-pack-camera",
+    "category": "readability",
+    "expectedGain": 0.3,
+    "severity": 2,
+    "effort": "M",
+    "workstream": "WS6",
+    "evidence": [
+      "high/desktop/R08"
+    ],
+    "benchmark": "drive-3",
+    "fix": "In tight corners raise the chase camera 0.5-1 m and pitch it down ~5 degrees, or extend look-ahead, so rival tub bodies show above the crews ahead. Test: at least four rival tub bodies visible in R08 (now one tub partly visible; the rest show crews and wheels).",
+    "priority": 0.225,
+    "selected": false
+  },
+  {
+    "id": "G-horizon-terraces",
+    "category": "scenery",
+    "expectedGain": 0.5,
+    "severity": 4,
+    "effort": "L",
+    "workstream": "WS4",
+    "evidence": [
+      "high/desktop/R06",
+      "high/desktop/R05",
+      "high/desktop/R03",
+      "high/desktop/R17"
+    ],
+    "benchmark": "drive-5",
+    "fix": "BIG LEVER (scenery; also helps authenticity). Terrace the hill rings into receding plate tiers that each carry a tree line, so no face is near-vertical; put instanced three-tier conifer geometry with random scale (+/-25%), rotation and offset on the near ring; keep shader crowns only on the far ring with per-crown jitter; stay within perf budgets. Test: in R06 (x 0-440, y 230-500) and R05 (right half) no continuous face runs taller than 60 px without a lit ledge, and row-wise luma autocorrelation over R06 x 0-400, y 330-470 is <= 0.2 at lags 15-30 px (now 0.22-0.44 at lag 19-23).",
+    "priority": 0.188,
+    "bigLever": true,
+    "selected": true
+  }
+]

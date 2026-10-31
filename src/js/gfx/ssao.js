@@ -58,7 +58,9 @@ const COMP_FRAG = `
       sum += textureLod(tAO, vUv + o, 0.0).r * w; wsum += w;
     }
     float ao = sum / wsum;
-    float fade = 1.0 - smoothstep(uFadeFar * 0.6, uFadeFar, -z);
+    // fades out with distance, and within a few metres of the lens too: in close-ups the curved parts' facets
+    // (a tub's inner wall) would band, and contact shading there comes from the sun shadow and the models' own AO
+    float fade = (1.0 - smoothstep(uFadeFar * 0.6, uFadeFar, -z)) * smoothstep(2.5, 5.0, -z);
     gl_FragColor = vec4(col.rgb * mix(1.0, ao, uStrength * fade), col.a);
   }`;
 

@@ -405,3 +405,8 @@ body[data-screen="results"] .touch, body[data-screen="standings"] .touch, body[d
 @media (max-height: 500px) and (min-aspect-ratio: 1/1) { .hud-bl { top: 100px; } .hud-map { top: 108px; } }
 .hud-item .tickets { flex-wrap: wrap; width: 54px; justify-content: center; row-gap: 0; }
 .hud-item .tk-l { flex-basis: 100%; text-align: center; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #C9D6E2; line-height: 1.1; }
+
+/* loop 8: HUD tiles carry the menus' stud row along their top edge */
+.hud-tl, .hud-tr, .hud-item, .hud-map, .hud-water, .hud-bl .hud-pips { background-image: radial-gradient(circle 4px at 50% 55%, rgba(255,255,255,0.22) 0 70%, transparent 76%); background-size: 16px 9px; background-position: center 2px; background-repeat: repeat-x; }
+@media (max-height: 500px) and (min-aspect-ratio: 1/1) { .hud-center { top: 104px; } }
+@media (max-aspect-ratio: 4/5) { .scr-teams { padding-bottom: calc(env(safe-area-inset-bottom) + 16px); } }
