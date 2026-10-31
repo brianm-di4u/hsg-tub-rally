@@ -11,6 +11,8 @@ art-src/**/*.blend1
 art-src/**/renders/
 # Benchmark screenshots of other games (review only, never shipped)
 /benchmarks/
+# blind calibration frames copied from benchmarks/ into a loop folder: same licence limits, never shipped
+/reviews/loop-*/calibration.jpg
 # Downloaded elevation and map data (re-fetched by tools/geo/fetch.mjs)
 /art-src/geo/raw/
 /art-src/dem/
