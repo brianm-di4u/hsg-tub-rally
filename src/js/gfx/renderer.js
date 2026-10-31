@@ -30,7 +30,7 @@ export class Renderer {
     this.size = { w: 0, h: 0 };
     this.info = { draws: 0, tris: 0 };
     // ambient occlusion (High): the scene goes through a multisampled target and the AO composite (native mode only)
-    this.ssao = opts.ao ? new SSAO(THREE, { samples: this.aa ? 4 : 0 }) : null;
+    this.ssao = opts.ao ? new SSAO(THREE, { samples: this.aa ? 4 : 0, strength: 0.85 }) : null;
   }
   setMode(mode) { this.mode = RES_MODES[mode] != null ? mode : 'native'; this.resize(true); }
   resize(force = false) {
@@ -60,7 +60,7 @@ export class Renderer {
     // ambient and reflections: the sky above (between its zenith and horizon colours), the baseplate below (a muted
     // green: a saturated one tinted shaded buff walls olive)
     const sky = env.sky || ['#7FB6E0', '#D9ECF5'], c = new THREE.Color(sky[0]).lerp(new THREE.Color(sky[1]), 0.55);
-    setHemi('#' + c.getHexString(), env.time === 'dusk' ? '#3E3A4A' : env.time === 'sunset' ? '#8C7652' : '#7E866A');
+    setHemi('#' + c.getHexString(), env.time === 'dusk' ? '#4A4556' : env.time === 'sunset' ? '#8C7652' : '#7E866A');
     setLightTint(env.lightTint || (env.time === 'dusk' ? [1.0, 0.8, 0.86] : env.time === 'sunset' ? [1.0, 0.86, 0.78] : [1, 1, 1]));
     this.gl.setClearColor(new THREE.Color(fogC), 1);
     this.camera.far = fog[1] + 60;

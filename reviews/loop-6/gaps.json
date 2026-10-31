@@ -1,0 +1,211 @@
+[
+  {
+    "id": "G-dusk-road-light",
+    "category": "lighting",
+    "expectedGain": 0.3,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R07",
+      "high/mobile/R07",
+      "low/desktop/R07"
+    ],
+    "benchmark": "worlds-4",
+    "fix": "Lamp pools reach only the right sidewalk (luma 184/101/187 at (793,362), (843,390), (918,430)); add a warm additive ellipse decal (~6 x 4 m, fading to 0 at the rim) under every dusk lamp reaching into the near lane, and lift the dusk hemisphere ground colour. Test: R07 centre below luma 40 <= 12% with the player-kart box (525,395)-(750,600) removed from numerator and denominator (18.7% now), and a lit ellipse with peak luma >= 90 on the road beside at least two lamps.",
+    "priority": 0.45,
+    "selected": true
+  },
+  {
+    "id": "G-shadow-texels",
+    "category": "lighting",
+    "expectedGain": 0.3,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS1",
+    "evidence": [
+      "crops/high/R03-kart_5",
+      "crops/high/R04-player",
+      "crops/low/R03-kart_5",
+      "high/desktop/R08"
+    ],
+    "benchmark": "drive-4",
+    "fix": "The stepped light band inside the chassis shadow appears at the countdown (nothing moving) and is absent on the shadowless low tier, so it is shadow-map aliasing, not steam; the same coarse map turns stepped conifers into blob road shadows in R08. On high, fit the directional shadow frustum to the chase area (and to the target for close-up cameras), use a 4096 map or a near cascade, and set normal bias. Test: no stepped band in crops/high/R03-kart_5; stepped tier edges visible in the R08 road shadows.",
+    "priority": 0.45,
+    "selected": true
+  },
+  {
+    "id": "G-near-tree-cull",
+    "category": "readability",
+    "expectedGain": 0.3,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS5",
+    "evidence": [
+      "high/desktop/R11",
+      "high/desktop/R10",
+      "high/desktop/R19",
+      "high/desktop/R08"
+    ],
+    "benchmark": "drive-3",
+    "fix": "Single near trees fill ~28% of R11, ~17% of R10 and ~16% of R19 (foliage and trunk pixels in the near-tree box). Dither-fade or cull tree instances within 8 m of the camera or inside a 25-degree cone around the camera-to-tub line, and widen the mountain-course setback. Test: no single tree covers more than 8% of R08, R10, R11 or R19.",
+    "priority": 0.45,
+    "selected": true
+  },
+  {
+    "id": "G-slide-steam-feedback",
+    "category": "animation",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS3",
+    "evidence": [
+      "high/desktop/R14",
+      "strips/high/R14",
+      "high/desktop/R17",
+      "high/desktop/R19"
+    ],
+    "benchmark": "drive-3",
+    "fix": "Add a tier-coloured glow and spark burst at the rear wheels while a slide charges, and replace the fixed-size opaque steam spheres with soft alpha-faded puffs spawned at the rear-wheel contact that grow 2-3x and fade out over ~0.5 s. Test: the R14 frame shows a cue within 40 px of the rear wheels; in strips/high/R14 a puff's radius rises and its opacity falls across consecutive frames.",
+    "priority": 0.375,
+    "selected": true
+  },
+  {
+    "id": "G-camera-kick-slosh",
+    "category": "animation",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS3",
+    "evidence": [
+      "strips/high/R15",
+      "strips/high/R14",
+      "crops/high/R15-player"
+    ],
+    "benchmark": "drive-3",
+    "fix": "Add a 100-150 ms camera shake (>= 4 px at 1280x800) on fumble, curb or fence hit and slide release; tilt the tub water plane up to ~10 degrees against acceleration with a damped spring and a small wave; play a crew stumble on curb contact. Test: the hit frame in a strip shows a camera offset, and the water-plane angle differs between strips/high/R15 frames 2 and 5.",
+    "priority": 0.375,
+    "selected": true
+  },
+  {
+    "id": "G-clear-parts",
+    "category": "materials",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R13",
+      "crops/high/R02-preview-captain",
+      "high/desktop/R19",
+      "high/desktop/R17"
+    ],
+    "benchmark": "worlds-1",
+    "fix": "Add one shared translucent-plastic material (opacity 0.5-0.7, Fresnel rim, sky-colour reflection) for window panes, tub water and the Gulpha ford, with stones on the ford bed. Test: stones visible under the ford in R19, the tub floor visible through the water in crops/high/R02-preview-captain, and R13 panes show a sky gradient instead of a painted stripe.",
+    "priority": 0.375,
+    "selected": false
+  },
+  {
+    "id": "G-ambient-occlusion",
+    "category": "lighting",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R04",
+      "high/desktop/R03"
+    ],
+    "benchmark": "worlds-4",
+    "fix": "Add stateless SSAO on high (no temporal history, as the protocol requires) or baked vertex AO on walls, kerbs, trunks and spectator feet. Test: in R04 the sidewalk luma within 10 px of the stone-wall base is >= 15% below the luma 40 px away.",
+    "priority": 0.375,
+    "selected": false
+  },
+  {
+    "id": "G-horizon-slopes",
+    "category": "scenery",
+    "expectedGain": 0.5,
+    "severity": 4,
+    "effort": "M",
+    "workstream": "WS4",
+    "evidence": [
+      "high/desktop/R05",
+      "high/desktop/R06",
+      "high/desktop/R09",
+      "high/desktop/R04"
+    ],
+    "benchmark": "drive-5",
+    "fix": "Replace each horizon ring's vertical face with 3-4 receding setbacks of sloped plates, each step carrying the tree line, so the profile rises at <= 45 degrees (also helps the Ouachitas read for authenticity). Test: from the R05, R06 and R09 cameras no continuous vertical ring face is taller than 60 px, and the ridges read as stepped wooded hills.",
+    "priority": 0.375,
+    "selected": false
+  },
+  {
+    "id": "G-hud-tile-collisions",
+    "category": "mobile",
+    "expectedGain": 0.3,
+    "severity": 2,
+    "effort": "S",
+    "workstream": "WS6",
+    "evidence": [
+      "high/landscape/R17",
+      "high/landscape/R04",
+      "high/mobile/R04",
+      "high/mobile/R17"
+    ],
+    "benchmark": "drive-3",
+    "fix": "Landscape minimap overlaps the place tile by 12 device px (outline from y 184 at x=1600; place tile runs to y 195 at x=1450) despite the change note; water tile touches the LAP tile; portrait orb overlaps the place tile; orb counter unlabelled. Lay the corner tiles out in flex columns with a >= 8 CSS px gutter, give the orb its own slot and label its counter. Test: a DOM bounding-rect check at 390x844 and 844x390 reports zero intersections between HUD tiles.",
+    "priority": 0.3,
+    "selected": true
+  },
+  {
+    "id": "G-canopy-bevels",
+    "category": "materials",
+    "expectedGain": 0.2,
+    "severity": 2,
+    "effort": "S",
+    "workstream": "WS5",
+    "evidence": [
+      "high/desktop/R04",
+      "high/desktop/R12",
+      "high/desktop/R05"
+    ],
+    "benchmark": "worlds-1",
+    "fix": "Canopy tops are already studded with glints; bevel the plate edges (2-3%) and give canopies the figures' gloss so the side views the chase camera sees catch the key light. Test: an R04 crop of the left canopies shows edge highlights >= 30 luma above the face.",
+    "priority": 0.3,
+    "selected": false
+  },
+  {
+    "id": "G-judge-booth",
+    "category": "readability",
+    "expectedGain": 0.2,
+    "severity": 2,
+    "effort": "S",
+    "workstream": "WS4",
+    "evidence": [
+      "high/desktop/R16",
+      "strips/high/R16"
+    ],
+    "benchmark": "worlds-1",
+    "fix": "Build the judge booth from bricks with a JUDGE sign and flag, and stand the judge in front of the crowd line facing the road (also helps authenticity). Test: R16 shows the judge's full figure and a readable sign.",
+    "priority": 0.3,
+    "selected": false
+  },
+  {
+    "id": "G-facade-relief",
+    "category": "materials",
+    "expectedGain": 0.8,
+    "severity": 4,
+    "effort": "L",
+    "workstream": "WS4",
+    "evidence": [
+      "high/desktop/R13",
+      "high/desktop/R05",
+      "high/desktop/R06"
+    ],
+    "benchmark": "worlds-1",
+    "fix": "BIG LEVER (materials and scenery). On the near LOD of Row and downtown buildings, add brick-course relief (bevelled courses or a normal map with grout depth), recess window panes 0.2-0.3 m behind the modelled surrounds using G-clear-parts' material, and build roofs from tiled plates with bevel highlights. Test: in R13 brick courses show lit and shadowed edges and window reveals cast visible shadows; the R05 roofs show tile rows.",
+    "priority": 0.3,
+    "bigLever": true,
+    "selected": true
+  }
+]

@@ -1,6 +1,7 @@
 // A tiny vertex-colour triangle builder for N64-style low-poly meshes (world chunks, props, placeholder tubs).
 // Pattern after hsg-theme-park/src/js/gfx/geo.js (Hot Springs Games, MIT): accumulate flat-shaded triangles
-// with per-vertex colour, uv and an optional rigid-part index, then upload once.
+// with per-vertex colour, uv and an optional rigid-part index, then upload once. Box faces also record where each
+// vertex sits on its face and the face's size (aEdge, metres), which the brick shader turns into moulded edges.
 
 export function hex(h) {
   const n = parseInt(h.replace('#', ''), 16);
@@ -10,7 +11,7 @@ export const mul = (c, k) => [c[0] * k, c[1] * k, c[2] * k];
 export const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 
 export class Geo {
-  constructor() { this.p = []; this.n = []; this.c = []; this.uv = []; this.part = []; this.curPart = 0; this.light = null; }
+  constructor() { this.p = []; this.n = []; this.c = []; this.uv = []; this.part = []; this.e = []; this.curPart = 0; this.light = null; this._ev = null; this._box = false; }
   // optional baked light: fn(normal) → multiplier, applied to vertex colours (unlit world materials)
   bake(fn) { this.light = fn; return this; }
   setPart(i) { this.curPart = i; return this; }
@@ -27,6 +28,8 @@ export class Geo {
       const t = [uva, uvb, uvc][i] || [0, 0];
       this.uv.push(t[0], t[1]);
       this.part.push(this.curPart);
+      const ev = this._ev;
+      if (ev) this.e.push(ev[i][0], ev[i][1], ev[3][0], ev[3][1]); else this.e.push(0, 0, 0, 0);
     });
     return this;
   }
@@ -34,21 +37,30 @@ export class Geo {
   quad(a, b, c, d, col, uv, cols) {
     const u = uv || [[0, 0], [1, 0], [1, 1], [0, 1]];
     const cc = cols || [col, col, col, col];
+    // box faces: position across the face in metres (a at 0, 0; b along u; d along v) plus the face size
+    const W = this._box ? Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]) : 0, H = this._box ? Math.hypot(d[0] - a[0], d[1] - a[1], d[2] - a[2]) : 0;
+    if (this._box) this._ev = [[0, 0], [W, 0], [W, H], [W, H]];
     this.tri(a, b, c, cc[0], u[0], u[1], u[2], cc[1], cc[2]);
+    if (this._box) this._ev = [[0, 0], [W, H], [0, H], [W, H]];
     this.tri(a, c, d, cc[0], u[0], u[2], u[3], cc[2], cc[3]);
+    this._ev = null;
     return this;
   }
+  // a quad that records its face coordinates like a box face (window panes: the shader recesses them)
+  edgeQuad(a, b, c, d, col, uv, cols) { this._box = true; this.quad(a, b, c, d, col, uv, cols); this._box = false; return this; }
   // axis-aligned box from min to max (with optional colour per face: [top, side, bottom])
   box(min, max, col, opts = {}) {
     const [x0, y0, z0] = min, [x1, y1, z1] = max;
     const top = opts.top || col, side = opts.side || col, bot = opts.bottom || col;
     const front = opts.front || side;
+    this._box = true;
     this.quad([x0, y1, z1], [x1, y1, z1], [x1, y1, z0], [x0, y1, z0], top);
     if (!opts.noBottom) this.quad([x0, y0, z0], [x1, y0, z0], [x1, y0, z1], [x0, y0, z1], bot);
     this.quad([x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1], front); // +z
     this.quad([x1, y0, z0], [x0, y0, z0], [x0, y1, z0], [x1, y1, z0], side); // -z
     this.quad([x1, y0, z1], [x1, y0, z0], [x1, y1, z0], [x1, y1, z1], side); // +x
     this.quad([x0, y0, z0], [x0, y0, z1], [x0, y1, z1], [x0, y1, z0], side); // -x
+    this._box = false;
     return this;
   }
   // transformed box: centre c, half sizes h, rotation about y (yaw) and x (pitch)
@@ -58,12 +70,14 @@ export class Geo {
     const [hx, hy, hz] = h;
     const P = [T(-hx, -hy, -hz), T(hx, -hy, -hz), T(hx, -hy, hz), T(-hx, -hy, hz), T(-hx, hy, -hz), T(hx, hy, -hz), T(hx, hy, hz), T(-hx, hy, hz)];
     const top = opts.top || col, side = opts.side || col;
+    this._box = true;
     this.quad(P[7], P[6], P[5], P[4], top);
     if (!opts.noBottom) this.quad(P[0], P[1], P[2], P[3], opts.bottom || col);
     this.quad(P[3], P[2], P[6], P[7], opts.front || side);
     this.quad(P[1], P[0], P[4], P[5], side);
     this.quad(P[2], P[1], P[5], P[6], side);
     this.quad(P[0], P[3], P[7], P[4], side);
+    this._box = false;
     return this;
   }
   // cylinder (or cone/frustum) along +y, base centre c, radii r0 (bottom) r1 (top), segments
@@ -97,7 +111,7 @@ export class Geo {
     const k = this.light ? this.light(na) : 1;
     [[a, na, ua], [b, nb, ub], [c, nc, uc]].forEach(([p, n, t]) => {
       this.p.push(p[0], p[1], p[2]); this.n.push(n[0], n[1], n[2]);
-      this.c.push(col[0] * k, col[1] * k, col[2] * k); this.uv.push(t ? t[0] : 0, t ? t[1] : 0); this.part.push(this.curPart);
+      this.c.push(col[0] * k, col[1] * k, col[2] * k); this.uv.push(t ? t[0] : 0, t ? t[1] : 0); this.part.push(this.curPart); this.e.push(0, 0, 0, 0);
     });
     return this;
   }
@@ -212,6 +226,7 @@ export class Geo {
     g.setAttribute('color', new THREE.Float32BufferAttribute(this.c, 3));
     g.setAttribute('uv', new THREE.Float32BufferAttribute(this.uv, 2));
     if (parts) g.setAttribute('aPart', new THREE.Float32BufferAttribute(this.part, 1));
+    if (this.e.some((v) => v > 0)) g.setAttribute('aEdge', new THREE.Float32BufferAttribute(this.e, 4));
     g.computeBoundingSphere();
     return g;
   }

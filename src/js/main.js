@@ -10,7 +10,7 @@ import { TIERS, pickTier, Governor } from './gfx/tiers.js';
 import { ChaseCam } from './gfx/camera.js';
 import { SunShadow } from './gfx/shadows.js';
 import { loadCrew } from './gfx/crew3d.js';
-import { setShadowDefault, setLite, setAlphaCoverage, setFocus } from './gfx/brickmat.js';
+import { setShadowDefault, setLite, setAlphaCoverage, setBevel, setFocus } from './gfx/brickmat.js';
 import { labKartGeo, labCrowd, labStats } from './gfx/perflab.js';
 import { loadPackTextures } from './gfx/textures.js';
 import { loadModel, cloneModel, hasModel } from './gfx/models.js';
@@ -72,7 +72,7 @@ async function boot() {
   // sun shadows on the tiers that afford them: every brick material made from here on samples the map
   setShadowDefault(!!TT.shadow);
   setLite(App.tier === 'low');
-  setAlphaCoverage(!!TT.aa);
+  setAlphaCoverage(!!TT.aa); setBevel(App.tier !== 'low');
   if (TT.shadow) App.renderer.shadow = App.shadow = new SunShadow(window.THREE, TT.shadow, TT.shadowR);
   App.renderer.resize(true);
   App.cam = new ChaseCam(App.renderer.camera);
@@ -198,7 +198,7 @@ export async function startRace(opts = {}) {
   clearKarts();
   // the crews (and anything else built from here) follow the current tier, so a governor step-down mid-race
   // takes full effect from the next race
-  setCrewDetail(App.tier, App.renderer.camera); setLite(App.tier === 'low');
+  setCrewDetail(App.tier, App.renderer.camera); setLite(App.tier === 'low'); setBevel(App.tier !== 'low');
   if (App.shadow && App.tier === 'low') { App.shadow.setEnabled(false); setShadowDefault(false); }
   if (App.shadow) App.shadow.skip = TIERS[App.tier].shadowCrowd ? null : /^crowd$/; // Medium: spectators cast no sun shadow
   App.builtTier = App.tier;

@@ -26,14 +26,17 @@ const AO_FRAG = `
     float a = 6.2831 * (mod(q.x * 4.0 + q.y * 2.0 + floor(q.y * 0.5), 16.0) + 0.5) / 16.0;
     vec3 r = vec3(cos(a), sin(a), 0.0);
     vec3 t = normalize(r - n * dot(r, n)), b = cross(n, t);
+    // the radius widens with distance: tight in close-ups (no banding on curved parts), world-scale further out where
+    // wall feet, kerbs and doorways need it
+    float rad = uRadius * (1.0 + 0.04 * -p.z);
     float occ = 0.0;
     for (int i = 0; i < 8; i++) {
       vec3 k = uKernel[i];
-      vec3 s = p + (t * k.x + b * k.y + n * k.z) * uRadius;
+      vec3 s = p + (t * k.x + b * k.y + n * k.z) * rad;
       vec4 c = uProj * vec4(s, 1.0);
       vec2 su = c.xy / c.w * 0.5 + 0.5;
       float sz = viewPos(su).z;
-      float range = smoothstep(0.0, 1.0, uRadius / max(abs(p.z - sz), 1e-3));
+      float range = smoothstep(0.0, 1.0, rad / max(abs(p.z - sz), 1e-3));
       // depth bias grows with distance, so the flat-per-triangle normals of curved parts don't occlude themselves
       occ += (sz >= s.z + 0.05 + 0.006 * -p.z ? 1.0 : 0.0) * range;
     }

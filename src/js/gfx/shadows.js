@@ -36,7 +36,7 @@ export class SunShadow {
     this.THREE = THREE;
     this.size = size; this.radius = radius;
     this.rt = new THREE.WebGLRenderTarget(size, size, { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, format: THREE.RGBAFormat, type: THREE.UnsignedByteType, depthBuffer: true, generateMipmaps: false });
-    this.cam = new THREE.OrthographicCamera(-radius, radius, radius, -radius, 1, 360);
+    this.cam = new THREE.OrthographicCamera(-radius, radius, radius, -radius, 60, 300); // 120 m either side of the focus along the sun
     this.depth = depthMat(THREE);
     this.u = shadowUniforms();
     this.u.uShadowMap.value = this.rt.texture;

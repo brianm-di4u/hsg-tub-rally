@@ -1,0 +1,12 @@
+{
+  "perf": {
+    "pass": true,
+    "checked": 52,
+    "failed": []
+  },
+  "fidelity": null,
+  "ip": {
+    "pass": true,
+    "note": "developer check: crews and spectators unchanged in silhouette (bevels are shading only); horizon hills carry generic stepped conifer crowns; no LEGO name or logo in source, UI or captures; critics re-check"
+  }
+}

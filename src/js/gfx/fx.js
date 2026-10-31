@@ -30,6 +30,7 @@ export class Fx {
     const g = new THREE.BufferGeometry();
     this.pp = new Float32Array(MAXP * 3); this.pc = new Float32Array(MAXP * 3); this.ps = new Float32Array(MAXP);
     this.pv = new Float32Array(MAXP * 3); this.life = new Float32Array(MAXP); this.maxLife = new Float32Array(MAXP); this.grav = new Float32Array(MAXP);
+    this.ps0 = new Float32Array(MAXP); this.grow = new Float32Array(MAXP); // spawn size; growth per second (steam swells)
     g.setAttribute('position', new THREE.BufferAttribute(this.pp, 3).setUsage(THREE.DynamicDrawUsage));
     g.setAttribute('color', new THREE.BufferAttribute(this.pc, 3).setUsage(THREE.DynamicDrawUsage));
     g.setAttribute('aSize', new THREE.BufferAttribute(this.ps, 1).setUsage(THREE.DynamicDrawUsage));
@@ -155,7 +156,8 @@ export class Fx {
       const a = r() * Math.PI * 2, s = spd * (0.4 + r() * 0.6);
       this.pv[k * 3] = Math.cos(a) * s + (opts.vx || 0); this.pv[k * 3 + 1] = up * (0.5 + r() * 0.7); this.pv[k * 3 + 2] = Math.sin(a) * s + (opts.vz || 0);
       this.pc[k * 3] = col[0]; this.pc[k * 3 + 1] = col[1]; this.pc[k * 3 + 2] = col[2];
-      this.ps[k] = size * (0.7 + r() * 0.6); this.life[k] = life * (0.6 + r() * 0.5); this.maxLife[k] = this.life[k]; this.grav[k] = grav;
+      this.ps[k] = this.ps0[k] = size * (0.7 + r() * 0.6); this.life[k] = life * (0.6 + r() * 0.5); this.maxLife[k] = this.life[k]; this.grav[k] = grav;
+      this.grow[k] = opts.grow ?? (grav < 0 ? 1.6 : 0);
     }
   }
   update(race, track, dt, time, reduced, events = []) {
@@ -234,7 +236,9 @@ export class Fx {
       this.life[k] -= dt;
       this.pv[k * 3 + 1] -= this.grav[k] * dt;
       this.pp[k * 3] += this.pv[k * 3] * dt; this.pp[k * 3 + 1] += this.pv[k * 3 + 1] * dt; this.pp[k * 3 + 2] += this.pv[k * 3 + 2] * dt;
-      if (this.life[k] <= 0) this.ps[k] = 0;
+      // rising steam swells as it goes; every bead shrinks away over its last quarter instead of popping off
+      const age = this.maxLife[k] - this.life[k], q = Math.min(1, this.life[k] / (0.25 * this.maxLife[k]));
+      this.ps[k] = this.life[k] <= 0 ? 0 : this.ps0[k] * (1 + this.grow[k] * age) * q * (2 - q);
     }
     const geo = this.points.geometry;
     geo.attributes.position.needsUpdate = true; geo.attributes.color.needsUpdate = true; geo.attributes.aSize.needsUpdate = true;

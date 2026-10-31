@@ -363,7 +363,7 @@ export class KartView {
     // (opaque on Low: blending costs more than it shows at that size)
     // (a moderate gloss: at 0.95 the sheet mirrored the sky at chase angles and read as an empty white tub)
     // double-sided: the exported sheet faces down, so one-sided it was culled from above and every tub looked empty
-    const wm = partMat({ side: THREE.DoubleSide, ...(clearWater || opts.ghost ? { transparent: true, alpha: opts.ghost ? 0.3 : 0.86, depthWrite: false, gloss: 0.55 } : { gloss: 0.55 }) });
+    const wm = partMat({ side: THREE.DoubleSide, ...(clearWater || opts.ghost ? { transparent: true, alpha: opts.ghost ? 0.3 : 0.86, depthWrite: false, gloss: 0.55, water: !opts.ghost } : { gloss: 0.55 }) });
     wm.uniforms.uParts = this.mat.uniforms.uParts; wm.uniforms.uFade = this.mat.uniforms.uFade; // the water steps aside with its tub
     this.water = new THREE.Mesh(near.water, wm);
     this.water.frustumCulled = false;
@@ -373,6 +373,7 @@ export class KartView {
     this.geo = { dispose: () => { this.near.dispose(); this.farGeo.dispose(); this.water.geometry.dispose(); } };
     if (!opts.ghost) { this.mesh.userData.caster = true; this.mesh.userData.depthMat = partDepthMat(THREE, this.mat.uniforms.uParts, MAX_PARTS); this.mesh.userData.depthGeo = this.farGeo; }
     this.wheelA = 0; this.roll = 0; this.pitch = 0; this.flash = 0; this.circleA = 0;
+    this.vPrev = null; this.acc = 0; this.slosh = [0, 0, 0, 0]; // smoothed acceleration; water spring [x, vx, z, vz]
     this.feet = new Float32Array(12); // world position under each pusher, for FootBlobs
     this.tmp = { m: new THREE.Matrix4(), q: new THREE.Quaternion(), e: new THREE.Euler(), v: new THREE.Vector3(), s: new THREE.Vector3(1, 1, 1), body: new THREE.Quaternion(), spin: new THREE.Quaternion(), up: new THREE.Vector3(0, 1, 0) };
     // soft contact shadow under the tub and its crew
@@ -403,6 +404,17 @@ export class KartView {
     ring.position.y = 0.01; ring.renderOrder = 3;
     if (!rival) { const outline = new THREE.Mesh(new THREE.RingGeometry(0.8, 0.98, 48).rotateX(-Math.PI / 2), ringMat(0x1e1b18, 0.55)); outline.position.y = 0.01; outline.renderOrder = 2; this.shadow.add(outline); }
     this.shadow.add(ring);
+    // the player's slide charge: an arc outside the ring that fills from the tail toward the nose on both sides as
+    // the charge builds, water blue warming to white steam (warm tier) and hot orange (hot tier)
+    if (!rival) {
+      const cm = new THREE.ShaderMaterial({ uniforms: { uFill: { value: 0 }, uCol: { value: new THREE.Color() }, uA: { value: 0 } },
+        vertexShader: 'varying vec2 vP; void main() { vP = position.xz; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+        fragmentShader: 'uniform float uFill; uniform vec3 uCol; uniform float uA; varying vec2 vP; void main() { if (abs(atan(vP.x, -vP.y)) / 3.14159265 > uFill) discard; gl_FragColor = vec4(uCol, uA); }',
+        transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
+      this.charge = new THREE.Mesh(new THREE.RingGeometry(1.0, 1.14, 48).rotateX(-Math.PI / 2), cm);
+      this.charge.position.y = 0.012; this.charge.renderOrder = 3; this.charge.visible = false;
+      this.shadow.add(this.charge);
+    }
   }
   setPart(i, x, y, z, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) {
     const t = this.tmp;
@@ -415,6 +427,8 @@ export class KartView {
   update(k, pose, dt, time) {
     const { x, y, z, yaw } = pose;
     const v = k.vf;
+    // acceleration from the change in speed, smoothed (the sim steps at its own rate, so frame to frame it jumps)
+    if (dt > 0) { const a = this.vPrev === null ? 0 : (v - this.vPrev) / dt; this.vPrev = v; this.acc += (Math.max(-40, Math.min(40, a)) - this.acc) * Math.min(1, dt * 5); }
     // near or far geometry by distance to the camera
     if (lodCam) { const d = Math.hypot(lodCam.position.x - x, lodCam.position.z - z); const gg = d > FAR_AT ? this.farGeo : this.near; if (this.mesh.geometry !== gg) this.mesh.geometry = gg; }
     // body attitude: lean out in turns/slides, pitch with acceleration, bounce with speed
@@ -468,7 +482,8 @@ export class KartView {
     const jacks = task && task.id === 'jacks', pushups = task && task.id === 'pushups';
     ATT.forEach((parts, i) => {
       let [ax, hip, az, face] = P.att[i];
-      let leanF = Math.min(0.5, 0.15 + Math.abs(v) * 0.02);
+      // pushers dig in on a push-off or a boost and straighten up as the tub slows
+      let leanF = Math.min(0.5, 0.15 + Math.abs(v) * 0.02) + Math.max(-0.15, Math.min(0.3, this.acc * 0.035)) + (k.boostT > 0 ? 0.12 : 0);
       if (circling) {
         const a = this.circleA + (i * Math.PI) / 2; // evenly spaced, so no two crew share a spot
         ax = Math.sin(a) * 1.5; az = Math.cos(a) * 1.7;
@@ -493,7 +508,22 @@ export class KartView {
     // the water sheet tilts with the slosh state (exaggerated: at play size a true-to-sim tilt doesn't read)
     // (narrowed a little so the tilted sheet stays inside the rim; flattened to nothing when empty)
     const ws = fill > 0.02 ? 0.92 : 0.0001;
-    this.setPart(WATER, 0, wy, 0, -w.tf * 1.3, 0, w.tr * 1.3, ws, 1, ws);
+    // and keeps moving after a push, a stop or a turn: a damped spring driven by the tub's acceleration and turn
+    const sl = this.slosh, tX = Math.max(-0.2, Math.min(0.2, this.acc * 0.012)), tZ = Math.max(-0.2, Math.min(0.2, -k.yawRate * Math.abs(v) * 0.012));
+    if (dt > 0) {
+      const h = Math.min(dt, 1 / 30);
+      sl[1] += ((tX - sl[0]) * 70 - sl[1] * 4.5) * h; sl[0] += sl[1] * h;
+      sl[3] += ((tZ - sl[2]) * 70 - sl[3] * 4.5) * h; sl[2] += sl[3] * h;
+    }
+    const wx = Math.max(-0.28, Math.min(0.28, -w.tf * 1.3 + sl[0])), wz = Math.max(-0.28, Math.min(0.28, w.tr * 1.3 + sl[2]));
+    this.setPart(WATER, 0, wy + Math.sin(time * 9 + k.id) * Math.min(0.03, (Math.abs(sl[1]) + Math.abs(sl[3])) * 0.02), 0, wx, 0, wz, ws, 1, ws);
+    if (this.charge) {
+      const ch = k.drift ? k.charge || 0 : 0, w = Math.min(1, ch / 0.85), h = Math.max(0, Math.min(1, (ch - 0.85) / 1.05)), u = this.charge.material.uniforms;
+      u.uFill.value = Math.min(1, ch / 1.9);
+      u.uCol.value.setRGB(0.3 + 0.67 * w + 0.03 * h, 0.7 + 0.28 * w - 0.43 * h, 1 - 0.58 * h);
+      u.uA.value = k.drift ? 0.92 : Math.max(0, u.uA.value - dt * 4);
+      this.charge.visible = u.uA.value > 0.01 && u.uFill.value > 0.01;
+    }
     // the marker stays upright whatever the tub's lean and drift: undo the body rotation, then spin about the vertical
     if (this.marker) { this.marker.position.y = 2.2 + Math.sin(time * 3) * 0.08; this.marker.quaternion.copy(this.tmp.body).invert().multiply(this.tmp.spin.setFromAxisAngle(this.tmp.up, time * 1.5)); }
     // hit flash

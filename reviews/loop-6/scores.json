@@ -1,0 +1,142 @@
+{
+  "loop": 6,
+  "scores": {
+    "characters": 7,
+    "materials": 6.5,
+    "scenery": 6.5,
+    "lighting": 6.5,
+    "animation": 6,
+    "ui": 7,
+    "typography": 7,
+    "readability": 6.5,
+    "mobile": 7,
+    "authenticity": 6.5
+  },
+  "judged": {
+    "characters": 7,
+    "materials": 6,
+    "scenery": 6.5,
+    "lighting": 6.5,
+    "animation": 6,
+    "ui": 7,
+    "typography": 7,
+    "readability": 6.5,
+    "mobile": 7,
+    "authenticity": 6.5
+  },
+  "total": 66.5,
+  "best": 66.5,
+  "held": [
+    "materials 6→6.5 (A/B tie/tie)"
+  ],
+  "ab": {
+    "characters": [
+      "tie",
+      "tie"
+    ],
+    "materials": [
+      "tie",
+      "tie"
+    ],
+    "scenery": [
+      "new",
+      "new"
+    ],
+    "lighting": [
+      "new",
+      "new"
+    ],
+    "animation": [
+      "new",
+      "tie"
+    ],
+    "ui": [
+      "new",
+      "new"
+    ],
+    "typography": [
+      "new",
+      "new"
+    ],
+    "readability": [
+      "new",
+      "new"
+    ],
+    "mobile": [
+      "new",
+      "new"
+    ],
+    "authenticity": [
+      "new",
+      "tie"
+    ]
+  },
+  "measured": {
+    "perf": true,
+    "fidelity": null,
+    "ip": true
+  },
+  "critics": {
+    "critic-claude": {
+      "characters": 7,
+      "materials": 6,
+      "scenery": 6.5,
+      "lighting": 6,
+      "animation": 6.5,
+      "ui": 7,
+      "typography": 7,
+      "readability": 6.5,
+      "mobile": 7,
+      "authenticity": 6.5
+    },
+    "critic-codex": {
+      "characters": 6.5,
+      "materials": 6.5,
+      "scenery": 6,
+      "lighting": 6.5,
+      "animation": 6,
+      "ui": 7,
+      "typography": 6.5,
+      "readability": 7,
+      "mobile": 6.5,
+      "authenticity": 7
+    },
+    "prosecutor": {
+      "characters": 6.5,
+      "materials": 5.5,
+      "scenery": 6,
+      "lighting": 6,
+      "animation": 6,
+      "ui": 6.5,
+      "typography": 6.5,
+      "readability": 6,
+      "mobile": 6.5,
+      "authenticity": 6.5
+    },
+    "advocate": {
+      "characters": 7,
+      "materials": 6.5,
+      "scenery": 6.5,
+      "lighting": 6.5,
+      "animation": 6.5,
+      "ui": 7,
+      "typography": 7,
+      "readability": 7,
+      "mobile": 7,
+      "authenticity": 7
+    }
+  },
+  "gates": {
+    "characters": 7,
+    "materials": 7,
+    "scenery": 7,
+    "lighting": 7,
+    "animation": 7,
+    "ui": 7,
+    "typography": 7,
+    "readability": 7,
+    "mobile": 7,
+    "authenticity": 6
+  },
+  "verdict": "continue"
+}

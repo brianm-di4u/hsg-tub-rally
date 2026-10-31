@@ -43,51 +43,84 @@ export function buildSky(THREE, env = {}) {
     side: THREE.BackSide, depthWrite: false }));
   dome.renderOrder = -10;
   group.add(dome);
-  // the Ouachita horizon, brick-built: three rings of long, low ridges whose silhouettes step in whole plates
-  // (6 m), each column topped by a lighter plate edge, tinted toward the horizon haze with distance. They reach
-  // below the ground so no band shows where the terrain ends.
+  // the Ouachita horizon, brick-built: three rings of rounded forested hills, each a run of overlapping humps
+  // (not one long wall), stepped in whole plates (6 m) and 2° columns, with valleys low enough for the farther ring
+  // to show through. A column's flank is lit by where it faces (the sun side of a hump brighter, the rings toward
+  // the sun backlit), and the shader covers every slope in stepped conifer crowns, rows of them up to a ragged
+  // tree line on the silhouette, hazier toward each hill's foot. They reach below the ground so no band shows where
+  // the terrain ends.
   const ridgeCols = env.ridges || ['#7F9AB0', '#5F7F6E', '#40604A'], seed = env.ridgeSeed || 3;
-  const LAYERS = [[352, 0.78, 30, 64], [334, 0.55, 24, 48], [316, 0.3, 16, 34]]; // radius, haze, base height, swing
-  const rpos = [], rcol = [], N = 180, STEP = 6, BOT = -60;
-  LAYERS.forEach(([R2, haze, base, amp], li) => {
-    const c0 = hex(ridgeCols[li]), c = [0, 1, 2].map((k) => c0[k] + (B[k] - c0[k]) * haze), lip = c.map((v) => Math.min(1, v * 1.18 + 0.03));
-    const ph = [1.3, 2.9, 4.1].map((v) => v * (seed + li * 1.7));
-    // env.peaks: [azimuth, half-width (rad), height (m)] mountains that rise above the ridges (the nearer rings most)
-    const peak = (a) => (env.peaks || []).reduce((h, [az, w, ht]) => { const d = Math.atan2(Math.sin(a - az), Math.cos(a - az)); return h + ht * [0.45, 0.75, 1][li] * Math.exp(-((d / w) ** 2)); }, 0);
-    const height = (a) => base + peak(a) + amp * (0.55 * Math.sin(a * 2 + ph[0]) + 0.3 * Math.sin(a * 5 + ph[1]) + 0.15 * Math.sin(a * 11 + ph[2]));
+  const LAYERS = [[352, 0.6, 14, 58], [334, 0.42, 8, 46], [316, 0.24, 4, 36]]; // radius, haze, valley floor, hump height
+  const rpos = [], rcol = [], rinf = [], N = 180, STEP = 6, BOT = -60;
+  const sunXZ = [sd[0] / sl, sd[2] / sl];
+  const rnd = (i, k) => (((i * 2654435761) ^ (k * 2246822519)) >>> 0) / 4294967296;
+  LAYERS.forEach(([R2, haze, floor, hump], li) => {
+    const c0 = hex(ridgeCols[li]), c = [0, 1, 2].map((k) => c0[k] + (B[k] - c0[k]) * haze), lip = c.map((v) => Math.min(1, v * 1.12 + 0.03));
+    // humps: 14–20 per ring at seeded azimuths, each a rounded cap of its own width and height; a ring is the
+    // highest hump over each column, so neighbours overlap into saddles and valleys
+    const humps = [], nh = 14 + Math.floor(rnd(seed, li + 1) * 7);
+    for (let k = 0; k < nh; k++) humps.push([((k + 0.15 + rnd(seed * 31 + k, li) * 0.7) / nh) * Math.PI * 2, 0.12 + rnd(k, seed + li * 7) * 0.22, hump * (0.45 + 0.55 * rnd(k * 3 + 1, seed + li))]);
+    // env.peaks: [azimuth, half-width (rad), height (m)] mountains that rise above the rest (the nearer rings most)
+    for (const [az, w, ht] of env.peaks || []) humps.push([az, w * 0.8, hump * 0.4 + ht * [0.55, 0.8, 1][li]]);
+    const height = (a) => {
+      let h = floor;
+      for (const [az, w, ht] of humps) { const d = Math.atan2(Math.sin(a - az), Math.cos(a - az)) / w; if (Math.abs(d) < 1) h = Math.max(h, floor + ht * Math.pow(1 - d * d, 0.75)); }
+      return h + 2.5 * Math.sin(a * 23 + li * 1.7 + seed);
+    };
+    const tops = [];
+    for (let i = 0; i < N; i++) tops.push(Math.max(STEP, Math.round(height(((i + 0.5) / N) * Math.PI * 2) / STEP) * STEP));
     for (let i = 0; i < N; i++) {
-      const a0 = (i / N) * Math.PI * 2, a1 = ((i + 1) / N) * Math.PI * 2;
-      const h = Math.max(STEP, Math.round(height((a0 + a1) / 2) / STEP) * STEP);
-      const P = (a, y) => [Math.sin(a) * R2, y, Math.cos(a) * R2];
-      const quad = (y0, y1, c0, c1 = c0) => { const cs = [c0, c1, c0, c0, c1, c1]; [P(a0, y0), P(a1, y1), P(a1, y0), P(a0, y0), P(a0, y1), P(a1, y1)].forEach((v, k) => { rpos.push(...v); rcol.push(...cs[k]); }); };
-      // each column a plate of its own (a shade lighter or darker), darker and hazier toward its foot, with a
-      // tree line (a darker green band) under the lit lip on the nearer rings, so a big ridge reads as built
-      // terrain rather than one flat wall
-      const t = 0.9 + 0.2 * (((i * 2654435761) >>> 0) % 997) / 997, col = c.map((v) => Math.min(1, v * t));
-      const foot = col.map((v, k) => v * 0.78 + B[k] * 0.22 * haze);
-      const tree = col.map((v) => v * 0.82);
-      quad(BOT, Math.max(BOT + 1, h - 9), foot, col);
-      if (li > 0) { quad(Math.max(BOT + 1, h - 9), h - 3.4, col); quad(h - 3.4, h - 1.4, tree); }
-      else quad(Math.max(BOT + 1, h - 9), h - 1.4, col);
-      quad(h - 1.4, h, lip);
-      // the nearer rings carry a tree line: stepped conifer crowns standing on most columns, so a ridge reads as
-      // wooded Ouachita hills rather than a bare wall
-      if (li > 0) {
-        const hh = (((i * 2246822519) ^ (li * 3266489917)) >>> 0) % 1000 / 1000;
-        if (hh < 0.75) {
-          const ta = (a0 + a1) / 2 + (hh - 0.4) * (a1 - a0), tw = (3 + hh * 3) / R2, th = 5 + hh * 6, tc = tree.map((v) => v * 0.92);
-          const Q = (b0, b1, y0, y1, col) => { const P2 = (b, y) => [Math.sin(b) * (R2 - 0.5), y, Math.cos(b) * (R2 - 0.5)]; [P2(b0, y0), P2(b1, y1), P2(b1, y0), P2(b0, y0), P2(b0, y1), P2(b1, y1)].forEach((v) => { rpos.push(...v); rcol.push(...col); }); };
-          Q(ta - tw, ta + tw, h, h + th * 0.45, tc);
-          Q(ta - tw * 0.66, ta + tw * 0.66, h + th * 0.45, h + th * 0.8, tc);
-          Q(ta - tw * 0.33, ta + tw * 0.33, h + th * 0.8, h + th, tc);
-        }
+      const a0 = (i / N) * Math.PI * 2, a1 = ((i + 1) / N) * Math.PI * 2, am = (a0 + a1) / 2, h = tops[i];
+      const P = (a, y, r = R2) => [Math.sin(a) * r, y, Math.cos(a) * r];
+      // light by the hump's slope across the column (its flank faces along the ring) and by the ring facing the sun
+      const slope = (tops[(i + 1) % N] - tops[(i + N - 1) % N]) / (2 * R2 * (Math.PI * 2 / N));
+      const tx = Math.cos(am), tz = -Math.sin(am), side = -Math.max(-1, Math.min(1, slope * 2.5)) * (tx * sunXZ[0] + tz * sunXZ[1]);
+      const front = -(Math.sin(am) * sunXZ[0] + Math.cos(am) * sunXZ[1]);
+      const t = (0.94 + 0.12 * rnd(i, li + 11)) * (1 + 0.16 * side + 0.08 * front), col = c.map((v) => Math.min(1, v * t));
+      const foot = col.map((v, k) => v * 0.8 + B[k] * 0.2 * haze);
+      // u: metres along the ring (the crowns' grid); y: height; z: the column's top (crowns fill below it) or -1
+      const quad = (b0, b1, y0, y1, c0q, c1q, top, r = R2) => { const cs = [c0q, c1q, c0q, c0q, c1q, c1q]; [[b0, y0], [b1, y1], [b1, y0], [b0, y0], [b0, y1], [b1, y1]].forEach(([b, y], k) => { rpos.push(...P(b, y, r)); rcol.push(...cs[k]); rinf.push(b * R2, y, top, haze); }); };
+      quad(a0, a1, BOT, Math.max(BOT + 1, h - 14), foot, col, h);
+      quad(a0, a1, Math.max(BOT + 1, h - 14), h - 1.2, col, col, h);
+      quad(a0, a1, h - 1.2, h, lip, lip, h);
+      // a ragged tree line: one or two crowns of their own width and height standing on most columns
+      const trees = col.map((v) => v * 0.8);
+      for (let k = 0; k < 2; k++) {
+        const r = rnd(i * 2 + k, li + 5);
+        if (r > 0.82) continue;
+        const ta = a0 + (a1 - a0) * (0.15 + 0.7 * rnd(i * 5 + k, li + 9)), tw = (2.5 + r * 4) / R2, th = 4 + r * 6;
+        quad(ta - tw, ta + tw, h - 0.5, h + th * 0.4, trees, trees, -1, R2 - 0.5);
+        quad(ta - tw * 0.62, ta + tw * 0.62, h + th * 0.4, h + th * 0.75, trees, trees, -1, R2 - 0.5);
+        quad(ta - tw * 0.28, ta + tw * 0.28, h + th * 0.75, h + th, trees, trees, -1, R2 - 0.5);
       }
     }
   });
   const rg = new THREE.BufferGeometry();
   rg.setAttribute('position', new THREE.Float32BufferAttribute(rpos, 3));
   rg.setAttribute('color', new THREE.Float32BufferAttribute(rcol, 3));
-  const ridges = new THREE.Mesh(rg, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide, depthWrite: false, fog: false }));
+  rg.setAttribute('aInfo', new THREE.Float32BufferAttribute(rinf, 4));
+  const ridges = new THREE.Mesh(rg, new THREE.ShaderMaterial({
+    uniforms: { uHaze: { value: new THREE.Color(...B) }, uSunSide: { value: 1 } },
+    vertexShader: 'attribute vec3 color; attribute vec4 aInfo; varying vec3 vC; varying vec4 vI; void main() { vC = color; vI = aInfo; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    // forested slopes: rows of stepped conifer crowns (7 m apart, 6 m rows, alternate rows offset), each a shade
+    // darker than the slope with a lit and a shaded half, thinning toward the bare upper lip; the foot hazes out
+    fragmentShader: `uniform vec3 uHaze; varying vec3 vC; varying vec4 vI;
+      float h21(vec2 p) { vec3 q = fract(vec3(p.xyx) * 0.1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }
+      void main() {
+        vec3 c = vC;
+        if (vI.z > 0.0) {
+          float depth = vI.z - vI.y, row = floor(vI.y / 6.0), fy = fract(vI.y / 6.0);
+          float cu = vI.x / 7.0 + row * 0.5, fu = fract(cu), id = h21(vec2(floor(cu), row)), id2 = h21(vec2(row, floor(cu)) + 7.0);
+          float hw = (0.46 - 0.15 * floor(fy * 3.0)) * (0.7 + 0.35 * id2), dx = abs(fu - 0.5), aa = fwidth(cu) * 0.75 + 1e-4;
+          float crown = (1.0 - smoothstep(hw - aa, hw + aa, dx)) * step(id, 0.8 * smoothstep(2.0, 5.0, depth));
+          // the hazier the ring, the fainter its crowns (a far ring stays a soft blue-green, not snow-flecked)
+          float k = 1.0 - 0.6 * vI.w;
+          c *= mix(1.0, (fu < 0.5 ? 0.86 : 0.74) * (0.94 + 0.12 * id2), crown * k);
+          c = mix(c, uHaze, clamp((depth - 10.0) / 70.0, 0.0, 1.0) * 0.3);
+        }
+        gl_FragColor = vec4(c, 1.0);
+      }`,
+    side: THREE.DoubleSide, depthWrite: false }));
   ridges.renderOrder = -9;
   group.add(ridges);
   group.userData.follow = true;

@@ -4,6 +4,7 @@
 //   studs   baseplate studs on upward faces (world xz grid), with bevel highlights, base occlusion and a cast shadow
 //   tiles   smooth tiles with moulded seams (road plates, sidewalks); size in metres along the surface uv
 //   bricks  running-bond brick courses on walls (u along the wall from uv, v = world height)
+// and moulded edges (BEVEL) on every box face that carries aEdge (geom.js), on the tiers that can afford them.
 // Lighting: hemisphere ambient (sky above, ground bounce below) + sun diffuse + Blinn-Phong specular + a Fresnel
 // sky reflection, computed on squared (≈linear) colours and returned to gamma space, so highlights roll off like
 // plastic. Optional sun shadow map (shadows.js) on the tiers that can afford it. Fog stays per vertex.
@@ -45,6 +46,8 @@ export const shadowsOn = () => S.shadowsDefault;
 export function setLite(on) { S.lite = !!on; }
 // with MSAA on (Medium, High), see-through fades resolve through alpha to coverage; without it they dither
 export function setAlphaCoverage(on) { S.a2c = !!on; }
+// Medium and High: box faces round off at their edges (BEVEL)
+export function setBevel(on) { S.bevel = !!on; }
 function shared() {
   const THREE = T(), u = sharedUniforms();
   if (!S.hemiSky) {
@@ -70,6 +73,9 @@ const VERT_COMMON = `
   uniform float uFogNear; uniform float uFogFar; uniform float uTime; uniform vec3 uFocus;
   #ifdef NEAR_FADE
     varying float vNear;
+  #endif
+  #ifdef BEVEL
+    attribute vec4 aEdge; varying vec4 vEdge;
   #endif`;
 const FOG_V_MAIN = `vFog = clamp((-mv.z - uFogNear) / (uFogFar - uFogNear), 0.0, 1.0);`;
 
@@ -84,6 +90,12 @@ const FRAG_COMMON = `
   varying vec3 vColor; varying vec2 vUv; varying vec3 vWorld; varying vec3 vNormal; varying float vFog;
   #ifdef FOOT_AO
     varying float vFootY;
+  #endif
+  #ifdef BEVEL
+    varying vec4 vEdge;
+  #endif
+  #ifdef WATERY
+    uniform float uTime;
   #endif
 
   // 4×4 ordered dither threshold: a regular screen, not per-pixel noise
@@ -121,7 +133,9 @@ const FRAG_COMMON = `
     vec4 sc = uShadowMatrix * vec4(wp + n * (0.05 + 0.1 * (1.0 - abs(ndl))), 1.0);
     vec3 p = sc.xyz / sc.w * 0.5 + 0.5;
     if (uShadowOn < 0.5 || p.x < 0.0 || p.x > 1.0 || p.y < 0.0 || p.y > 1.0 || p.z > 1.0) return 1.0;
-    float z = p.z - 0.0012, o = uShadowTexel * 0.8;
+    // depth bias ~6 cm over the map's 240 m depth range (shadows.js): low parts like a tub's chassis still cast;
+    // the normal offset above keeps flat ground free of acne
+    float z = p.z - 0.00025, o = uShadowTexel * 0.8;
     float s = 0.25 * (shadowLerp(p.xy + vec2(-o, -o), z) + shadowLerp(p.xy + vec2(o, -o), z) + shadowLerp(p.xy + vec2(-o, o), z) + shadowLerp(p.xy + vec2(o, o), z));
     vec2 edge = min(p.xy, 1.0 - p.xy);
     return mix(1.0, s, smoothstep(0.0, 0.06, min(edge.x, edge.y)));
@@ -171,6 +185,27 @@ const FRAG_MAIN = `
     #ifdef DOUBLE_SIDED
       if (!gl_FrontFacing) N = -N;
     #endif
+    vec3 Ng = N; // the face's own normal: patterns pick their faces by it
+    #ifdef BEVEL
+      // moulded edges: a box face rounds off over its last few centimetres (vEdge: position across the face and the
+      // face size, metres), its normal tilting outward so edges catch the sun and the sky like a plastic part. The
+      // face's axes come from screen derivatives; the bevel fades out where it would be under a pixel wide
+      #ifndef GLASS
+      if (vEdge.z > 0.0) {
+        vec2 e = vEdge.xy, sz = vEdge.zw, dex = dFdx(e), dey = dFdy(e);
+        float det = dex.x * dey.y - dex.y * dey.x;
+        if (abs(det) > 1e-12) {
+          vec3 dpx = dFdx(vWorld), dpy = dFdy(vWorld);
+          vec3 tu = normalize((dpx * dey.y - dpy * dex.y) / det), tv = normalize((dpy * dex.x - dpx * dey.x) / det);
+          float bw = clamp(0.06 * min(sz.x, sz.y), 0.03, 0.1);
+          vec2 fw = fwidth(e);
+          float vis = 1.0 - smoothstep(bw * 0.45, bw * 1.1, max(fw.x, fw.y));
+          vec2 r = (1.0 - smoothstep(0.0, bw, sz - e)) - (1.0 - smoothstep(0.0, bw, e));
+          N = normalize(N + (tu * r.x + tv * r.y) * 1.1 * vis);
+        }
+      }
+      #endif
+    #endif
     vec3 V = normalize(cameraPosition - vWorld);
     vec3 albedo = vColor * uTint * uBright;
     float alpha = 1.0;
@@ -199,7 +234,7 @@ const FRAG_MAIN = `
     #ifdef PAT_STUDS
       // baseplate studs on upward faces: tilt the normal on each stud's bevel ring, darken the plate around its
       // base, and drop a small shadow on the side away from the sun
-      if (N.y > 0.9) {
+      if (Ng.y > 0.9) {
         vec2 cell = vWorld.xz / ${BRICK.pitch.toFixed(3)};
         vec2 fw = fwidth(cell);
         float fade = (1.0 - smoothstep(0.12, 0.32, max(fw.x, fw.y))) * uPatAmt;
@@ -218,7 +253,7 @@ const FRAG_MAIN = `
         // each 4×4-stud plate is its own part, a shade lighter or darker, so the baseplate keeps a pattern where the
         // studs themselves are too small to draw
         albedo *= 1.0 + (hash12(floor(cell / 4.0)) - 0.5) * 0.09 * uPatAmt;
-      } else if (N.y > 0.25) {
+      } else if (Ng.y > 0.25) {
         // slopes are terraced plates: a groove and a lit lip every plate of rise, each plate a shade apart
         float py = vWorld.y / ${BRICK.plate.toFixed(3)}, f = fract(py), aw = fwidth(py) + 1e-4;
         float fadeT = 1.0 - smoothstep(0.25, 0.6, aw);
@@ -236,7 +271,7 @@ const FRAG_MAIN = `
       { float e; float s = seam(vUv * uPat.x, vec2(uPat.y), 0.018, e); float k = mix(1.0, 0.45 + 0.55 * s, uPatAmt); ao *= k; albedo *= mix(1.0, k, 0.6); lit = e * uPatAmt; }
     #endif
     #ifdef PAT_BRICKS
-      if (abs(N.y) < 0.6) {
+      if (abs(Ng.y) < 0.6) {
         vec2 m = vec2(vUv.x * uPat.x, vWorld.y);
         float row = floor(m.y / ${BRICK.brick.toFixed(3)});
         m.x += mod(row, 2.0) * uPat.y * 0.5;
@@ -244,6 +279,14 @@ const FRAG_MAIN = `
         float id = hash12(vec2(floor(m.x / uPat.y), row));
         albedo *= 1.0 + (id - 0.5) * 0.06 * uPatAmt;
         float k = mix(1.0, 0.5 + 0.5 * s, uPatAmt); ao *= k; albedo *= mix(1.0, k, 0.6); lit = e * uPatAmt;
+        // relief: near its edges each brick's normal tilts out (up at its top, down at its foot, along the wall at
+        // its ends), so the courses answer the sun instead of being drawn on; fades where a brick is a few pixels
+        { vec2 bs = vec2(uPat.y, ${BRICK.brick.toFixed(3)}), q = fract(m / bs) * bs, fm = fwidth(m);
+          float rv = 1.0 - smoothstep(0.03, 0.09, max(fm.x, fm.y)), bw = clamp(max(fm.x, fm.y) * 1.5, 0.045, 0.09);
+          vec2 rr = (1.0 - smoothstep(0.0, bw, bs - q)) - (1.0 - smoothstep(0.0, bw, q));
+          vec3 side = normalize(cross(vec3(0.0, 1.0, 0.0), Ng) + 1e-5);
+          side *= sign(dot(side, dFdx(vWorld)) * dFdx(m.x) + dot(side, dFdy(vWorld)) * dFdy(m.x) + 1e-9);
+          N = normalize(N + (vec3(0.0, 1.0, 0.0) * rr.y + side * rr.x * 0.6) * 0.9 * rv * uPatAmt); }
         // each brick's top edge catches the light like a bevel
         float fy = fract(m.y / ${BRICK.brick.toFixed(3)});
         lit += smoothstep(0.78, 0.9, fy) * (1.0 - smoothstep(0.9, 0.97, fy)) * 1.6 * uPatAmt * (1.0 - smoothstep(0.02, 0.08, max(fwidth(m.y), 0.0)));
@@ -265,8 +308,29 @@ const FRAG_MAIN = `
     #endif
     #ifdef GLASS
       { float sy = fract(vWorld.y / 3.6), st = fract((vWorld.x + vWorld.z) * 0.3 + vWorld.y * 0.3);
-        c = mix(c, uHemiSky * 0.9, 0.12 + 0.22 * sy);
-        c += uHemiSky * 0.18 * smoothstep(0.0, 0.06, st) * (1.0 - smoothstep(0.14, 0.24, st)); }
+        // the pane mirrors more of the sky at a glancing angle
+        float fr = pow(1.0 - max(dot(Ng, V), 0.0), 2.0);
+        c = mix(c, uHemiSky * 0.9, min(0.75, 0.12 + 0.22 * sy + 0.35 * fr));
+        c += uHemiSky * 0.18 * smoothstep(0.0, 0.06, st) * (1.0 - smoothstep(0.14, 0.24, st));
+        #ifdef BEVEL
+          // set back behind its frame: the lintel shades the top of the pane and the jambs its sides
+          if (vEdge.z > 0.0) {
+            vec2 e = vEdge.xy, sz = vEdge.zw; float fe = max(fwidth(e.x), fwidth(e.y)) + 1e-4;
+            float top = 1.0 - smoothstep(0.0, 0.16 + fe, sz.y - e.y), side = 1.0 - smoothstep(0.0, 0.07 + fe, min(e.x, sz.x - e.x));
+            c *= 1.0 - 0.45 * max(top, side * 0.7);
+          }
+        #endif
+      }
+    #endif
+    #ifdef WATERY
+      // clear water: see-through looking down, a sky mirror at a glancing angle, drifting ripple glints
+      { float f = pow(1.0 - max(dot(N, V), 0.0), 2.0);
+        vec2 q = vWorld.xz * 5.0;
+        float rip = sin(q.x * 2.1 + uTime * 2.3 + sin(q.y * 1.7 + uTime)) * sin(q.y * 2.4 - uTime * 1.9 + sin(q.x * 1.3));
+        // (the glints fade out where a ripple would be under a few pixels, so distant water doesn't sparkle into noise)
+        float ra = 1.0 - smoothstep(0.15, 0.5, max(fwidth(q.x), fwidth(q.y)));
+        c = mix(c, uHemiSky, 0.22 * f) + vec3(0.9) * smoothstep(0.8, 0.98, rip) * 0.22 * ra;
+        alpha *= mix(0.55, 1.0, f); }
     #endif
     #ifdef FLASH
       c += uFlash;
@@ -286,6 +350,7 @@ function base(opts, vertMain, extraV = '', extraUniforms = {}, extraF = '') {
   if (opts.alphaTest) defines.ALPHA_TEST = '';
   if (opts.flatTint) defines.FLAT_TINT = '';
   if (opts.emissive) defines.EMISSIVE = '';
+  if (opts.water) defines.WATERY = '';
   if (opts.shadows ?? S.shadowsDefault) defines.USE_SHADOW = '';
   if (S.lite) defines.LITE = '';
   if (opts.side === THREE.DoubleSide) defines.DOUBLE_SIDED = '';
@@ -335,9 +400,9 @@ const INST_MAIN = `
       { vec3 io = (modelMatrix * instanceMatrix * vec4(0.0, 3.0, 0.0, 1.0)).xyz;
         vec3 a = cameraPosition, ab = uFocus + vec3(0.0, 1.0, 0.0) - a;
         float t = clamp(dot(io - a, ab) / max(dot(ab, ab), 1e-4), 0.0, 1.0);
-        float corridor = mix(1.0, smoothstep(0.8, 1.1, length((io - (a + ab * t)).xz) - length(instanceMatrix[0].xyz) * 2.0), step(0.02, t) * (1.0 - step(0.97, t)));
+        float corridor = mix(1.0, smoothstep(0.8, 1.1, length((io - (a + ab * t)).xz) - length(instanceMatrix[0].xyz) * 2.0 - t * length(ab.xz) * 0.22), step(0.02, t) * (1.0 - step(0.97, t)));
         float reach = length(instanceMatrix[0].xyz) * 2.7; // canopy radius at this tree's scale
-        vNear = smoothstep(5.8, 6.1, length((io - a).xz) - reach) * corridor; }
+        vNear = smoothstep(7.8, 8.1, length((io - a).xz) - reach) * corridor; }
     #endif
     #ifdef FOOT_AO
       vFootY = pos.y;
@@ -352,6 +417,9 @@ export function worldMat(opts = {}) {
   const m = base(opts, `
     ${INST_MAIN}
     vUv = uv;
+    #ifdef BEVEL
+      vEdge = aEdge;
+    #endif
     #ifdef USE_INSTANCING
       vec4 wp = modelMatrix * instanceMatrix * vec4(pos, 1.0);
       vNormal = normalize(mat3(modelMatrix) * mat3(instanceMatrix) * nrm);
@@ -372,6 +440,7 @@ export function worldMat(opts = {}) {
   if (opts.nearFade) { m.defines.NEAR_FADE = ''; a2c(m, opts); }
   if (opts.footAO) m.defines.FOOT_AO = '';
   if (opts.glass) m.defines.GLASS = '';
+  if (S.bevel && opts.bevel !== false && !opts.emissive) { m.defines.BEVEL = ''; m.defaultAttributeValues = { ...m.defaultAttributeValues, aEdge: [0, 0, 0, 0] }; }
   return m;
 }
 

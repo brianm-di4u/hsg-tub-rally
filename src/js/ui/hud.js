@@ -24,7 +24,7 @@ export class Hud {
     root.innerHTML = `
       <div class="hud-tl"><canvas class="hud-lap" aria-hidden="true"></canvas><div class="hud-time" aria-hidden="true"><canvas class="hud-timec"></canvas></div></div>
       <div class="hud-tr empty"><canvas class="hud-place" aria-hidden="true"></canvas></div>
-      <div class="hud-item" aria-hidden="true"><div class="bubble"><canvas class="item-icon" width="48" height="48"></canvas></div><div class="tickets"><span class="tk-ico"></span><b class="tk-n">0</b></div></div>
+      <div class="hud-item" aria-hidden="true"><div class="bubble"><canvas class="item-icon" width="48" height="48"></canvas></div><div class="tickets"><span class="tk-ico"></span><b class="tk-n">0</b><small class="tk-l">tickets</small></div></div>
       <div class="hud-bl"><canvas class="hud-water" width="150" height="96" aria-hidden="true"></canvas><div class="hud-pips" aria-hidden="true"></div></div>
       <canvas class="hud-map" width="150" height="150" aria-hidden="true"></canvas>
       <div class="hud-center"><canvas class="hud-count" aria-hidden="true"></canvas><div class="hud-call" role="status" aria-live="polite"></div></div>

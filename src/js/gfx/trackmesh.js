@@ -216,7 +216,7 @@ export function buildTrackWorld(THREE, track, env = {}) {
   // edge, with studded grey stepping stones along both banks
   for (const zn of (track.zones || []).filter((z) => z.type === 'ford')) {
     const ch = Math.min(nChunks - 1, Math.floor(zn.s0 / step / CHUNK));
-    const water = geoFor('ford', () => worldMat({ pattern: 'tiles', uvScale: 1, tile: 0.56, gloss: 0.95, transparent: true, alpha: 0.7, depthWrite: false }), ch);
+    const water = geoFor('ford', () => worldMat({ pattern: 'tiles', uvScale: 1, tile: 0.56, gloss: 0.95, transparent: true, alpha: 0.7, depthWrite: false, water: true }), ch);
     const rocks = geoFor('rocks', () => mat({ pattern: 'studs', gloss: 0.4 }), ch), blue = hex('#2E86D0'), grey = hex(PAL.darkGrey);
     for (let s0 = zn.s0; s0 < zn.s1 - 0.01; s0 += 1) {
       const s1 = Math.min(zn.s1, s0 + 1), c0 = track.at(s0), c1 = track.at(s1), n = 6;
@@ -261,9 +261,9 @@ export function buildTrackWorld(THREE, track, env = {}) {
 function lightPools(THREE, list) {
   const c = document.createElement('canvas'); c.width = c.height = 64;
   const x = c.getContext('2d'), gr = x.createRadialGradient(32, 32, 0, 32, 32, 32);
-  gr.addColorStop(0, 'rgba(255,214,140,0.5)'); gr.addColorStop(0.5, 'rgba(255,190,110,0.24)'); gr.addColorStop(1, 'rgba(255,170,90,0)');
+  gr.addColorStop(0, 'rgba(255,214,140,0.62)'); gr.addColorStop(0.45, 'rgba(255,196,118,0.34)'); gr.addColorStop(0.75, 'rgba(255,180,100,0.12)'); gr.addColorStop(1, 'rgba(255,170,90,0)');
   x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
-  const pos = [], uv = [], R = 6.5; // wide enough to reach the near lane from the sidewalk
+  const pos = [], uv = [], R = 8.5; // wide enough to reach across the near lane from the sidewalk
   for (const [px, py, pz] of list) {
     const y = py + 0.08, q = [[px - R, pz - R, 0, 0], [px + R, pz - R, 1, 0], [px + R, pz + R, 1, 1], [px - R, pz + R, 0, 1]];
     for (const k of [0, 2, 1, 0, 3, 2]) { pos.push(q[k][0], y, q[k][1]); uv.push(q[k][2], q[k][3]); }
@@ -362,7 +362,7 @@ function buildFacadeKit(geoFor, ch, b, mat) {
       // shop storey: a wide window with a centre mullion under a striped slope awning
       if (shopTop - y0 >= 3) {
         const w = bw * 0.68, yb = y0 + 0.55, yt = y0 + 2.75;
-        glass.quad(P(t - w / 2, yb, 0.03), P(t + w / 2, yb, 0.03), P(t + w / 2, yt, 0.03), P(t - w / 2, yt, 0.03), shopC);
+        glass.edgeQuad(P(t - w / 2, yb, 0.03), P(t + w / 2, yb, 0.03), P(t + w / 2, yt, 0.03), P(t - w / 2, yt, 0.03), shopC);
         box(t, yb - 0.08, 0.1, w / 2 + 0.12, 0.08, 0.1, trimC);
         for (const s of [-1, 1]) box(t + s * (w / 2 + 0.06), (yb + yt) / 2, 0.06, 0.06, (yt - yb) / 2, 0.06, trimC);
         box(t, (yb + yt) / 2, 0.05, 0.035, (yt - yb) / 2, 0.035, trimC);
@@ -377,7 +377,7 @@ function buildFacadeKit(geoFor, ch, b, mat) {
       // upper storeys: a framed window per bay
       for (const ys of storeys) {
         const w = Math.min(1.3, bw * 0.5), yb = ys + 0.75, yt = ys + 2.55;
-        glass.quad(P(t - w / 2, yb, 0.03), P(t + w / 2, yb, 0.03), P(t + w / 2, yt, 0.03), P(t - w / 2, yt, 0.03), glassC);
+        glass.edgeQuad(P(t - w / 2, yb, 0.03), P(t + w / 2, yb, 0.03), P(t + w / 2, yt, 0.03), P(t - w / 2, yt, 0.03), glassC);
         box(t, yb - 0.07, 0.11, w / 2 + 0.14, 0.07, 0.11, trimC);
         box(t, yt + 0.09, 0.07, w / 2 + 0.1, 0.09, 0.07, trimC);
         for (const s of [-1, 1]) box(t + s * (w / 2 + 0.05), (yb + yt) / 2, 0.05, 0.05, (yt - yb) / 2, 0.05, trimC);
