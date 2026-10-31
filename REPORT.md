@@ -175,7 +175,8 @@ best of at least +1.0.
   game-course connectors, minimum straight length in loop closure, pin-order validation.
 - Positions estimated (labelled in notes): the Vapors, the 1924 West Mountain shelter, the Pagoda.
 - Battle (Water Fight) balance is checked by sim only; the arena is small (125 m ring).
-- Not on the website: the private repo exists (v0.2.0); the site entry waits for your go-ahead.
+- On www.hsargames.com as an Under Construction early preview, pinned to the `v2.0.0` tag (brick visuals); not yet
+  in the main Library.
 
 ## Harness requests
 - `t.shot` could accept a hide-HUD option for review frames.
