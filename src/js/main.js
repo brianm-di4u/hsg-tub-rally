@@ -16,6 +16,7 @@ import { labKartGeo, labCrowd, labStats } from './gfx/perflab.js';
 import { loadPackTextures } from './gfx/textures.js';
 import { loadModel, cloneModel, hasModel } from './gfx/models.js';
 import { Track } from './sim/track.js';
+import { landmarkPose } from './sim/landmarks.js';
 import { makeRace, stepRace, DT } from './sim/race.js';
 import { makeRecorder, record, packGhost, unpackGhost, ghostPose } from './sim/ghost.js';
 import { makeHeat, makeBracket, awards, BADGE_TEAMS } from './sim/rules-real.js';
@@ -166,15 +167,10 @@ function placeLandmarks(track, world) {
     App.loading++;
     loadModel(lm.model, { facades: MODELLED_WINDOWS.has(lm.model) ? null : lm.facades }).then((tpl) => {
       if (App.world !== world) return;
-      const s = lm.s ?? lm.at * track.length, side = lm.side || Math.sign(lm.d) || 1;
-      const c = track.at(s), edge = side > 0 ? c.wr : c.wl;
-      // anchors are building centroids; the model's origin is its front wall, so step forward half its depth
-      if (tpl.userData.depth == null) { const bb = new window.THREE.Box3().setFromObject(tpl); tpl.userData.depth = Math.max(0, -bb.min.z); }
-      const front = lm.d != null ? Math.abs(lm.d) - tpl.userData.depth / 2 : edge + (lm.setback ?? 10);
-      const d = side * Math.max(front, edge + (lm.minGap ?? 6));
-      const p = track.point(s, d);
-      const yaw = Math.atan2(side * c.tz, -side * c.tx) + (lm.yaw || 0);
-      const g = cloneModel(tpl, p.x, track.heightAt(c, side * edge) + (lm.dy || 0), p.z, yaw, lm.scale || 1);
+      // how far the model reaches behind its front wall and in front of it (stairs, an arcaded base)
+      if (tpl.userData.depth == null) { const bb = new window.THREE.Box3().setFromObject(tpl); tpl.userData.depth = Math.max(0, -bb.min.z); tpl.userData.fwd = Math.max(0, bb.max.z); }
+      const q = landmarkPose(track, lm, tpl.userData);
+      const g = cloneModel(tpl, q.x, q.y, q.z, q.yaw, q.scale);
       g.name = 'landmark:' + lm.id;
       world.add(g);
     }).catch((e) => console.warn(e.message)).finally(() => { App.loading--; });
