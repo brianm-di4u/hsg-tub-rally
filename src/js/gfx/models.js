@@ -3,7 +3,7 @@
 // here. Re-skinned with the N64 materials: Gouraud-lit vertex colours, and the `wall` slot takes a painted facade
 // texture when one exists. Conventions (art-src/blender/README.md): metres, Y-up, origin at the front-centre at
 // grade, facade faces +Z.
-import { litMat } from './n64mat.js';
+import { litMat } from './brickmat.js';
 import { tex, hasArt } from './textures.js';
 
 const built = {};
@@ -42,9 +42,12 @@ export function loadModel(name, opts = {}) {
     g.setAttribute('color', new THREE.BufferAttribute(col, 3));
     g.computeBoundingSphere();
     const facade = opts.facades && opts.facades[slot];
-    const mat = facade && hasArt(facade) ? litMat({ map: tex(facade), flatTint: true, tint: opts.wallTint || '#ffffff' }) : litMat({});
+    // brick courses on walls (1 uv unit = 4 m), studs on flat roofs and ledges
+    const pat = slot === 'wall' ? { pattern: 'bricks', uvScale: 4, tile: 1.12, patAmt: 0.8 } : slot === 'roof' || slot === 'trim' ? { pattern: ['bricks', 'studs'], uvScale: 4, tile: 1.12, patAmt: 0.7 } : {};
+    const mat = facade && hasArt(facade) ? litMat({ map: tex(facade), flatTint: true, tint: opts.wallTint || '#ffffff', ...pat, patAmt: 0.55 }) : litMat({ ...pat, gloss: slot === 'glass' ? 0.9 : 0.5 });
     const mesh = new THREE.Mesh(g, mat);
     mesh.name = slot; mesh.matrixAutoUpdate = false; mesh.updateMatrix();
+    mesh.userData.caster = true;
     root.add(mesh);
   }
   built[name] = root;

@@ -8,7 +8,8 @@ export const PROP_KIND = { pine: 'board', oak: 'board', magnolia: 'board', crowd
 
 const GREEN = hex('#2F4A3A'), GLOBE = hex('#F4F1E6'), STEEL = hex('#A9B0B6'), BLUE = hex('#2E6FD0');
 
-export function buildProp(type, g, p, yaw, sc = 1) {
+// glow: optional second builder for parts that light up after dark (lamp globes), drawn unlit
+export function buildProp(type, g, p, yaw, sc = 1, glow = null) {
   const [x, y, z] = p;
   const cy = Math.cos(yaw), sy = Math.sin(yaw);
   const T = (lx, ly, lz) => [x + (lx * cy + lz * sy) * sc, y + ly * sc, z + (-lx * sy + lz * cy) * sc];
@@ -17,7 +18,7 @@ export function buildProp(type, g, p, yaw, sc = 1) {
       g.cyl([x, y, z], 0.16 * sc, 0.09 * sc, 4.2 * sc, 5, GREEN);
       g.box([x - 0.6 * sc, y + 4.1 * sc, z - 0.05 * sc], [x + 0.6 * sc, y + 4.2 * sc, z + 0.05 * sc], GREEN);
       g.box([x - 0.05 * sc, y + 4.1 * sc, z - 0.6 * sc], [x + 0.05 * sc, y + 4.2 * sc, z + 0.6 * sc], GREEN);
-      for (const [dx, dz, dy] of [[0, 0, 4.75], [0.6, 0, 4.4], [-0.6, 0, 4.4], [0, 0.6, 4.4], [0, -0.6, 4.4]]) g.ball([x + dx * sc, y + dy * sc, z + dz * sc], 0.24 * sc, GLOBE, 5, 3);
+      for (const [dx, dz, dy] of [[0, 0, 4.75], [0.6, 0, 4.4], [-0.6, 0, 4.4], [0, 0.6, 4.4], [0, -0.6, 4.4]]) (glow || g).ball([x + dx * sc, y + dy * sc, z + dz * sc], 0.24 * sc, glow ? [1, 0.93, 0.72] : GLOBE, 6, 4);
       break;
     }
     case 'bucket': {
@@ -28,6 +29,13 @@ export function buildProp(type, g, p, yaw, sc = 1) {
       g.cyl([x, y, z], 0.04, 0.04, 3.4, 4, STEEL);
       const a = T(0, 1.2, 0), b = T(0, 3.3, 0), c = T(0.75, 3.0, 0), d = T(0.6, 1.4, 0);
       g.quad(a, d, c, b, BLUE); g.quad(b, c, d, a, mul(BLUE, 0.8));
+      // a white stripe down the outer edge and one across the top on both faces, so it reads as a flag, not a board
+      const W = hex('#F4F4F4');
+      for (const o of [0.012, -0.012]) {
+        const e = T(0.44, 1.38, o), f = T(0.58, 3.06, o), c2 = T(0.75, 3.0, o), d2 = T(0.6, 1.4, o);
+        const h = T(0, 2.95, o), k = T(0.71, 2.66, o), b2 = T(0, 3.3, o);
+        g.quad(e, d2, c2, f, W); g.quad(f, c2, d2, e, W); g.quad(h, k, c2, b2, W); g.quad(b2, c2, k, h, W);
+      }
       break;
     }
     case 'cone': {
@@ -43,6 +51,17 @@ export function buildProp(type, g, p, yaw, sc = 1) {
       g.obox(T(0, 1.0, 0), [1.4, 1.0, 1.0], hex('#F4F1EA'), yaw, { top: hex('#C8322A') });
       g.obox(T(0, 2.5, 0), [1.6, 0.12, 1.2], hex('#C8322A'), yaw);
       for (const dx of [-1.4, 1.4]) g.cyl(T(dx, 0, 0.9), 0.06, 0.06, 2.5, 4, STEEL);
+      // two brick judges in striped shirts with clipboards, standing in front of the booth facing the road
+      for (const dx of [-0.85, 0.85]) {
+        const J = (lx, ly, lz) => T(dx + lx, ly, 1.45 + lz), blk = hex('#2B2E33'), wht = hex('#F4F4F4'), skin = hex(dx < 0 ? '#E0AC7E' : '#8D5A3B');
+        for (const lx of [-0.09, 0.09]) g.obox(J(lx, 0.29, 0), [0.075, 0.29, 0.08], blk, yaw);
+        for (let k = 0; k < 4; k++) g.obox(J(0, 0.65 + k * 0.115, 0), [0.2, 0.0575, 0.12], k % 2 ? blk : wht, yaw);
+        g.obox(J(0, 1.3, 0), [0.15, 0.15, 0.14], skin, yaw);
+        g.obox(J(0, 1.47, 0), [0.16, 0.04, 0.15], blk, yaw);
+        for (const lx of [-0.245, 0.245]) g.obox(J(lx, 0.88, 0.06), [0.045, 0.2, 0.06], wht, yaw);
+        g.obox(J(0.2, 0.92, 0.2), [0.11, 0.14, 0.015], hex('#8A6A3A'), yaw);
+        g.obox(J(0.2, 0.94, 0.215), [0.08, 0.1, 0.005], wht, yaw);
+      }
       break;
     }
     case 'jug': { // the plaza's thermal-water jug fountain: a stone basin and a spout column

@@ -1,0 +1,628 @@
+{
+  "_doc": "Canonical review frames for tools/shots-gpu.mjs. Each setup step is [op, ...args]: race {newGame opts} (paused, AI drives the player unless autoplay:false), title, menu act {data}, step n, skip (end the countdown), input {held intent}, act name ...args, until judge|done|circle|race [max steps], look target widthM pitch yaw (fixed review camera; yaw 0 faces the target's front), wait ms. 'wait' is 'idle' or 'frames'. Crops (desktop only) are close cameras on a target at native resolution and 2x pixels: target 'player' | 'kart:N' | 'preview' | 'landmark:id' | 'at:s,d,h'. Strips are 8 frames 'every' sim ticks apart.",
+  "clock": 12345,
+  "shots": [
+    {
+      "id": "R01",
+      "title": "Title screen over the Bathhouse Row flyover",
+      "cats": [
+        "ui",
+        "typography",
+        "scenery"
+      ],
+      "mobile": true,
+      "setup": [
+        [
+          "title"
+        ]
+      ],
+      "wait": "idle"
+    },
+    {
+      "id": "R02",
+      "title": "Team select: Engine Six Soakers on the turntable",
+      "cats": [
+        "characters",
+        "ui"
+      ],
+      "mobile": true,
+      "setup": [
+        [
+          "title"
+        ],
+        [
+          "menu",
+          "gp"
+        ]
+      ],
+      "wait": "idle",
+      "crops": [
+        {
+          "target": "preview",
+          "width": 3.4,
+          "pitch": 0.14,
+          "yaw": 0.6
+        },
+        {
+          "target": "preview",
+          "width": 3.4,
+          "pitch": 0.2,
+          "yaw": 2.5,
+          "tag": "rear"
+        },
+        {
+          "target": "preview",
+          "width": 2.2,
+          "pitch": 0.42,
+          "yaw": 0.5,
+          "tag": "captain"
+        }
+      ]
+    },
+    {
+      "id": "R03",
+      "title": "Starting grid on Central Avenue (countdown)",
+      "cats": [
+        "characters",
+        "readability",
+        "materials"
+      ],
+      "mobile": true,
+      "setup": [
+        [
+          "race",
+          {
+            "track": "bathhouse-row",
+            "team": "engine-six",
+            "seed": 7
+          }
+        ],
+        [
+          "step",
+          40
+        ]
+      ],
+      "wait": "idle",
+      "crops": [
+        {
+          "target": "player",
+          "width": 3.6,
+          "pitch": 0.16,
+          "yaw": 0.6
+        },
+        {
+          "target": "player",
+          "width": 3.6,
+          "pitch": 0.22,
+          "yaw": 2.6,
+          "tag": "rear"
+        },
+        {
+          "target": "kart:1",
+          "width": 3.6,
+          "pitch": 0.16,
+          "yaw": -0.7
+        },
+        {
+          "target": "kart:5",
+          "width": 3.6,
+          "pitch": 0.16,
+          "yaw": 0.9
+        }
+      ]
+    },
+    {
+      "id": "R04",
+      "title": "Pack racing down Central Avenue past the Row",
+      "cats": [
+        "readability",
+        "scenery",
+        "materials"
+      ],
+      "mobile": true,
+      "setup": [
+        [
+          "race",
+          {
+            "track": "bathhouse-row",
+            "team": "engine-six",
+            "seed": 7
+          }
+        ],
+        [
+          "skip"
+        ],
+        [
+          "step",
+          420
+        ]
+      ],
+      "wait": "idle",
+      "crops": [
+        {
+          "target": "player",
+          "width": 4,
+          "pitch": 0.2,
+          "yaw": 0.9
+        },
+        {
+          "target": "kart:3",
+          "width": 4,
+          "pitch": 0.2,
+          "yaw": -0.8
+        }
+      ]
+    },
+    {
+      "id": "R05",
+      "title": "The Fordyce bathhouse from the street",
+      "cats": [
+        "scenery",
+        "authenticity"
+      ],
+      "setup": [
+        [
+          "race",
+          {
+            "track": "bathhouse-row",
+            "team": "steam-rangers",
+            "seed": 2,
+            "count": 1,
+            "mode": "timetrial"
+          }
+        ],
+        [
+          "skip"
+        ],
+        [
+          "step",
+          1
+        ],
+        [
+          "look",
+          "landmark:fordyce",
+          42,
+          0.1,
+          0.55
+        ],
+        [
+          "act",
+          "hud",
+          false
+        ]
+      ],
+      "wait": "idle"
+    },
+    {
+      "id": "R06",
+      "title": "The Arlington closes the vista",
+      "cats": [
+        "authenticity",
+        "lighting",
+        "scenery"
+      ],
+      "setup": [
+        [
+          "race",
+          {
+            "track": "bathhouse-row",
+            "team": "steam-rangers",
+            "seed": 2,
+            "count": 1,
+            "mode": "timetrial"
+          }
+        ],
+        [
+          "skip"
+        ],
+        [
+          "step",
+          1
+        ],
+        [
+          "look",
+          "landmark:arlington",
+          90,
+          0.12,
+          0.35
+        ],
+        [
+          "act",
+          "hud",
+          false
+        ]
+      ],
+      "wait": "idle"
+    },
+    {
+      "id": "R07",
+      "title": "Park Avenue at dusk",
+      "cats": [
+        "lighting",
+        "scenery"
+      ],
+      "mobile": true,
+      "setup": [
+        [
+          "race",
+          {
+            "track": "park-avenue",
+            "team": "velvet-mob",
+            "seed": 6
+          }
+        ],
+        [
+          "skip"
+        ],
+        [
+          "step",
+          360
+        ]
+      ],
+      "wait": "idle"
+    },
+    {
+      "id": "R08",
+      "title": "Hot Springs Mountain Drive switchbacks",
+      "cats": [
+        "scenery",
+        "lighting"
+      ],
+      "mobile": true,
+      "setup": [
+        [
+          "race",
+          {
+            "track": "hs-mountain",
+            "team": "trail-shredders",
+            "seed": 6
+          }
+        ],
+        [
+          "skip"
+        ],
+        [
+          "step",
+          420
+        ]
+      ],
+      "wait": "idle"
+    },
+    {
+      "id": "R09",
+      "title": "Goat Rock and the Gulpha Gorge ford",
+      "cats": [
+        "scenery",
+        "authenticity"
+      ],
+      "setup": [
+        [
+          "race",
+          {
+            "track": "goat-rock-gulpha",
+            "team": "steam-rangers",
+            "seed": 6
+          }
+        ],
+        [
+          "skip"
+        ],
+        [
+          "step",
+          600
+        ]
+      ],
+      "wait": "idle"
+    },
+    {
+      "id": "R10",
+      "title": "West Mountain summit road",
+      "cats": [
+        "lighting",
+        "scenery"
+      ],
+      "setup": [
+        [
+          "race",
+          {
+            "track": "west-mountain",
+            "team": "suds-posse",
+            "seed": 6
+          }
+        ],
+        [
+          "skip"
+        ],
+        [
+          "step",
+          360
+        ]
+      ],
+      "wait": "idle"
+    },
+    {
+      "id": "R11",
+      "title": "Sunset Ridge at sunset",
+      "cats": [
+        "lighting",
+        "scenery"
+      ],
+      "setup": [
+        [
+          "race",
+          {
+            "track": "sunset-ridge",
+            "team": "bubble-patrol",
+            "seed": 6
+          }
+        ],
+        [
+          "skip"
+        ],
+        [
+          "step",
+          360
+        ]
+      ],
+      "wait": "idle"
+    },
+    {
+      "id": "R12",
+      "title": "Whittington Valley around the park",
+      "cats": [
+        "scenery",
+        "readability"
+      ],
+      "setup": [
+        [
+          "race",
+          {
+            "track": "whittington-valley",
+            "team": "out-of-towners",
+            "seed": 6
+          }
+        ],
+        [
+          "skip"
+        ],
+        [
+          "step",
+          360
+        ]
+      ],
+      "wait": "idle"
+    },
+    {
+      "id": "R13",
+      "title": "Bridge Street Bash downtown",
+      "cats": [
+        "authenticity",
+        "scenery"
+      ],
+      "setup": [
+        [
+          "race",
+          {
+            "track": "bridge-street",
+            "team": "lather-linen",
+            "seed": 6
+          }
+        ],
+        [
+          "skip"
+        ],
+        [
+          "step",
+          360
+        ]
+      ],
+      "wait": "idle"
+    },
+    {
+      "id": "R14",
+      "title": "Power slide charging hot steam",
+      "cats": [
+        "animation",
+        "materials"
+      ],
+      "setup": [
+        [
+          "race",
+          {
+            "track": "bathhouse-row",
+            "team": "engine-six",
+            "seed": 7,
+            "count": 4,
+            "autoplay": false
+          }
+        ],
+        [
+          "skip"
+        ],
+        [
+          "input",
+          {
+            "steer": 0,
+            "push": 1,
+            "brake": false,
+            "hop": false
+          }
+        ],
+        [
+          "step",
+          170
+        ],
+        [
+          "input",
+          {
+            "steer": 1,
+            "push": 1,
+            "brake": false,
+            "hop": false
+          }
+        ],
+        [
+          "step",
+          5
+        ],
+        [
+          "input",
+          {
+            "steer": 1,
+            "push": 1,
+            "brake": false,
+            "hop": true
+          }
+        ],
+        [
+          "step",
+          6
+        ]
+      ],
+      "wait": "frames",
+      "strip": {
+        "every": 8,
+        "frames": 8
+      }
+    },
+    {
+      "id": "R15",
+      "title": "Fumble: the crew circles the tub",
+      "cats": [
+        "animation",
+        "characters"
+      ],
+      "setup": [
+        [
+          "race",
+          {
+            "track": "bathhouse-row",
+            "team": "engine-six",
+            "seed": 7
+          }
+        ],
+        [
+          "skip"
+        ],
+        [
+          "step",
+          240
+        ],
+        [
+          "act",
+          "hit"
+        ],
+        [
+          "step",
+          2
+        ]
+      ],
+      "wait": "frames",
+      "strip": {
+        "every": 10,
+        "frames": 8
+      },
+      "crops": [
+        {
+          "target": "player",
+          "width": 4.4,
+          "pitch": 0.35,
+          "yaw": 1.2
+        }
+      ]
+    },
+    {
+      "id": "R16",
+      "title": "Judge stop on the Row (Rules of the Row heat)",
+      "cats": [
+        "authenticity",
+        "animation"
+      ],
+      "setup": [
+        [
+          "race",
+          {
+            "mode": "row",
+            "track": "bathhouse-row",
+            "team": "engine-six",
+            "heatTeams": [
+              "engine-six",
+              "lather-linen"
+            ],
+            "label": "Semifinal",
+            "seed": 5
+          }
+        ],
+        [
+          "step",
+          200
+        ],
+        [
+          "until",
+          "judge",
+          1800
+        ]
+      ],
+      "wait": "frames",
+      "strip": {
+        "every": 12,
+        "frames": 8
+      }
+    },
+    {
+      "id": "R17",
+      "title": "Water Fight at Hill Wheatley Plaza",
+      "cats": [
+        "scenery",
+        "readability"
+      ],
+      "mobile": true,
+      "setup": [
+        [
+          "race",
+          {
+            "mode": "battle",
+            "track": "hill-wheatley",
+            "team": "gator-gang",
+            "seed": 4
+          }
+        ],
+        [
+          "step",
+          1200
+        ]
+      ],
+      "wait": "idle"
+    },
+    {
+      "id": "R18",
+      "title": "Race results",
+      "cats": [
+        "ui",
+        "typography"
+      ],
+      "mobile": true,
+      "setup": [
+        [
+          "race",
+          {
+            "track": "bathhouse-row",
+            "team": "engine-six",
+            "seed": 3,
+            "laps": 1
+          }
+        ],
+        [
+          "until",
+          "done",
+          7200
+        ],
+        [
+          "wait",
+          300
+        ]
+      ],
+      "wait": "idle"
+    }
+  ]
+}

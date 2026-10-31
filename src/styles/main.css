@@ -27,7 +27,7 @@ canvas[data-pixel], .hud canvas { image-rendering: pixelated; }
 @keyframes pop { from { transform: scale(0.6); } to { transform: scale(1); } }
 .hud-bl { position: absolute; left: max(10px, env(safe-area-inset-left)); bottom: 10px; transform: scale(var(--hud-scale)); transform-origin: bottom left; }
 .hud-pips { display: flex; gap: 4px; margin-top: 4px; }
-.pip { display: flex; flex-direction: column; align-items: center; width: 38px; font: 700 11px/1.1 var(--font-ui); color: #fff; text-shadow: 1px 1px 0 var(--ink), -1px -1px 0 var(--ink); }
+.pip { display: flex; flex-direction: column; align-items: center; width: 46px; font: 700 13px/1.1 var(--font-ui); color: #fff; text-shadow: 1px 1px 0 var(--ink), -1px -1px 0 var(--ink); }
 .pip em { font-style: normal; }
 .pip i { width: 22px; height: 18px; border: 2px solid var(--ink); border-radius: 5px; margin-bottom: 2px; }
 .pip-towel i { background: repeating-linear-gradient(0deg, #F4F1EA 0 4px, #C8322A 4px 6px); }
@@ -190,3 +190,84 @@ kbd { display: inline-block; padding: 0 5px; border: 2px solid var(--ink); borde
 .hud-timec { height: 21px; width: auto; image-rendering: pixelated; }
 .hud-item:not(.has) .bubble { opacity: 0.55; }
 @media (max-width: 520px) { .rtable { font-size: 12px; } .rtable th, .rtable td { padding: 4px 4px; } .sw { display: none; } }
+
+/* results and standings cover the race: hide the race HUD and touch controls under them */
+body[data-screen="results"] .hud, body[data-screen="standings"] .hud, body[data-screen="rowResult"] .hud,
+body[data-screen="results"] .touch, body[data-screen="standings"] .touch, body[data-screen="rowResult"] .touch { display: none !important; }
+.tagline { text-shadow: -1px -1px 0 var(--ink), 1px -1px 0 var(--ink), -1px 1px 0 var(--ink), 1px 1px 0 var(--ink); }
+
+/* ---------- short landscape (phones on their side): everything fits in about 390 px of height ---------- */
+@media (max-height: 500px) and (min-aspect-ratio: 1/1) {
+  .screens { padding: 8px max(12px, env(safe-area-inset-right)) 8px max(12px, env(safe-area-inset-left)); }
+  .title-wrap { flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 22px; max-width: 100%; }
+  .logo { flex: 1 1 300px; max-width: 46vw; }
+  .logo canvas { max-height: 22vh; width: auto; max-width: 100%; }
+  .tagline { font-size: 13px; margin: 2px 0 0; }
+  .menu { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 8px; width: min(400px, 50vw); }
+  .mbtn { min-height: 44px; padding: 6px 12px; font-size: 15px; }
+  .fineprint { flex-basis: 100%; font-size: 11px; padding: 3px 8px; max-width: 90vw; }
+  .panel { max-height: calc(100dvh - 16px); padding: 10px 14px; gap: 8px; border-width: 3px; border-radius: 14px; }
+  .panel > canvas:first-child { max-height: 34px; width: auto; }
+  .sub { font-size: 13px; margin: -4px 0 0; }
+  .panel.teams { max-width: min(760px, 70vw); }
+  .team-grid { grid-template-columns: repeat(6, 1fr); gap: 5px; }
+  .tcard { min-height: 40px; padding: 4px 6px; font-size: 11px; }
+  .tcard b { font-size: 11px; }
+  .tcard small { font-size: 10px; }
+  .team-info h3 { font-size: 16px; margin: 0; }
+  .team-info p { font-size: 12px; line-height: 1.25; }
+  .stats { gap: 3px 12px; margin-top: 4px; }
+  .rtable { font-size: 12px; }
+  .rtable th, .rtable td { padding: 2px 6px; }
+  .card-row { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; }
+  .ccard { min-height: 0; padding: 8px 10px; }
+  .menu.row .mbtn { min-height: 40px; }
+  .hud-center { top: 18%; }
+}
+@media (pointer: coarse) and (max-height: 500px) and (min-aspect-ratio: 1/1) {
+  .t-btns { right: max(10px, env(safe-area-inset-right)); bottom: 10px; grid-template-columns: 66px 66px; gap: 8px; }
+  .tb { width: 66px; height: 52px; font-size: 13px; }
+  .t-steer { top: 40%; }
+  .t-steer-knob { bottom: 18px; }
+  .t-steer em { bottom: 46px; }
+  .hud-bl { bottom: auto; top: 58px; transform: scale(0.85); transform-origin: top left; }
+  .hud-map { right: auto; left: 50%; bottom: 8px; width: 84px; height: 84px; transform: translateX(-50%); }
+}
+
+/* steer pill: filled and outlined so it reads at 3:1 or better on any road */
+@media (pointer: coarse) {
+  .t-steer-knob { background: rgba(246,243,236,0.88); border: 3px solid var(--ink); box-shadow: 0 2px 0 rgba(0,0,0,0.35); }
+  .t-steer-knob::before, .t-steer-knob::after { content: ''; position: absolute; top: 5px; border: 6px solid transparent; }
+  .t-steer-knob::before { left: 6px; border-right-color: var(--ink); border-left-width: 0; }
+  .t-steer-knob::after { right: 6px; border-left-color: var(--ink); border-right-width: 0; }
+  .t-steer em { color: #fff; text-shadow: 1px 1px 0 var(--ink), -1px -1px 0 var(--ink), 1px -1px 0 var(--ink), -1px 1px 0 var(--ink); }
+}
+
+/* loop 2: titles wrap evenly; phones keep the turning tub in view on team select */
+.tagline, .sub { text-wrap: balance; }
+@media (max-aspect-ratio: 4/5) {
+  .scr-teams { align-items: flex-end; padding-bottom: max(10px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, rgba(10,16,26,0) 0%, rgba(10,16,26,0) 30%, rgba(10,16,26,0.75) 45%); }
+  .scr-teams .panel.teams { max-height: 64dvh; padding: 10px 12px; gap: 8px; }
+  .scr-teams .panel.teams > canvas:first-child { max-height: 30px; width: auto; }
+  .scr-teams .team-grid { grid-template-columns: repeat(4, 1fr); gap: 5px; }
+  .scr-teams .tcard { min-height: 44px; padding: 4px 5px; font-size: 11px; }
+  .scr-teams .tcard b { font-size: 11px; }
+  .scr-teams .team-info p { font-size: 12px; }
+}
+@media (max-height: 500px) and (min-aspect-ratio: 1/1) {
+  .panel.teams { max-width: min(560px, 56vw); }
+  .team-grid { grid-template-columns: repeat(4, 1fr); }
+  /* HUD: water gauge below the lap/time block, minimap top right under the place badge */
+  .hud-bl { bottom: auto; top: 86px; transform: scale(0.75); transform-origin: top left; }
+  .hud-map { top: 66px; bottom: auto; left: auto; right: max(10px, env(safe-area-inset-right)); width: 78px; height: 78px; transform: none; }
+}
+@media (pointer: coarse) and (max-height: 500px) and (min-aspect-ratio: 1/1) {
+  .hud-bl { bottom: auto; top: 86px; transform: scale(0.75); transform-origin: top left; }
+  .hud-map { right: max(10px, env(safe-area-inset-right)); left: auto; top: 66px; bottom: auto; width: 78px; height: 78px; transform: none; }
+}
+
+/* the logo drop shadow applies to the logo art only (it doubled the tagline) */
+.logo { filter: none; }
+.logo canvas { filter: drop-shadow(0 6px 0 rgba(0,0,0,0.35)); }
+/* steering pad: as big and as readable as the action buttons */
+@media (pointer: coarse) { .t-steer-knob { width: 140px; height: 50px; border-radius: 16px; left: calc(50% - 70px + var(--steer, 0) * 60px); } .t-steer-knob::before, .t-steer-knob::after { top: 14px; border-width: 10px; } }

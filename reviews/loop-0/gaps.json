@@ -1,0 +1,202 @@
+[
+  {
+    "id": "G-landscape-overflow",
+    "category": "mobile",
+    "expectedGain": 1,
+    "severity": 5,
+    "effort": "S",
+    "workstream": "WS6",
+    "evidence": [
+      "high/landscape/R01",
+      "high/landscape/R02",
+      "high/landscape/R18"
+    ],
+    "benchmark": "2k-drive/drive-2.jpg",
+    "fix": "In a max-height 500px landscape media query, cap menu panels at 100dvh minus safe areas with an internal scroll region, scale the title to fit, lay team select out as grid-left / details-and-buttons-right, and pin the results buttons below the table. Test at 844x390: high/landscape/R01 shows the full logo and Grand Prix through Credits; R02 shows stats plus Choose/Back; R18 shows row 8 plus both buttons, with no page scroll. Also clears typography's 'nothing clipped'.",
+    "priority": 1.5,
+    "selected": true
+  },
+  {
+    "id": "G-render-res",
+    "category": "materials",
+    "expectedGain": 1,
+    "severity": 4,
+    "effort": "S",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R06",
+      "crops/high/R03-kart_1",
+      "high/desktop/R08"
+    ],
+    "fix": "Default the high tier to native resolution at about 0.75x DPR (gfx.w >= 960 on desktop, >= 585 on portrait) instead of 'Authentic 240'; keep Authentic 240 as an option and as the low-tier default. Test: shots.json gfx.w >= 960 for high/desktop; R06 Arlington windows read as rows with no blotch; R08/R10 canopy edges not stair-stepped; perf proxies still pass the loop-1 budgets. About +0.5 materials and +0.5 readability.",
+    "priority": 1.5,
+    "selected": true
+  },
+  {
+    "id": "G-contact-shadows",
+    "category": "lighting",
+    "expectedGain": 1.5,
+    "severity": 4,
+    "effort": "M",
+    "workstream": "WS1",
+    "evidence": [
+      "crops/high/R04-player",
+      "crops/high/R15-player",
+      "high/desktop/R07",
+      "high/desktop/R11"
+    ],
+    "benchmark": "worlds/worlds-4.jpg",
+    "fix": "Replace the hard octagon with a soft radial shadow decal under each tub (feathered over at least 25% of its radius) and a soft ellipse under each figure's feet; add AO on figures and tubs (high tier); make dusk lamp globes emissive with a ground light-pool decal; feed sprite and billboard materials the same fog and light-tint uniforms as meshes; blend the cloud band into the upper sky. Test: luma under crew feet at least 15% below open road in crops/high/R04-player (now 65 vs 62); no hard polygon edge on the tub shadow; R07 globes brighter than the sky behind them; R11 foreground-tree mean shifts at least 20% toward the sunset key vs R10; no sky seam in R07 or R11.",
+    "priority": 1.125,
+    "selected": true
+  },
+  {
+    "id": "G-brick-figures",
+    "category": "characters",
+    "expectedGain": 2.5,
+    "severity": 5,
+    "effort": "L",
+    "workstream": "WS2",
+    "evidence": [
+      "crops/high/R03-player",
+      "crops/high/R15-player",
+      "high/desktop/R09",
+      "crops/high/R02-preview"
+    ],
+    "benchmark": "2k-drive/drive-4.jpg",
+    "fix": "Big lever. Rebuild crew and captain as original brick figures (no cylinder head, C-hand or trapezoid torso): bevelled head with a printed face (eyes, brows, mouth), separate torso, arms, hands and legs with seam lines, printed team uniforms, studded hats, and a unique hat silhouette per team (Steam Rangers and Suds Posse no longer share the brown cowboy hat). Build tubs from recognisable brick parts (plate chassis, hubbed wheels with tyres instead of pie-wedge octagons). Add a crew-placement constraint: at least 0.35 m between figures, no figure inside another tub's volume. Test: faces on all five figures in crops/high/R03-player and on the captain in crops/high/R02-preview; no overlapping figures in crops/high/R15-player or strips/high/R15 f2 and f6; a 12-team chase-distance sheet with names hidden identified correctly; IP gate re-run.",
+    "priority": 0.938,
+    "bigLever": true,
+    "selected": true
+  },
+  {
+    "id": "G-abs-material",
+    "category": "materials",
+    "expectedGain": 2,
+    "severity": 5,
+    "effort": "L",
+    "workstream": "WS1",
+    "evidence": [
+      "crops/high/R02-preview",
+      "crops/high/R04-player",
+      "crops/high/R15-player"
+    ],
+    "benchmark": "worlds/worlds-1.jpg; builders-journey/bj-3.jpg",
+    "fix": "One shared plastic material for brick parts (roughness 0.25-0.35, clearcoat 0.3-0.5, soft environment reflections), bevel normals on every part edge, studs on top faces within 15 m of the camera, a fixed palette of about 20 real brick colours, and tub water as a transparent surface (opacity 0.5-0.7). Land it on the new figure parts first. Test: highlights trace bevels in crops/high/R04-player and crops/high/R02-preview; the tub interior shows through the water in crops/high/R15-player.",
+    "priority": 0.75,
+    "selected": true
+  },
+  {
+    "id": "G-brick-world",
+    "category": "scenery",
+    "expectedGain": 2,
+    "severity": 5,
+    "effort": "L",
+    "workstream": "WS4",
+    "evidence": [
+      "high/desktop/R04",
+      "high/desktop/R05",
+      "high/desktop/R06",
+      "high/desktop/R16"
+    ],
+    "benchmark": "worlds/worlds-1.jpg; 2k-drive/drive-5.jpg",
+    "fix": "Studded green baseplate ground, tile roads with plate seams and printed lane lines, landmark facades with modelled brick courses, dimensional window recesses and trim (keeping the Arlington, Fordyce and Quapaw silhouettes), and brick-built street furniture (lamp posts, barriers, judge booth). Test: studs visible on the ground within 15 m in R04 and R12; brick courses and window recesses on the R05 Fordyce and R06 Arlington; no untextured white box at the R16 judge stop.",
+    "priority": 0.75,
+    "selected": false
+  },
+  {
+    "id": "G-terrain-road-intrusion",
+    "category": "readability",
+    "expectedGain": 0.5,
+    "severity": 4,
+    "effort": "S",
+    "workstream": "WS4",
+    "evidence": [
+      "high/desktop/R08",
+      "high/mobile/R08"
+    ],
+    "fix": "Clamp terrain heights to at least 5 cm below the road surface across road width plus a 1 m shoulder, and assert it in a per-course build check. Test: no grass pixels inside the road in R08 on desktop, portrait and landscape.",
+    "priority": 0.75,
+    "selected": false
+  },
+  {
+    "id": "G-ring-around",
+    "category": "animation",
+    "expectedGain": 0.5,
+    "severity": 4,
+    "effort": "S",
+    "workstream": "WS3",
+    "evidence": [
+      "strips/high/R16",
+      "strips/high/R15"
+    ],
+    "fix": "At judge stops, drive the crew with the circling routine already used for fumbles (strips/high/R15), one lap per progress-bar fill; keep rival tubs at least 3 m from a stopped player and out of the chase camera's near plane. Test: in strips/high/R16 every crew figure changes side of the tub at least once in 8 frames; no rival geometry in the bottom quarter of frames 3-8.",
+    "priority": 0.75,
+    "selected": false
+  },
+  {
+    "id": "G-slide-steam",
+    "category": "animation",
+    "expectedGain": 1,
+    "severity": 4,
+    "effort": "M",
+    "workstream": "WS3",
+    "evidence": [
+      "strips/high/R14",
+      "high/desktop/R17"
+    ],
+    "benchmark": "2k-drive/drive-3.jpg",
+    "fix": "During a power slide, emit the existing steam puff (high/desktop/R17) from the tub, growing with charge level, plus skid-mark decals from the rear wheels; on release, a 6-8 degree FOV kick and a short steam burst. Test: steam visible in at least 6 of 8 frames of strips/high/R14; skid marks behind the tub in frames 4-8.",
+    "priority": 0.75,
+    "selected": false
+  },
+  {
+    "id": "G-numeral-glyph",
+    "category": "typography",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS6",
+    "evidence": [
+      "high/desktop/R03",
+      "high/mobile/R18",
+      "high/desktop/R01"
+    ],
+    "fix": "Redraw the HUD pixel face's 0 as an open oval with no slash or dot (keep 8 closed with a waist); replace the subtitle's offset shadow with a 1-2 px dark outline. Test: zeros in '0:00.00' (high/desktop/R03) and '1:01.00' (high/mobile/R18) have no interior marks; no duplicate subtitle line in high/desktop/R01 or high/mobile/R01.",
+    "priority": 0.75,
+    "selected": false
+  },
+  {
+    "id": "G-team-preview",
+    "category": "ui",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS6",
+    "evidence": [
+      "high/desktop/R02",
+      "high/mobile/R02",
+      "crops/high/R02-preview-captain"
+    ],
+    "benchmark": "2k-drive/drive-2.jpg",
+    "fix": "Move the team-select camera so the turntable tub and crew fill the empty right half on desktop and landscape and a band above the grid in portrait; re-aim the R02-preview-captain capture camera, which sits inside the tub wall. Test: the selected tub and all five figures fully visible in high/desktop/R02 and high/mobile/R02.",
+    "priority": 0.75,
+    "selected": false
+  },
+  {
+    "id": "G-landscape-controls",
+    "category": "mobile",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS6",
+    "evidence": [
+      "high/landscape/R17",
+      "high/landscape/R03",
+      "high/mobile/R04"
+    ],
+    "fix": "In landscape, anchor Item/Hop/Brake/Push to the bottom-right corner and Steer to the bottom-left; scale the gauge, minimap and place by viewport height; give the Steer pill a filled background with chevrons. Test: persistent HUD at most 15% of the 844x390 frame by bounding box; no control over an item orb in high/landscape/R17; Steer pill contrast at least 3:1 against the road in high/mobile/R04, R07 and R17.",
+    "priority": 0.75,
+    "selected": false
+  }
+]

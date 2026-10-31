@@ -49,7 +49,7 @@ export const TEAMS = [
     colors: { tub: '#E8E8E8', trim: '#D6226E', shirt: '#D6226E', hat: '#2FA84F', cap: '#2FA84F', skin: '#E9BE98', flag: '#2FA84F' },
     emblem: 'horseshoe', hat: 'jockey', perk: { top: 1.02 }, unlocked: false },
   { id: 'steam-rangers', name: 'Steam Rangers', div: 'stock', archetype: 'Flat-hat rangers', captain: 'Ranger Hazel Fern',
-    colors: { tub: '#6B7F4A', trim: '#C7A86A', shirt: '#B9A27A', hat: '#7A5A35', cap: '#4E6136', skin: '#A86F4C', flag: '#C7A86A' },
+    colors: { tub: '#6B7F4A', trim: '#C7A86A', shirt: '#8C979C', hat: '#C9A66B', cap: '#4E6136', skin: '#A86F4C', flag: '#C7A86A' },
     emblem: 'pine', hat: 'flat-brim', perk: { slosh: 0.96 }, unlocked: true },
   { id: 'suds-posse', name: 'Suds Posse', div: 'stock', archetype: "Sheriff's posse", captain: 'Deputy Dale Lather',
     colors: { tub: '#8A5A2E', trim: '#E8C547', shirt: '#E6DCC8', hat: '#5A3B22', cap: '#E8C547', skin: '#D6A27A', flag: '#E8C547' },

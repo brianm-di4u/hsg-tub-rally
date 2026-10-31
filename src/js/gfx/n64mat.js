@@ -35,6 +35,8 @@ export function setSun(dir, amb, diff) {
   if (diff != null) shared.uDiff.value = diff;
 }
 export function setTime(t) { if (shared.uTime) shared.uTime.value = t; }
+// the shared fog, sun, time and tint uniforms (brickmat.js builds its materials on the same objects)
+export function sharedUniforms() { return shared; }
 export function fogColor() { return shared.uFogColor.value; }
 
 const FOG_V = `

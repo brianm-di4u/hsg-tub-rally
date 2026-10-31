@@ -42,7 +42,11 @@ export const tests = [
       t.expect(fc4.taskMs < 16, `phone proxy (4× CPU) task time ${fc4.taskMs.toFixed(2)} ms < 16`);
       const s = await t.state();
       t.log('render', JSON.stringify(s.render));
-      t.expect(s.render.draws <= (t.viewport === 'mobile' ? 100 : 120), `draw calls ${s.render.draws}`);
+      // per-tier budgets from the perf study (tools/perf-budgets.json, reviews/PERF.md)
+      const tier = s.render.builtTier || s.render.tier; // the governor may step down after the scene was built
+      const B = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools', 'perf-budgets.json'), 'utf8')).tiers[tier];
+      t.expect(s.render.draws <= B.draws, `draw calls ${s.render.draws} ≤ ${B.draws} (${tier})`);
+      t.expect(s.render.tris <= B.sceneTris, `triangles ${s.render.tris} ≤ ${B.sceneTris} (${tier})`);
     },
   },
   {

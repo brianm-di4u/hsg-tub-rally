@@ -5,7 +5,7 @@ let mem = null;
 
 export const DEFAULT_SAVE = () => ({
   v: 1,
-  settings: { sound: true, music: true, volume: 0.6, res: 'authentic', quality: 'auto', autoPush: false, steerAssist: false, reducedMotion: null, hudScale: 1, keys: null },
+  settings: { sound: true, music: true, volume: 0.6, res: 'native', quality: 'auto', autoPush: false, steerAssist: false, reducedMotion: null, hudScale: 1, keys: null },
   unlocked: { teams: [], cups: ['bathhouse'], classes: ['splash', 'soak'], mirror: false },
   best: {}, // trackId → { lap, race, team }
   ghosts: {}, // trackId → pose ghost
@@ -19,7 +19,12 @@ export function loadSave() {
     const raw = window.localStorage.getItem(KEY);
     if (raw) {
       const s = JSON.parse(raw);
-      if (s && s.v === 1) { const d = DEFAULT_SAVE(); return { ...d, ...s, settings: { ...d.settings, ...s.settings }, unlocked: { ...d.unlocked, ...s.unlocked } }; }
+      if (s && s.v === 1) {
+        const d = DEFAULT_SAVE(), out = { ...d, ...s, settings: { ...d.settings, ...s.settings }, unlocked: { ...d.unlocked, ...s.unlocked } };
+        // the brick look renders at native resolution; saves from the 240-line era move over once
+        if (!out.settings.brick) { if (out.settings.res === 'authentic') out.settings.res = 'native'; out.settings.brick = true; }
+        return out;
+      }
     }
   } catch (e) { /* storage unavailable */ }
   return mem ? JSON.parse(JSON.stringify(mem)) : DEFAULT_SAVE();

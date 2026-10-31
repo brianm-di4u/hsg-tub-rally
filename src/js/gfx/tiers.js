@@ -2,9 +2,9 @@
 // MIT): phones start Low, desktops Medium. The governor only judges frames shorter than 0.2 s (test hooks and tab
 // switches make long frames) and never climbs back to a tier it stepped down from.
 export const TIERS = {
-  low: { aa: false, boards: 0.5, fogFar: 230, particles: 0.4 },
-  medium: { aa: true, boards: 1, fogFar: 330, particles: 1 },
-  high: { aa: true, boards: 1, fogFar: 400, particles: 1 },
+  low: { aa: false, boards: 0.5, fogFar: 230, particles: 0.4, dprCap: 0.85, shadow: 0 },
+  medium: { aa: true, boards: 1, fogFar: 330, particles: 1, dprCap: 1.5, shadow: 1024, shadowR: 40, shadowCrowd: false },
+  high: { aa: true, boards: 1, fogFar: 400, particles: 1, dprCap: 2, shadow: 2048, shadowR: 55, shadowCrowd: true },
 };
 
 export function pickTier(setting) {

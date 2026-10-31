@@ -18,7 +18,8 @@ export const tests = [
       const s = await t.state();
       t.equal(s.track.id, TRACK, 'Bathhouse Row loaded');
       t.log('render', JSON.stringify(s.render), 'world', JSON.stringify(s.world));
-      t.expect(s.render.draws <= 120, `draws within budget (${s.render.draws})`);
+      const budget = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools', 'perf-budgets.json'), 'utf8')).tiers[s.render.builtTier || s.render.tier].draws; // reviews/PERF.md
+      t.expect(s.render.draws <= budget, `draws within budget (${s.render.draws} ≤ ${budget}, ${s.render.tier})`);
       // walk the camera down the Row: a shot in front of the Fordyce
       const lm = await t.game('act', 'landmark', 'fordyce');
       t.expect(!!lm, 'Fordyce placed');

@@ -1,0 +1,212 @@
+{
+ "GM": {
+  "crew_total": 286470,
+  "figure": {
+   "arm_l": 2176,
+   "arm_r": 2176,
+   "hand_l": 2004,
+   "hand_r": 2004,
+   "hat": 6922,
+   "head": 2216,
+   "hip": 300,
+   "item": 1200,
+   "leg_l": 3928,
+   "leg_r": 3928,
+   "torso": 1752
+  },
+  "figure_total": 28606,
+  "items": {
+   "item_loofah": 10560,
+   "item_mat": 3792,
+   "item_soap": 3336,
+   "item_towel": 1200
+  },
+  "knobs": {
+   "bevel_segs": 4,
+   "curve_segs": 10,
+   "edge": 0.0105,
+   "round_segs": 64,
+   "stud_segs": 48,
+   "studs": "geo"
+  },
+  "tub": {
+   "body": 47538,
+   "duck": 21196,
+   "flag": 8800,
+   "water": 586,
+   "wheel_fl": 13108,
+   "wheel_fr": 13108,
+   "wheel_rl": 13108,
+   "wheel_rr": 13108
+  },
+  "tub_total": 130552
+ },
+ "LOD0": {
+  "crew_total": 68024,
+  "figure": {
+   "arm_l": 608,
+   "arm_r": 608,
+   "hand_l": 500,
+   "hand_r": 500,
+   "hat": 1618,
+   "head": 488,
+   "hip": 108,
+   "item": 432,
+   "leg_l": 1016,
+   "leg_r": 1016,
+   "torso": 408
+  },
+  "figure_total": 7302,
+  "items": {
+   "item_loofah": 1440,
+   "item_mat": 1152,
+   "item_soap": 678,
+   "item_towel": 432
+  },
+  "knobs": {
+   "bevel_segs": 2,
+   "curve_segs": 4,
+   "edge": 0.0105,
+   "round_segs": 24,
+   "stud_segs": 16,
+   "studs": "geo"
+  },
+  "tub": {
+   "body": 9490,
+   "duck": 2928,
+   "flag": 1924,
+   "water": 222,
+   "wheel_fl": 3852,
+   "wheel_fr": 3852,
+   "wheel_rl": 3852,
+   "wheel_rr": 3852
+  },
+  "tub_total": 29972
+ },
+ "LOD1": {
+  "crew_total": 23306,
+  "figure": {
+   "arm_l": 224,
+   "arm_r": 224,
+   "hand_l": 196,
+   "hand_r": 196,
+   "hat": 582,
+   "head": 176,
+   "hip": 44,
+   "item": 176,
+   "leg_l": 376,
+   "leg_r": 376,
+   "torso": 152
+  },
+  "figure_total": 2722,
+  "items": {
+   "item_loofah": 360,
+   "item_mat": 488,
+   "item_soap": 272,
+   "item_towel": 176
+  },
+  "knobs": {
+   "bevel_segs": 1,
+   "curve_segs": 2,
+   "edge": 0.0105,
+   "round_segs": 12,
+   "stud_segs": 8,
+   "studs": "geo"
+  },
+  "tub": {
+   "body": 3098,
+   "duck": 724,
+   "flag": 644,
+   "water": 110,
+   "wheel_fl": 1176,
+   "wheel_fr": 1176,
+   "wheel_rl": 1176,
+   "wheel_rr": 1176
+  },
+  "tub_total": 9280
+ },
+ "LOD2": {
+  "crew_total": 16004,
+  "figure": {
+   "arm_l": 192,
+   "arm_r": 192,
+   "hand_l": 116,
+   "hand_r": 116,
+   "hat": 344,
+   "head": 88,
+   "hip": 44,
+   "item": 176,
+   "leg_l": 280,
+   "leg_r": 280,
+   "torso": 88
+  },
+  "figure_total": 1916,
+  "items": {
+   "item_loofah": 168,
+   "item_mat": 488,
+   "item_soap": 208,
+   "item_towel": 176
+  },
+  "knobs": {
+   "bevel_segs": 1,
+   "curve_segs": 1,
+   "edge": 0.0105,
+   "round_segs": 8,
+   "stud_segs": 6,
+   "studs": "none"
+  },
+  "tub": {
+   "body": 1848,
+   "duck": 524,
+   "flag": 464,
+   "water": 68,
+   "wheel_fl": 840,
+   "wheel_fr": 840,
+   "wheel_rl": 840,
+   "wheel_rr": 840
+  },
+  "tub_total": 6264
+ },
+ "LOD3": {
+  "crew_total": 7392,
+  "figure": {
+   "arm_l": 56,
+   "arm_r": 56,
+   "hand_l": 44,
+   "hand_r": 44,
+   "hat": 168,
+   "head": 32,
+   "hip": 12,
+   "item": 48,
+   "leg_l": 80,
+   "leg_r": 80,
+   "torso": 24
+  },
+  "figure_total": 644,
+  "items": {
+   "item_loofah": 102,
+   "item_mat": 192,
+   "item_soap": 144,
+   "item_towel": 48
+  },
+  "knobs": {
+   "bevel_segs": 0,
+   "curve_segs": 0,
+   "edge": 0.0105,
+   "round_segs": 6,
+   "stud_segs": 6,
+   "studs": "none"
+  },
+  "tub": {
+   "body": 880,
+   "duck": 392,
+   "flag": 200,
+   "water": 54,
+   "wheel_fl": 600,
+   "wheel_fr": 600,
+   "wheel_rl": 600,
+   "wheel_rr": 600
+  },
+  "tub_total": 3926
+ }
+}

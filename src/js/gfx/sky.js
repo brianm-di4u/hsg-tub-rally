@@ -37,7 +37,12 @@ export function buildSky(THREE, env = {}) {
   ringTex.repeat.set(painted ? 3 : 2, 1);
   // painted panoramas: stretch the ring down (top edge unchanged) so their pale lower haze sits below the horizon
   const rg = new THREE.CylinderGeometry(330, 330, painted ? 134 : 110, 24, 1, true);
-  const rm = new THREE.MeshBasicMaterial({ map: ringTex, transparent: !painted, side: THREE.BackSide, depthWrite: false, fog: false, alphaTest: painted ? 0 : 0.05 });
+  // painted panoramas fade out over their top band so their sky meets the dome without a seam
+  const rm = painted
+    ? new THREE.ShaderMaterial({ uniforms: { map: { value: ringTex }, uRep: { value: ringTex.repeat } }, side: THREE.BackSide, transparent: true, depthWrite: false,
+      vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+      fragmentShader: 'uniform sampler2D map; uniform vec2 uRep; varying vec2 vUv; void main() { vec4 c = texture2D(map, vec2(vUv.x * uRep.x, vUv.y)); gl_FragColor = vec4(c.rgb, c.a * (1.0 - smoothstep(0.72, 0.97, vUv.y))); }' })
+    : new THREE.MeshBasicMaterial({ map: ringTex, transparent: true, side: THREE.BackSide, depthWrite: false, fog: false, alphaTest: 0.05 });
   const ring = new THREE.Mesh(rg, rm);
   ring.position.y = painted ? -2 : 10;
   ring.renderOrder = -9;

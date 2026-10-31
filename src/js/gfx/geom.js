@@ -92,6 +92,118 @@ export class Geo {
     }
     return this;
   }
+  // triangle with given vertex normals (smooth shading: bevels and studs)
+  triN(a, b, c, na, nb, nc, col, ua, ub, uc) {
+    const k = this.light ? this.light(na) : 1;
+    [[a, na, ua], [b, nb, ub], [c, nc, uc]].forEach(([p, n, t]) => {
+      this.p.push(p[0], p[1], p[2]); this.n.push(n[0], n[1], n[2]);
+      this.c.push(col[0] * k, col[1] * k, col[2] * k); this.uv.push(t ? t[0] : 0, t ? t[1] : 0); this.part.push(this.curPart);
+    });
+    return this;
+  }
+  // rounded box (moulded plastic part): edges rounded with radius r in `seg` steps, smooth normals; seg 0 is a
+  // plain box. Triangles: 12 × (2·seg + 1)². opts.print = [u0, v0, u1, v1] maps the +z face onto an atlas cell
+  // (a printed face or uniform); every other vertex gets uv (0, 0), which the atlas keeps transparent.
+  rbox(min, max, col, r = 0.02, seg = 2, opts = {}) {
+    const c = [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2, (min[2] + max[2]) / 2];
+    const h = [(max[0] - min[0]) / 2, (max[1] - min[1]) / 2, (max[2] - min[2]) / 2];
+    if (!seg) r = 0;
+    r = Math.min(r, h[0] * 0.95, h[1] * 0.95, h[2] * 0.95);
+    // grid coordinates along one axis: the bevel swept in seg angle steps at each end, the flat middle between
+    const axis = (hh) => {
+      if (!seg) return [-hh, hh];
+      const out = [];
+      for (let i = 0; i <= seg; i++) out.push(-(hh - r) - r * Math.cos((i / seg) * Math.PI / 2));
+      for (let i = seg; i >= 0; i--) out.push(hh - r + r * Math.cos((i / seg) * Math.PI / 2));
+      return out;
+    };
+    const A = [axis(h[0]), axis(h[1]), axis(h[2])];
+    const vert = (v) => {
+      const q = [0, 1, 2].map((k) => Math.max(-(h[k] - r), Math.min(h[k] - r, v[k])));
+      const d = [v[0] - q[0], v[1] - q[1], v[2] - q[2]], l = Math.hypot(d[0], d[1], d[2]);
+      const n = l > 1e-6 ? [d[0] / l, d[1] / l, d[2] / l] : null;
+      return { p: n ? [c[0] + q[0] + n[0] * r, c[1] + q[1] + n[1] * r, c[2] + q[2] + n[2] * r] : [c[0] + v[0], c[1] + v[1], c[2] + v[2]], n };
+    };
+    const top = opts.top || col;
+    // faces: [normal axis, sign, u axis, v axis] wound counter-clockwise from outside
+    for (const [ax, sg, ua, va] of [[0, 1, 1, 2], [0, -1, 2, 1], [1, 1, 2, 0], [1, -1, 0, 2], [2, 1, 0, 1], [2, -1, 1, 0]]) {
+      if (opts.noBottom && ax === 1 && sg < 0) continue;
+      const fn = [0, 0, 0]; fn[ax] = sg;
+      const U = A[ua], V = A[va], fc = ax === 1 && sg > 0 ? top : col;
+      for (let i = 0; i < U.length - 1; i++) for (let j = 0; j < V.length - 1; j++) {
+        const P = (ii, jj) => { const v = [0, 0, 0]; v[ax] = sg * h[ax]; v[ua] = U[ii]; v[va] = V[jj]; const o = vert(v); return [o.p, o.n || fn]; };
+        const [p00, n00] = P(i, j), [p10, n10] = P(i + 1, j), [p11, n11] = P(i + 1, j + 1), [p01, n01] = P(i, j + 1);
+        const pr = opts.print && ax === 2 && sg > 0 ? opts.print : null, pb = opts.printBack && ax === 2 && sg < 0 ? opts.printBack : null;
+        // front: u runs with +x; back (seen from behind): u runs with -x, so the print isn't mirrored
+        const T = pr ? (ii, jj) => [pr[0] + (pr[2] - pr[0]) * (U[ii] + h[0]) / (2 * h[0]), pr[1] + (pr[3] - pr[1]) * (V[jj] + h[1]) / (2 * h[1])]
+          : pb ? (ii, jj) => [pb[0] + (pb[2] - pb[0]) * (h[0] - V[jj]) / (2 * h[0]), pb[1] + (pb[3] - pb[1]) * (U[ii] + h[1]) / (2 * h[1])] : () => null;
+        this.triN(p00, p10, p11, n00, n10, n11, fc, T(i, j), T(i + 1, j), T(i + 1, j + 1)); this.triN(p00, p11, p01, n00, n11, n01, fc, T(i, j), T(i + 1, j + 1), T(i, j + 1));
+      }
+    }
+    return this;
+  }
+  // a stud: cylinder of radius r and height h on top of point c, with a rounded top edge; 5·seg triangles
+  stud(c, r, h, seg, col) {
+    const b = Math.min(r * 0.18, h * 0.5);
+    for (let i = 0; i < seg; i++) {
+      const a0 = (i / seg) * Math.PI * 2, a1 = ((i + 1) / seg) * Math.PI * 2;
+      const P = (a, rr, y) => [c[0] + Math.sin(a) * rr, c[1] + y, c[2] + Math.cos(a) * rr];
+      const N = (a, ny) => { const s = Math.sqrt(1 - ny * ny); return [Math.sin(a) * s, ny, Math.cos(a) * s]; };
+      this.triN(P(a0, r, 0), P(a1, r, 0), P(a1, r, h - b), N(a0, 0), N(a1, 0), N(a1, 0), col);
+      this.triN(P(a0, r, 0), P(a1, r, h - b), P(a0, r, h - b), N(a0, 0), N(a1, 0), N(a0, 0), col);
+      this.triN(P(a0, r, h - b), P(a1, r, h - b), P(a1, r - b, h), N(a0, 0), N(a1, 0), N(a1, 0.85), col);
+      this.triN(P(a0, r, h - b), P(a1, r - b, h), P(a0, r - b, h), N(a0, 0), N(a1, 0.85), N(a0, 0.85), col);
+      this.triN(P(a0, r - b, h), P(a1, r - b, h), [c[0], c[1] + h, c[2]], [0, 1, 0], [0, 1, 0], [0, 1, 0], col);
+    }
+    return this;
+  }
+  // smooth cylinder along +y (side normals smooth, caps flat): base centre c, radius r, height h
+  scyl(c, r, h, seg, col, opts = {}) {
+    const top = opts.top || col, r1 = opts.r1 ?? r;
+    for (let i = 0; i < seg; i++) {
+      const a0 = (i / seg) * Math.PI * 2, a1 = ((i + 1) / seg) * Math.PI * 2;
+      const P = (a, rr, y) => [c[0] + Math.sin(a) * rr, c[1] + y, c[2] + Math.cos(a) * rr], N = (a) => [Math.sin(a), 0, Math.cos(a)];
+      this.triN(P(a0, r, 0), P(a1, r, 0), P(a1, r1, h), N(a0), N(a1), N(a1), col);
+      this.triN(P(a0, r, 0), P(a1, r1, h), P(a0, r1, h), N(a0), N(a1), N(a0), col);
+      if (!opts.noTop) this.triN(P(a0, r1, h), P(a1, r1, h), [c[0], c[1] + h, c[2]], [0, 1, 0], [0, 1, 0], [0, 1, 0], top);
+      if (opts.bottom) this.triN(P(a1, r, 0), P(a0, r, 0), [c[0], c[1], c[2]], [0, -1, 0], [0, -1, 0], [0, -1, 0], col);
+    }
+    return this;
+  }
+  // the same cylinder lying along x (wheels): centre c, radius r, half-width hw
+  xcyl(c, r, hw, seg, col, capCol) {
+    for (let i = 0; i < seg; i++) {
+      const a0 = (i / seg) * Math.PI * 2, a1 = ((i + 1) / seg) * Math.PI * 2;
+      const P = (a, x) => [c[0] + x, c[1] + Math.sin(a) * r, c[2] + Math.cos(a) * r], N = (a) => [0, Math.sin(a), Math.cos(a)];
+      this.triN(P(a0, -hw), P(a0, hw), P(a1, hw), N(a0), N(a0), N(a1), col);
+      this.triN(P(a0, -hw), P(a1, hw), P(a1, -hw), N(a0), N(a1), N(a1), col);
+      const cc = capCol || col;
+      this.triN(P(a1, hw), P(a0, hw), [c[0] + hw, c[1], c[2]], [1, 0, 0], [1, 0, 0], [1, 0, 0], cc);
+      this.triN(P(a0, -hw), P(a1, -hw), [c[0] - hw, c[1], c[2]], [-1, 0, 0], [-1, 0, 0], [-1, 0, 0], cc);
+    }
+    return this;
+  }
+  // average the normals of coincident vertices whose faces bend by less than `deg`: road and terrain ribbons are
+  // emitted triangle by triangle with face normals, which shows every fold of the ground as a hard luminance step
+  smooth(deg = 35) {
+    const p = this.p, n = this.n, cos = Math.cos((deg * Math.PI) / 180), at = new Map(), out = n.slice();
+    for (let i = 0; i < p.length; i += 3) {
+      const k = Math.round(p[i] * 64) + ',' + Math.round(p[i + 1] * 64) + ',' + Math.round(p[i + 2] * 64);
+      const l = at.get(k);
+      if (l) l.push(i); else at.set(k, [i]);
+    }
+    for (const l of at.values()) {
+      if (l.length < 2) continue;
+      for (const i of l) {
+        let x = 0, y = 0, z = 0;
+        for (const j of l) if (n[i] * n[j] + n[i + 1] * n[j + 1] + n[i + 2] * n[j + 2] >= cos) { x += n[j]; y += n[j + 1]; z += n[j + 2]; }
+        const d = Math.hypot(x, y, z) || 1;
+        out[i] = x / d; out[i + 1] = y / d; out[i + 2] = z / d;
+      }
+    }
+    this.n = out;
+    return this;
+  }
   get count() { return this.p.length / 3; }
   build(THREE, { parts = false } = {}) {
     const g = new THREE.BufferGeometry();

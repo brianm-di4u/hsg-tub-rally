@@ -2,6 +2,7 @@
 // stretches it to the window with the browser's bilinear filter, which gives the soft analogue-video look for
 // free. Colours stay in gamma space (no colour management, no tone mapping).
 import { initMaterials, setFog, setSun, setTime, setLightTint } from './n64mat.js';
+import { setHemi } from './brickmat.js';
 
 export const RES_MODES = { authentic: 240, crisp: 480, native: 0 };
 
@@ -17,19 +18,23 @@ export class Renderer {
     this.gl.toneMapping = THREE.NoToneMapping;
     this.gl.setPixelRatio(1);
     this.gl.autoClear = true;
+    this.gl.info.autoReset = false; // a frame's counts include the shadow pass
+    this.shadow = null; this.shadowFocus = null;
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(62, 4 / 3, 0.3, 520);
     initMaterials();
-    this.mode = opts.mode || 'authentic';
+    this.mode = opts.mode || 'native';
+    this.dprCap = opts.dprCap || 2;
+    this.sunDir = new THREE.Vector3(0.4, 0.8, 0.3).normalize();
     this.size = { w: 0, h: 0 };
     this.info = { draws: 0, tris: 0 };
   }
-  setMode(mode) { this.mode = RES_MODES[mode] != null ? mode : 'authentic'; this.resize(true); }
+  setMode(mode) { this.mode = RES_MODES[mode] != null ? mode : 'native'; this.resize(true); }
   resize(force = false) {
     const cw = this.canvas.clientWidth || window.innerWidth, ch = this.canvas.clientHeight || window.innerHeight;
     const short = RES_MODES[this.mode];
     let w, h;
-    if (!short) { const dpr = Math.min(2, window.devicePixelRatio || 1); w = Math.round(cw * dpr); h = Math.round(ch * dpr); }
+    if (!short) { const dpr = Math.min(this.dprCap, window.devicePixelRatio || 1); w = Math.round(cw * dpr); h = Math.round(ch * dpr); }
     else if (cw >= ch) { h = short; w = Math.round((short * cw) / ch); }
     else { w = short; h = Math.round((short * ch) / cw); }
     if (!force && w === this.size.w && h === this.size.h) return false;
@@ -47,7 +52,10 @@ export class Renderer {
     const fogC = env.fogColor || '#C9DFE8';
     const fog = env.fog || [90, 330];
     setFog(fogC, fog[0], fog[1]);
-    if (env.sun) setSun(env.sun, env.amb, env.diff);
+    if (env.sun) { setSun(env.sun, env.amb, env.diff); this.sunDir.set(env.sun[0], env.sun[1], env.sun[2]).normalize(); }
+    // ambient and reflections: the sky above (between its zenith and horizon colours), the baseplate below
+    const sky = env.sky || ['#7FB6E0', '#D9ECF5'], c = new THREE.Color(sky[0]).lerp(new THREE.Color(sky[1]), 0.55);
+    setHemi('#' + c.getHexString(), env.time === 'dusk' ? '#3E3A4A' : env.time === 'sunset' ? '#6B5A3C' : '#6F8F4E');
     setLightTint(env.lightTint || (env.time === 'dusk' ? [1.0, 0.8, 0.86] : env.time === 'sunset' ? [1.0, 0.86, 0.78] : [1, 1, 1]));
     this.gl.setClearColor(new THREE.Color(fogC), 1);
     this.camera.far = fog[1] + 60;
@@ -55,6 +63,8 @@ export class Renderer {
   }
   render(time) {
     setTime(time);
+    this.gl.info.reset();
+    if (this.shadow && this.shadowFocus) this.shadow.render(this.gl, this.scene, this.shadowFocus, this.sunDir);
     this.gl.render(this.scene, this.camera);
     const r = this.gl.info.render;
     this.info.draws = r.calls; this.info.tris = r.triangles;

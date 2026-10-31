@@ -1,7 +1,7 @@
 // An original chunky 5×7 bitmap font, drawn in code, for HUD numerals and titles. Rendered to a canvas at an
 // integer scale with a dark outline and a two-tone fill (the bright, bevelled look of late-90s console HUDs).
 const G = {
-  '0': ['.###.', '#...#', '#..##', '#.#.#', '##..#', '#...#', '.###.'],
+  '0': ['.###.', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'], // open zero: a slashed one reads as 8 at HUD size
   '1': ['..#..', '.##..', '..#..', '..#..', '..#..', '..#..', '.###.'],
   '2': ['.###.', '#...#', '....#', '...#.', '..#..', '.#...', '#####'],
   '3': ['####.', '....#', '....#', '.###.', '....#', '....#', '####.'],

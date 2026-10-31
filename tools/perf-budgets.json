@@ -1,0 +1,104 @@
+{
+  "_doc": "Per-tier budgets and the measured perf gate for the brick campaign (reviews/PERF.md explains where each number comes from). tools/perf-check.mjs applies them to reviews/loop-N/perf.json and writes the perf gate into reviews/loop-N/gates.json.",
+  "tiers": {
+    "low": {
+      "dprCap": 0.85,
+      "shadowMap": 0,
+      "figureTris": 600,
+      "tubTris": 4500,
+      "crowd": "sprites",
+      "sceneTris": 120000,
+      "draws": 120
+    },
+    "medium": {
+      "dprCap": 1.5,
+      "shadowMap": 1024,
+      "figureTris": 3700,
+      "tubTris": 22000,
+      "crowd": "3D near (≤300, lab level 0) + sprites far",
+      "sceneTris": 450000,
+      "draws": 200
+    },
+    "high": {
+      "dprCap": 2,
+      "shadowMap": 2048,
+      "figureTris": 7200,
+      "heroFigureTris": 18000,
+      "tubTris": 40000,
+      "crowd": "3D (≤600, lab level 1)",
+      "sceneTris": 1600000,
+      "draws": 220
+    }
+  },
+  "gates": {
+    "desktop": {
+      "label": "gpu",
+      "throttle": 1,
+      "viewport": "desktop",
+      "tiers": [
+        "medium",
+        "high"
+      ],
+      "p95MaxMs": 8,
+      "taskMaxMs": 4
+    },
+    "phoneCpu": {
+      "label": "gpu",
+      "throttle": 4,
+      "viewport": "mobile",
+      "tiers": [
+        "low",
+        "medium"
+      ],
+      "taskMaxMs": 16,
+      "fpsMin": 30
+    },
+    "gpuScale": [
+      {
+        "name": "laptop iGPU (Iris Xe class)",
+        "ratio": 9,
+        "label": "gpu",
+        "throttle": 1,
+        "viewport": "desktop",
+        "tier": "medium",
+        "maxMs": 16.7
+      },
+      {
+        "name": "mid phone (assumed ~25x below an RTX 5060)",
+        "ratio": 25,
+        "label": "gpu",
+        "throttle": 1,
+        "viewport": "mobile",
+        "tier": "medium",
+        "maxMs": 25
+      },
+      {
+        "name": "low phone (Adreno 610 class)",
+        "ratio": 71,
+        "label": "gpu",
+        "throttle": 1,
+        "viewport": "mobile",
+        "tier": "low",
+        "maxMs": 45,
+        "informational": true
+      }
+    ],
+    "floor": {
+      "label": "swiftshader",
+      "throttle": 1,
+      "viewport": "mobile",
+      "tier": "low",
+      "fpsMin": 45,
+      "p95MaxMs": 40,
+      "baseline": "reviews/loop-0/perf.json",
+      "reportRatio": true,
+      "_note": "loop 1: replaced the plan's relative rule (≤ 1.25x the 240-line baseline) with an absolute playability floor; see reviews/PERF.md"
+    }
+  },
+  "sources": {
+    "rtx5060": "GeForce RTX 5060 FP32 ≈ 19.18 TFLOPS (fpsbench.com GPU compare pages)",
+    "adreno610": "Adreno 610 FP32 ≈ 0.27 TFLOPS (cpu-monkey.com, AIDA64) → ≈ 71x",
+    "irisxe": "Iris Xe / Xe-DG1 FP32 ≈ 2.0–2.5 TFLOPS (fpsbench.com) → ≈ 8–10x",
+    "midPhone": "assumption between the two (Adreno 6xx/7xx mid-range); labelled as an estimate"
+  }
+}

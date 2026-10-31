@@ -2,10 +2,12 @@
 // items (rubber duck, bar of soap, bath bomb and its slick, flung loofahs), loofah shields, the Bubble Bath
 // globe, and a pooled particle system for splashes, steam sparks (Warm/Hot slides), boosts and sprays.
 import { Geo, hex, mul } from './geom.js';
-import { worldMat, litMat, billboardMat, setTime } from './n64mat.js';
+import { billboardMat, setTime } from './n64mat.js';
+import { worldMat, litMat } from './brickmat.js';
 import { tex, PROC } from './textures.js';
 import { texFromCanvas } from './n64mat.js';
 import { buildProp } from './props.js';
+import { makeRng } from '../rng.js';
 
 const MAXP = 600;
 
@@ -76,6 +78,8 @@ export class Fx {
   }
   // instanced billboards for pickups and tickets (positions fixed; visibility per frame via size)
   setRace(race, track) {
+    // seeded spray so review captures repeat exactly (a fresh sequence per race)
+    this.rand = makeRng(race ? race.seed || 1 : 1).next;
     const T = this.T;
     for (const m of [this.pickupMesh, this.ticketMesh, this.static]) if (m) { this.group.remove(m); m.geometry.dispose(); }
     const mk = (list, mat, w, h) => {
@@ -128,12 +132,12 @@ export class Fx {
       const c = track.at(race.row.s1), yaw = Math.atan2(c.tx, c.tz);
       for (let d = -c.wl + 1; d <= c.wr - 1; d += 2.4) { const q = track.point(race.row.s1, d); buildProp('cone', g, [q.x, track.heightAt(c, d), q.z], yaw, 1); }
     }
-    if (g.count) { this.static = new T.Mesh(g.build(T), worldMat({})); this.group.add(this.static); }
+    if (g.count) { this.static = new T.Mesh(g.build(T), worldMat({ pattern: 'studs', gloss: 0.6 })); this.static.userData.caster = true; this.group.add(this.static); }
     this.bobT = 0;
   }
   burst(x, y, z, n, col, opts = {}) {
     const spd = opts.speed ?? 3, up = opts.up ?? 3, size = opts.size ?? 0.18, life = opts.life ?? 0.7, grav = opts.grav ?? 14;
-    const r = opts.rng || Math.random;
+    const r = opts.rng || this.rand || Math.random;
     for (let i = 0; i < n; i++) {
       const k = this.next; this.next = (this.next + 1) % MAXP;
       this.pp[k * 3] = x + (r() - 0.5) * (opts.spread ?? 0.4); this.pp[k * 3 + 1] = y; this.pp[k * 3 + 2] = z + (r() - 0.5) * (opts.spread ?? 0.4);
@@ -146,6 +150,10 @@ export class Fx {
   update(race, track, dt, time, reduced, events = []) {
     if (!race) return;
     this.bobT += dt;
+    // continuous emitters only run while time moves (paused or frozen frames stay identical)
+    const live = dt > 0;
+    // emitters fire once per 60 Hz tick of elapsed time, so a long frame (or a motion-strip step) emits as much
+    const reps = live ? Math.max(1, Math.min(10, Math.round(dt * 60))) : 0;
     // pickups: hidden ones shrink to zero size
     const S = race.items;
     if (this.pickupMesh) {
@@ -168,7 +176,7 @@ export class Fx {
       m.position.set(o.x, o.y + (kind === 'slick' ? 0.04 : 0), o.z);
       if (kind === 'duck') { const c = track.at(o.s); m.rotation.y = Math.atan2(c.tx, c.tz); m.position.y += Math.abs(Math.sin(o.t * 12)) * 0.12; }
       if (kind === 'soap' || kind === 'loofah') m.rotation.y = Math.atan2(o.vx, o.vz);
-      if (kind === 'slick') { m.scale.setScalar(Math.min(1, 0.4 + o.t * 2)); if (!reduced && Math.random() < 0.3) this.burst(o.x, o.y + 0.1, o.z, 1, [0.85, 0.65, 1], { speed: 0.6, up: 1.5, size: 0.14, life: 0.5, spread: 2.6 }); }
+      if (kind === 'slick') { m.scale.setScalar(Math.min(1, 0.4 + o.t * 2)); if (live && !reduced && this.rand() < 0.3) this.burst(o.x, o.y + 0.1, o.z, 1, [0.85, 0.65, 1], { speed: 0.6, up: 1.5, size: 0.14, life: 0.5, spread: 2.6 }); }
     }
     // shields and globes around tubs
     for (const k of race.karts) {
@@ -180,13 +188,16 @@ export class Fx {
       if (k.bubbleT > 0) { const m = this.mesh('globe', used.globe++); m.visible = true; m.position.set(k.x, k.y + 0.9, k.z); }
       // particles from the tub
       const fx = Math.sin(k.yaw), fz = Math.cos(k.yaw);
+      for (let rr = 0; rr < reps; rr++) {
       if (k.water.spillFx > 0.05 && !reduced) this.burst(k.x, k.y + 1.0, k.z, Math.ceil(k.water.spillFx * 3), [0.55, 0.82, 0.95], { speed: 2.5, up: 3, size: 0.2, life: 0.6 });
-      if (k.drift && k.stage > 0) {
-        const col = k.stage === 2 ? [1, 0.55, 0.42] : [0.95, 0.97, 1];
-        for (const sgn of [-1, 1]) this.burst(k.x - fx * 0.7 + fz * 0.55 * sgn, k.y + 0.15, k.z - fz * 0.7 - fx * 0.55 * sgn, 1, col, { speed: 0.8, up: 1.4, size: 0.22, life: 0.35, grav: 2 });
+      // power slide: wheel spray while charging, then steam that grows and warms with each stage
+      if (k.drift) {
+        const st = k.stage || 0, col = st === 2 ? [1, 0.55, 0.42] : st === 1 ? [0.97, 0.98, 1] : [0.78, 0.76, 0.72];
+        for (const sgn of [-1, 1]) this.burst(k.x - fx * 0.7 + fz * 0.55 * sgn, k.y + 0.15, k.z - fz * 0.7 - fx * 0.55 * sgn, 1 + st, col, { speed: 0.9 + st * 0.5, up: 1.2 + st * 0.9, size: 0.26 + st * 0.14, life: 0.35 + st * 0.15, grav: st ? -0.5 : 4 });
       }
       if ((k.boostT > 0 || k.hoseT > 0) && !reduced) this.burst(k.x - fx * 1.6, k.y + 0.6, k.z - fz * 1.6, 2, k.hoseT > 0 ? [0.6, 0.85, 1] : [0.96, 0.96, 0.98], { speed: 0.6, up: 1, size: 0.35, life: 0.45, grav: -1, vx: -fx * 3, vz: -fz * 3 });
       if (k.sprayT > 0) this.burst(k.x + fx * 1.4, k.y + 1.0, k.z + fz * 1.4, 3, [0.5, 0.8, 1], { speed: 0.5, up: 1.2, size: 0.16, life: 0.5, grav: 9, vx: fx * 16 + Math.sin(k.yaw) * 0, vz: fz * 16, spread: 0.2 });
+      }
     }
     for (const { k, e } of events) {
       if (e.type === 'hit' || e.type === 'fumble') this.burst(k.x, k.y + 1.1, k.z, reduced ? 6 : 18, [0.55, 0.82, 0.95], { speed: 4, up: 5, size: 0.24, life: 0.8 });

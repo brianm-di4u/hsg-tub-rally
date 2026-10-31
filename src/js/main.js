@@ -4,10 +4,13 @@
 import { Renderer } from './gfx/renderer.js';
 import { buildTrackWorld } from './gfx/trackmesh.js';
 import { buildSky } from './gfx/sky.js';
-import { KartView } from './gfx/karts3d.js';
+import { KartView, setCrewDetail } from './gfx/karts3d.js';
 import { Fx } from './gfx/fx.js';
 import { TIERS, pickTier, Governor } from './gfx/tiers.js';
 import { ChaseCam } from './gfx/camera.js';
+import { SunShadow } from './gfx/shadows.js';
+import { setShadowDefault, setLite } from './gfx/brickmat.js';
+import { labKartGeo, labCrowd, labStats } from './gfx/perflab.js';
 import { loadPackTextures } from './gfx/textures.js';
 import { loadModel, cloneModel, hasModel } from './gfx/models.js';
 import { Track } from './sim/track.js';
@@ -61,9 +64,16 @@ async function boot() {
   await loadPackTextures();
   App.tier = pickTier(App.save.settings.quality);
   App.governor = new Governor(App.tier, (App.save.settings.quality || 'auto') === 'auto');
-  App.renderer = new Renderer($('#gl'), { mode: App.save.settings.res, antialias: TIERS[App.tier].aa });
+  const TT = TIERS[App.tier];
+  App.renderer = new Renderer($('#gl'), { mode: App.save.settings.res, antialias: TT.aa, dprCap: TT.dprCap });
+  // sun shadows on the tiers that afford them: every brick material made from here on samples the map
+  setShadowDefault(!!TT.shadow);
+  setLite(App.tier === 'low');
+  if (TT.shadow) App.renderer.shadow = App.shadow = new SunShadow(window.THREE, TT.shadow, TT.shadowR);
   App.renderer.resize(true);
   App.cam = new ChaseCam(App.renderer.camera);
+  setCrewDetail(App.tier, App.renderer.camera);
+  SHADOW_DIR = new window.THREE.Vector3();
   App.fx = new Fx(window.THREE, App.renderer.scene);
   App.frameEvents = [];
   App.hud = new Hud($('#hud'));
@@ -74,7 +84,7 @@ async function boot() {
   App.audioState = audioState;
   initTouch($('#touch-steer'), { push: $('#t-push'), brake: $('#t-brake'), hop: $('#t-hop'), item: $('#t-item') });
   window.addEventListener('resize', () => App.renderer.resize());
-  installHooks(App, { startRace, gotoTitle, setScene, stepOnce });
+  installHooks(App, { startRace, gotoTitle, setScene, stepOnce, onMenu, perfLab, labStats: () => labStats(window.THREE) });
   // the title screen sits over a slow flyover of the first course
   await ensureTrack(builtIds()[0] || 'bathhouse-row');
   loadCourse(builtIds()[0] || 'bathhouse-row');
@@ -122,6 +132,8 @@ export function loadCourse(id) {
   App.renderer.setEnv(env);
   App.world = buildTrackWorld(THREE, App.track, env);
   App.sky = buildSky(THREE, env);
+  // keep the sky inside the far plane (Low's shorter fog pulls the far plane in; a clipped dome shows as a disc)
+  App.sky.scale.setScalar(Math.min(1, (App.renderer.camera.far - 15) / 400));
   App.renderer.scene.add(App.sky);
   App.renderer.scene.add(App.world);
   App.hud.setTrack(App.track);
@@ -167,6 +179,12 @@ export async function startRace(opts = {}) {
   await ensureTrack(o.track);
   const track = loadCourse(o.track);
   clearKarts();
+  // the crews (and anything else built from here) follow the current tier, so a governor step-down mid-race
+  // takes full effect from the next race
+  setCrewDetail(App.tier, App.renderer.camera); setLite(App.tier === 'low');
+  if (App.shadow && App.tier === 'low') { App.shadow.setEnabled(false); setShadowDefault(false); }
+  if (App.shadow) App.shadow.skip = TIERS[App.tier].shadowCrowd ? null : /^crowd$/; // Medium: spectators cast no sun shadow
+  App.builtTier = App.tier;
   const count = o.mode === 'timetrial' ? 1 : (o.count ?? 8);
   if (o.mode === 'battle') App.race = makeBattle(track, { human: o.team, seed: o.seed, classId: o.classId, autoplay: o.autoplay, count: o.count });
   else if (o.mode === 'row') App.race = makeHeat(track, { teams: o.heatTeams, human: o.team, seed: o.seed, stops: o.stops, label: o.label, autoplay: o.autoplay, classId: o.classId });
@@ -177,6 +195,7 @@ export async function startRace(opts = {}) {
     App.renderer.scene.add(v.mesh);
     return v;
   });
+  if (App.race.player >= 0 && App.views.length > 1) App.views[App.race.player].showMarker(App.race.karts[App.race.player].team);
   App.prev = App.race.karts.map(poseOf);
   App.fx.setRace(App.race, track); App.fx.clear(); App.frameEvents.length = 0;
   // Time Trial: record this run; race the saved best as a see-through ghost
@@ -200,6 +219,21 @@ export async function startRace(opts = {}) {
   App.hud.root.classList.add('on');
   App.hud.last = {};
   return App.race;
+}
+
+// Perf lab (tools/perf-gpu.mjs --scenes=lab): a real-time AI race with synthetic brick crews at a chosen detail
+// level and an optional instanced brick crowd. opts: { lod, tubs, crowd, crowdLod, boards, track }
+async function perfLab(o = {}) {
+  await startRace({ track: o.track || 'bathhouse-row', team: 'engine-six', seed: 3, autoplay: true, count: o.tubs ?? 8, mode: 'quick' });
+  const THREE = window.THREE, out = { tubTris: null, crowdTris: 0 };
+  if (o.lod != null) {
+    const geo = labKartGeo(THREE, o.lod);
+    for (const v of App.views) { v.geo.dispose(); v.mesh.geometry = geo; v.geo = geo; }
+    out.tubTris = geo.attributes.position.count / 3;
+  }
+  if (o.crowd) { const c = labCrowd(THREE, App.track, o.crowd, o.crowdLod ?? 1); App.world.add(c.mesh); out.crowdTris = c.tris; }
+  if (o.boards === false) App.world.children.forEach((m) => { if (m.name.startsWith('boards:')) m.visible = false; });
+  return out;
 }
 
 function poseOf(k) { return { x: k.x, y: k.y, z: k.z, yaw: k.yaw }; }
@@ -475,11 +509,14 @@ function stepOnce() {
 
 function frame(t) {
   requestAnimationFrame(frame);
+  const t0 = performance.now();
   const now = t / 1000;
   let dt = App.last ? now - App.last : 0;
   App.last = now;
   dt = Math.min(0.25, Math.max(0, dt));
-  App.time += dt;
+  // review captures freeze the render clock (act('clock')): animation, particles and HUD timers hold still, and
+  // moving the frozen clock forward hands exactly that step to one frame (motion strips)
+  if (App.clock != null) { dt = Math.min(0.25, Math.max(0, App.clock - App.time)); App.time = App.clock; } else App.time += dt;
   pollGamepads();
   const m = consumeMenu();
   if (consumePause() && App.scene === 'race') togglePause();
@@ -496,14 +533,23 @@ function frame(t) {
     drawRace(r, alpha, dt);
     tubLoop(r.player >= 0 ? r.karts[r.player] : null, dt, !App.paused && !App.testPaused && r.phase !== 'done');
     const down = App.governor.frame(dt, !App.paused && !App.testPaused);
-    if (down) { App.tier = down; const env = App.track.json.env || {}; App.renderer.setEnv({ ...env, fog: env.fog ? [Math.min(env.fog[0], TIERS[down].fogFar * 0.4), Math.min(env.fog[1], TIERS[down].fogFar)] : undefined }); }
+    if (down) { App.tier = down; if (down === 'low' && App.shadow) App.shadow.setEnabled(false); const env = App.track.json.env || {}; App.renderer.setEnv({ ...env, fog: env.fog ? [Math.min(env.fog[0], TIERS[down].fogFar * 0.4), Math.min(env.fog[1], TIERS[down].fogFar)] : undefined }); }
   } else {
     tubLoop(null, dt, false);
     drawAttract(dt);
   }
+  // the shadow map follows the action: a little ahead of the chased tub, or ahead of the attract camera
+  if (App.shadow) {
+    const cam = App.renderer.camera, p = App.scene === 'race' && App.camPose && !App.camOverride ? App.camPose.pose : null;
+    if (p) App.renderer.shadowFocus = [p.x + Math.sin(p.yaw) * 12, p.y, p.z + Math.cos(p.yaw) * 12];
+    else { cam.getWorldDirection(SHADOW_DIR); App.renderer.shadowFocus = [cam.position.x + SHADOW_DIR.x * 22, cam.position.y - 4, cam.position.z + SHADOW_DIR.z * 22]; }
+  }
   App.renderer.render(App.time);
+  const ms = performance.now() - t0;
+  App.cpuMs = App.cpuMs == null ? ms : App.cpuMs * 0.9 + ms * 0.1;
 }
 
+let SHADOW_DIR = null;
 function lerpAngle(a, b, t) { const d = Math.atan2(Math.sin(b - a), Math.cos(b - a)); return a + d * t; }
 
 function drawRace(r, alpha, dt) {
@@ -513,6 +559,9 @@ function drawRace(r, alpha, dt) {
     const pose = { x: p.x + (k.x - p.x) * alpha, y: p.y + (k.y - p.y) * alpha, z: p.z + (k.z - p.z) * alpha, yaw: lerpAngle(p.yaw, k.yaw, alpha) };
     pose.groundY = tr.surface(pose.x, pose.z, k.s).h;
     App.views[i].update(k, pose, App.paused ? 0 : dt, App.time);
+    // a rival tub right in front of the chase camera fades (screen door) so the player's own tub stays in view; only
+    // while it is nearer the camera than the player's tub, and never in close-up shots
+    if (i !== r.player && r.player >= 0) { const cam = App.renderer.camera.position, dd = Math.hypot(cam.x - pose.x, cam.z - pose.z), pp = r.karts[r.player], dp = Math.hypot(cam.x - pp.x, cam.z - pp.z); App.views[i].mat.uniforms.uFade.value = !App.camOverride && dd < 4.5 && dd < dp ? Math.min(0.75, (4.5 - dd) / 3) : 0; }
     if (i === r.player || (r.player < 0 && i === 0)) App.camPose = { k, pose };
   });
   if (App.ghost && App.ghostView) {
@@ -550,7 +599,8 @@ function drawRace(r, alpha, dt) {
     cam.lookAt(o.target[0], o.target[1], o.target[2]);
   }
   App.fx.setScale(App.renderer.size.h);
-  App.fx.update(r, tr, App.paused || App.testPaused ? 0 : dt, App.time, App.reducedMotion, App.frameEvents);
+  // effects hold still while paused, except when a review capture steps the frozen clock (motion strips)
+  App.fx.update(r, tr, App.paused || (App.testPaused && App.clock == null) ? 0 : dt, App.time, App.reducedMotion, App.frameEvents);
   App.frameEvents.length = 0;
   if (App.sky) App.sky.position.copy(App.renderer.camera.position).setY(0);
   App.hud.update(r, tr, r.player >= 0 ? r.karts[r.player] : null, dt);
@@ -571,13 +621,17 @@ function drawAttract(dt) {
     const ps = s + 11, pc = tr.at(ps), pp = tr.point(ps, 1.2);
     const pose = { x: pp.x, y: pp.y, z: pp.z, yaw: App.time * 0.7, groundY: pp.y };
     App.preview.k.runPhase = App.time * 3;
+    App.preview.pose = pose;
     App.preview.view.update(App.preview.k, pose, dt, App.time);
-    cam.position.set(pc.x - pc.tz * 3.2 - pc.tx * 5.5, pc.y + 2.6, pc.z + pc.tx * 3.2 - pc.tz * 5.5);
-    // on wide screens the menu panel sits on the left, so aim left of the tub to show it on the right
-    const wide = App.renderer.size.w / App.renderer.size.h > 1.3 ? 1 : 0;
+    // on wide screens the menu panel sits on the left, so aim left of the tub to show it on the right; on tall
+    // (portrait) screens the panel fills the bottom, so step back and aim below the tub to lift it into the top third
+    const aspect = App.renderer.size.w / App.renderer.size.h, wide = aspect > 1.3 ? 1 : 0, tall = aspect < 0.8 ? 1 : 0;
+    const back = 5.5 + tall * 2.5;
+    cam.position.set(pc.x - pc.tz * 3.2 - pc.tx * back, pc.y + 2.6 + tall * 0.6, pc.z + pc.tx * 3.2 - pc.tz * back);
     const lx = -(pp.z - cam.position.z), lz = pp.x - cam.position.x, ll = Math.hypot(lx, lz) || 1;
-    cam.lookAt(pp.x + (lx / ll) * 2.6 * wide, pp.y + 0.9, pp.z + (lz / ll) * 2.6 * wide);
+    cam.lookAt(pp.x - (lx / ll) * 2.6 * wide, pp.y + 0.9 - tall * 3.2, pp.z - (lz / ll) * 2.6 * wide);
   }
+  if (App.camOverride) { const o = App.camOverride; cam.position.set(o.pos[0], o.pos[1], o.pos[2]); cam.lookAt(o.target[0], o.target[1], o.target[2]); }
   if (cam.fov !== App.renderer.baseFov) { cam.fov = App.renderer.baseFov; cam.updateProjectionMatrix(); }
   if (App.sky) App.sky.position.copy(cam.position).setY(0);
 }

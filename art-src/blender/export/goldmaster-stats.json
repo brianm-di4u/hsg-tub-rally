@@ -1,0 +1,289 @@
+{
+ "fidelity": {
+  "method": "Cycles, orthographic, transparent film, rendered 4x4 larger and box-filtered in linear light with premultiplied alpha (16x supersampled); the figure spans exactly figure_px rows; yaw is the camera orbit from the front, counter-clockwise from above",
+  "views": {
+   "chase_20px": {
+    "elev": 18.0,
+    "figure_px": 20,
+    "file": "art-src/blender/renders/goldmaster/fidelity_chase_20px.png",
+    "ortho_scale": 2.0301,
+    "projected_height_m": 1.62408,
+    "size": [
+     25,
+     25
+    ],
+    "yaw": 180.0
+   },
+   "chase_400px": {
+    "elev": 18.0,
+    "figure_px": 400,
+    "file": "art-src/blender/renders/goldmaster/fidelity_chase_400px.png",
+    "ortho_scale": 2.0301,
+    "projected_height_m": 1.62408,
+    "size": [
+     500,
+     500
+    ],
+    "yaw": 180.0
+   },
+   "chase_55px": {
+    "elev": 18.0,
+    "figure_px": 55,
+    "file": "art-src/blender/renders/goldmaster/fidelity_chase_55px.png",
+    "ortho_scale": 2.03749,
+    "projected_height_m": 1.62408,
+    "size": [
+     69,
+     69
+    ],
+    "yaw": 180.0
+   },
+   "front34_20px": {
+    "elev": 10.0,
+    "figure_px": 20,
+    "file": "art-src/blender/renders/goldmaster/fidelity_front34_20px.png",
+    "ortho_scale": 2.1022,
+    "projected_height_m": 1.68176,
+    "size": [
+     25,
+     25
+    ],
+    "yaw": 30.0
+   },
+   "front34_400px": {
+    "elev": 10.0,
+    "figure_px": 400,
+    "file": "art-src/blender/renders/goldmaster/fidelity_front34_400px.png",
+    "ortho_scale": 2.1022,
+    "projected_height_m": 1.68176,
+    "size": [
+     500,
+     500
+    ],
+    "yaw": 30.0
+   },
+   "front34_55px": {
+    "elev": 10.0,
+    "figure_px": 55,
+    "file": "art-src/blender/renders/goldmaster/fidelity_front34_55px.png",
+    "ortho_scale": 2.10985,
+    "projected_height_m": 1.68176,
+    "size": [
+     69,
+     69
+    ],
+    "yaw": 30.0
+   }
+  }
+ },
+ "figure_bbox": {
+  "max": [
+   0.3085,
+   0.346,
+   1.6595
+  ],
+  "min": [
+   -0.3085,
+   -0.196,
+   0.0
+  ]
+ },
+ "files": {
+  "goldmaster-figure.glb": 1910240,
+  "goldmaster-tub.glb": 3138752
+ },
+ "hat": "helmet",
+ "knobs": {
+  "bevel_segs": 4,
+  "curve_segs": 10,
+  "edge": 0.0105,
+  "round_segs": 64,
+  "stud_segs": 48,
+  "studs": "geo"
+ },
+ "parts": {
+  "crew_scene_total": 286470,
+  "figure": {
+   "arm_l": 2176,
+   "arm_r": 2176,
+   "hand_l": 2004,
+   "hand_r": 2004,
+   "hat": 6922,
+   "head": 2216,
+   "hip": 300,
+   "item": 1200,
+   "leg_l": 3928,
+   "leg_r": 3928,
+   "torso": 1752
+  },
+  "figure_total": 28606,
+  "items": {
+   "item_loofah": 10560,
+   "item_mat": 3792,
+   "item_soap": 3336,
+   "item_towel": 1200
+  },
+  "tub": {
+   "body": 47538,
+   "duck": 21196,
+   "flag": 8800,
+   "water": 586,
+   "wheel_fl": 13108,
+   "wheel_fr": 13108,
+   "wheel_rl": 13108,
+   "wheel_rr": 13108
+  },
+  "tub_total": 130552
+ },
+ "pivots": {
+  "arm_l": [
+   0.255,
+   0.0,
+   1.13
+  ],
+  "arm_r": [
+   -0.255,
+   0.0,
+   1.13
+  ],
+  "body": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "duck": [
+   0.3,
+   -0.72,
+   1.03
+  ],
+  "flag": [
+   -0.3,
+   0.72,
+   1.0
+  ],
+  "hand_l": [
+   0.255,
+   0.0,
+   0.84
+  ],
+  "hand_r": [
+   -0.255,
+   0.0,
+   0.84
+  ],
+  "hat": [
+   0.0,
+   0.0,
+   1.51
+  ],
+  "head": [
+   0.0,
+   0.0,
+   1.2
+  ],
+  "hip": [
+   0.0,
+   0.0,
+   0.58
+  ],
+  "item": [
+   0.255,
+   -0.005,
+   0.775
+  ],
+  "leg_l": [
+   0.095,
+   0.0,
+   0.58
+  ],
+  "leg_r": [
+   -0.095,
+   0.0,
+   0.58
+  ],
+  "torso": [
+   0.0,
+   0.0,
+   0.66
+  ],
+  "water": [
+   0.0,
+   0.0,
+   0.86
+  ],
+  "wheel_fl": [
+   0.56,
+   -0.6,
+   0.3
+  ],
+  "wheel_fr": [
+   -0.56,
+   -0.6,
+   0.3
+  ],
+  "wheel_rl": [
+   0.56,
+   0.6,
+   0.3
+  ],
+  "wheel_rr": [
+   -0.56,
+   0.6,
+   0.3
+  ]
+ },
+ "prints": {
+  "band_tops_front_back": [
+   [
+    482,
+    1164
+   ],
+   [
+    510,
+    1273
+   ]
+  ],
+  "face_window_px": [
+   406,
+   379
+  ],
+  "faces": [
+   "neutral",
+   "determined",
+   "shouting",
+   "shocked",
+   "cheering",
+   "dizzy",
+   "laughing",
+   "worried"
+  ],
+  "figure_face": "neutral",
+  "torso": true
+ },
+ "standards": {
+  "brick": 0.336,
+  "edge": 0.0105,
+  "figure_height": 1.68,
+  "gap": 0.0035,
+  "k_m_per_toy_mm": 0.035,
+  "ldu": 0.014000000000000002,
+  "pitch": 0.28,
+  "plate": 0.112,
+  "real_mm": {
+   "brick": 9.6,
+   "edge": 0.3,
+   "groove": 0.4,
+   "pitch": 8.0,
+   "plate": 3.2,
+   "play": 0.1,
+   "stud_d": 4.8,
+   "stud_edge": 0.2,
+   "stud_h": 1.7,
+   "wall": 1.2
+  },
+  "stud_d": 0.168,
+  "stud_h": 0.0595,
+  "wall": 0.042
+ },
+ "team": "engine-six"
+}

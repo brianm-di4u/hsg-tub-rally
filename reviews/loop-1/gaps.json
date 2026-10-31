@@ -1,0 +1,206 @@
+[
+  {
+    "id": "G-slide-effects-missing",
+    "category": "animation",
+    "expectedGain": 0.75,
+    "severity": 4,
+    "effort": "S",
+    "workstream": "WS3",
+    "evidence": [
+      "strips/high/R14",
+      "strips/low/R14",
+      "high/desktop/R17"
+    ],
+    "benchmark": "2k-drive/drive-3.jpg",
+    "fix": "Find why slide spray and stage steam never render (none in any of the 8 frames of either R14 strip; R17's HOT STEAM! shows one ~30 px puff): check that the emitters attach to the player tub's slide state on the capture path, aren't frustum- or size-culled, and aren't starved by the new per-tick emission. Then emit white spray puffs >= 20 px at 1280 behind each rear wheel while charging, steam that grows and changes tint with each charge stage, a release burst, and a +3 degree FOV kick decaying over 200 ms. Test: frames 3-8 of strips/high/R14 each show >= 6 particles >= 20 px near the rear wheels; R17 shows steam covering >= 60 px around the tub when the callout fires.",
+    "priority": 1.125,
+    "selected": true
+  },
+  {
+    "id": "G-phone-hud-layout",
+    "category": "mobile",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS6",
+    "evidence": [
+      "high/landscape/R03",
+      "high/landscape/R04",
+      "high/landscape/R17",
+      "high/mobile/R04"
+    ],
+    "fix": "In the short-screen layout, place the water-gauge panel >= 8 px below the timer's baseline; move the landscape minimap from bottom-centre to the right edge above the action buttons; draw the Steer control >= 48 CSS px tall. Test: in high/landscape R03/R04/R07/R08/R17 no two HUD boxes intersect and no HUD box intersects the player tub+crew screen box; Steer >= 48 CSS px tall in both phone orientations.",
+    "priority": 0.75,
+    "selected": true
+  },
+  {
+    "id": "G-subtitle-and-labels",
+    "category": "typography",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS6",
+    "evidence": [
+      "high/mobile/R01",
+      "high/desktop/R01",
+      "high/desktop/R04"
+    ],
+    "fix": "Remove the leftover offset text-shadow under the title subtitle (keep only the outline via paint-order: stroke fill), add text-wrap: balance, and raise the Towel/Bath/Soap/Loofah labels to >= 12 px at 1280. Test: the 16 device px below each subtitle line in high/mobile/R01 stay within 5 luminance of the background; the desktop subtitle breaks into two lines of similar length; label cap height >= 8 px in high/desktop/R04.",
+    "priority": 0.75,
+    "selected": true
+  },
+  {
+    "id": "G-tree-shadows",
+    "category": "lighting",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS5",
+    "evidence": [
+      "high/desktop/R12",
+      "high/desktop/R04"
+    ],
+    "benchmark": "worlds/worlds-1.jpg",
+    "fix": "Make tree cards shadow casters with an alpha-tested depth material (customDepthMaterial, alphaTest 0.5) on Medium/High, and a soft canopy-shaped shadow decal under each tree on Low. Test: in high/desktop/R12 the lawn on the shadow side of the large right-hand tree is >= 20% darker than open lawn.",
+    "priority": 0.75,
+    "selected": true
+  },
+  {
+    "id": "G-flat-faceted-surfaces",
+    "category": "materials",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R05",
+      "high/desktop/R16",
+      "high/desktop/R13",
+      "high/desktop/R06"
+    ],
+    "benchmark": "worlds/worlds-1.jpg",
+    "fix": "Apply the running-bond course pattern plus a bottom-to-top ambient gradient to every untextured wall (the Fordyce ground floor is one RGB value, the R16 booth is bare grey), and recompute smooth vertex normals on road and terrain meshes to remove the hard-edged wedges on the R13 asphalt and the fan arcs on the R05/R06 lawns. Test: every 50x50 px wall patch in R05, R13 and R16 has >= 20 distinct colours; no luminance step > 8 across a triangle edge on the R13 asphalt.",
+    "priority": 0.75,
+    "selected": true
+  },
+  {
+    "id": "G-figure-back-prints",
+    "category": "characters",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "S",
+    "workstream": "WS2",
+    "evidence": [
+      "crops/high/R03-player-rear",
+      "crops/high/R02-preview-rear",
+      "high/desktop/R04"
+    ],
+    "benchmark": "2k-drive/drive-4.jpg",
+    "fix": "Print the torso backs (crossed suspender straps and a team number or emblem in the team accent colour) using the same code-drawn print path as the fronts. Test: each torso back in crops/high/R03-player-rear shows >= 2 printed elements, and the player crew's backs in high/desktop/R04 show the team accent colour.",
+    "priority": 0.75,
+    "selected": true
+  },
+  {
+    "id": "G-ao-dusk-separation",
+    "category": "lighting",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS1",
+    "evidence": [
+      "high/desktop/R05",
+      "high/desktop/R13",
+      "high/desktop/R07",
+      "high/mobile/R07"
+    ],
+    "benchmark": "worlds/worlds-4.jpg",
+    "fix": "Add ambient occlusion on Medium/High (an SSAO/GTAO pass, or baked vertex AO at building bases, figure joints and the tub-chassis join) and a rim/fill term on figures for dusk and sunset palettes. No specular clamp is needed: the R17 floor peaks at 171/255. Test: building bases in R05 and R13 are >= 15% darker within 0.5 m of the ground than mid-wall; in high/desktop/R07 the player crew's mean luminance is >= 1.3x the road directly behind it.",
+    "priority": 0.375,
+    "selected": true
+  },
+  {
+    "id": "G-judge-stop",
+    "category": "readability",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS4",
+    "evidence": [
+      "high/desktop/R16",
+      "strips/high/R16"
+    ],
+    "fix": "Replace the bare grey booth and blank blue board with a brick-built judges' stand (bricks, tiles, a printed sign with the task icon) and place 1-2 original brick judges (crew parts, striped-shirt print, clipboard) who turn to the tub and give a check gesture when the bar fills; also lifts authenticity (judges). Test: high/desktop/R16 and every strips/high/R16 frame show at least one judge figure and a printed sign; the booth passes the 20-colour wall test.",
+    "priority": 0.375,
+    "selected": false
+  },
+  {
+    "id": "G-sprite-foliage-crowds",
+    "category": "scenery",
+    "expectedGain": 1,
+    "severity": 4,
+    "effort": "L",
+    "workstream": "WS5",
+    "evidence": [
+      "high/desktop/R08",
+      "high/desktop/R11",
+      "high/desktop/R10",
+      "high/desktop/R14",
+      "high/desktop/R07"
+    ],
+    "benchmark": "worlds/worlds-1.jpg",
+    "fix": "Big lever. Replace the painted tree cards with 3-4 instanced brick-built trees (round-brick trunks, stacked plate and slope canopies, 2 LODs) and the painted cartoon crowds with instanced brick spectators reusing the crew parts (2 LODs, wave and squirt-gun poses); also lifts materials. Interim on Low: never draw a sprite within 15 m of the camera. Test: no sprite texel magnified above 1:1 in R08, R10 or R11, and no painted human in R03, R04, R07, R13, R14, R16 or R17.",
+    "priority": 0.375,
+    "bigLever": true,
+    "selected": true
+  },
+  {
+    "id": "G-team-select-phone",
+    "category": "mobile",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS6",
+    "evidence": [
+      "high/mobile/R02",
+      "high/landscape/R02"
+    ],
+    "benchmark": "2k-drive/drive-2.jpg",
+    "fix": "Portrait: show the turning tub in the top 35% of the screen above a scrolling 3x4 team grid with the confirm button pinned. Landscape: split grid and preview 55/45. Test: the whole tub, captain and crew are visible together with the confirm button in both captures.",
+    "priority": 0.375,
+    "selected": false
+  },
+  {
+    "id": "G-tub-closeup-integrity",
+    "category": "characters",
+    "expectedGain": 0.5,
+    "severity": 3,
+    "effort": "M",
+    "workstream": "WS2",
+    "evidence": [
+      "crops/high/R02-preview-captain",
+      "crops/high/R03-kart_1",
+      "crops/high/R03-player"
+    ],
+    "benchmark": "2k-drive/drive-4.jpg",
+    "fix": "Rebuild the rim as one closed bevelled lathe ring with studs seated on its top normal, and add a push bar at hand height on both sides and the back of each tub, with pusher hands posed or IK'd onto it. Test: crops/high/R02-preview-captain shows a continuous lip with every stud touching it; in every R02-R04 crop each pusher's hand box intersects the bar or rim.",
+    "priority": 0.375,
+    "selected": false
+  },
+  {
+    "id": "G-hud-brick-theme",
+    "category": "ui",
+    "expectedGain": 0.5,
+    "severity": 2,
+    "effort": "M",
+    "workstream": "WS6",
+    "evidence": [
+      "high/desktop/R04",
+      "high/desktop/R18",
+      "high/desktop/R01"
+    ],
+    "benchmark": "2k-drive/drive-2.jpg",
+    "fix": "Restyle HUD panels and menus as bevelled plastic tiles (light top-edge highlight, dark bottom bevel, a stud row on headers) and buttons as 1x4 bricks; make Grand Prix visibly primary over the other seven menu buttons; keep the open-zero numerals. Test: R01, R02, R04 and R18 share the tile style, and Grand Prix is larger or differently coloured than Credits.",
+    "priority": 0.375,
+    "selected": false
+  }
+]

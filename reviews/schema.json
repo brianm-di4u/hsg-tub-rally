@@ -1,0 +1,58 @@
+{
+  "$comment": "Every critic, prosecutor, advocate and judge review ends with one fenced json block in this shape. Critics add `ab` from loop 1 on (A/B verdicts per category over the pairs in screenshots/<set>/ab/). The prosecutor's and advocate's scores are proposed corrections (at most ±1 from the critic mean per category); the judge's are final, before the tally's A/B rule.",
+  "type": "object",
+  "required": ["loop", "role", "tier", "scores", "gaps"],
+  "properties": {
+    "loop": { "type": "integer" },
+    "role": { "enum": ["critic-claude", "critic-codex", "prosecutor", "advocate", "judge"] },
+    "tier": { "enum": ["high", "medium", "low"] },
+    "scores": {
+      "type": "object",
+      "required": ["characters", "materials", "scenery", "lighting", "animation", "ui", "typography", "readability", "mobile", "authenticity"],
+      "additionalProperties": {
+        "type": "object",
+        "required": ["score", "evidence"],
+        "properties": {
+          "score": { "type": "number", "minimum": 1, "maximum": 10, "multipleOf": 0.5 },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "evidence": { "type": "array", "items": { "type": "object", "required": ["shot"], "properties": { "shot": { "type": "string" }, "note": { "type": "string" } } } }
+        }
+      }
+    },
+    "ab": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["winner"],
+        "properties": {
+          "winner": { "enum": ["A", "B", "tie"] },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "pairs": { "type": "array", "items": { "type": "string" } },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "ip": { "type": "object", "properties": { "clean": { "type": "boolean" }, "notes": { "type": "string" } } },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "category", "expectedGain", "severity", "effort", "workstream", "fix"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^G-[a-z0-9-]+$" },
+          "category": { "enum": ["characters", "materials", "scenery", "lighting", "animation", "ui", "typography", "readability", "mobile", "authenticity"] },
+          "expectedGain": { "type": "number" },
+          "severity": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "effort": { "enum": ["S", "M", "L"] },
+          "workstream": { "enum": ["WS1", "WS2", "WS3", "WS4", "WS5", "WS6", "WS7"] },
+          "evidence": { "type": "array", "items": { "type": "string" } },
+          "benchmark": { "type": "string" },
+          "fix": { "type": "string" }
+        }
+      }
+    },
+    "calibration": { "type": "object" },
+    "drift": { "type": "boolean" },
+    "verdict": { "enum": ["continue", "stop-pass"] }
+  }
+}

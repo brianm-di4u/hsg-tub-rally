@@ -22,7 +22,8 @@ export class ChaseCam {
     const portrait = opts.portrait ? 1 : 0;
     const dist = 6.3 + Math.min(1.5, v * 0.06) + (k.boostT > 0 ? 0.8 : 0) + portrait * 1.6;
     const height = 2.9 + Math.min(0.6, v * 0.02) + portrait * 1.6;
-    if (!this.init) { this.yaw = targetYaw; this.dist = dist; this.height = height; this.x = pose.x; this.y = pose.y; this.z = pose.z; this.init = true; }
+    const snapped = !this.init;
+    if (snapped) { this.yaw = targetYaw; this.dist = dist; this.height = height; this.x = pose.x; this.y = pose.y; this.z = pose.z; this.liftY = undefined; this.init = true; }
     this.yaw = dampAngle(this.yaw, targetYaw, opts.lookBack ? 30 : 5.5, dt);
     this.dist = damp(this.dist, dist, 3, dt);
     this.height = damp(this.height, height, 3, dt);
@@ -48,7 +49,7 @@ export class ChaseCam {
     const look = 6 + portrait * 2;
     this.cam.lookAt(this.x + fx * look, this.y + 0.9 - portrait * 1.6, this.z + fz * look);
     const fovT = (opts.baseFov || 62) + (k.boostT > 0 && !opts.reducedMotion ? 7 : 0) + Math.min(6, v * 0.18);
-    this.fovKick = damp(this.fovKick, fovT, 4, dt);
+    this.fovKick = snapped ? fovT : damp(this.fovKick, fovT, 4, dt);
     if (Math.abs(this.cam.fov - this.fovKick) > 0.05) { this.cam.fov = this.fovKick; this.cam.updateProjectionMatrix(); }
   }
 }

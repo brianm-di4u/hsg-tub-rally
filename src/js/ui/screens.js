@@ -18,13 +18,14 @@ export class Screens {
     const html = TEMPLATES[name] ? TEMPLATES[name](this.app, data) : '';
     this.root.innerHTML = html;
     this.root.className = 'screens ' + (html ? 'on scr-' + name : '');
+    document.body.dataset.screen = name;
     this.root.querySelectorAll('canvas[data-pixel]').forEach((c) => pixelText(c.dataset.pixel, { scale: +c.dataset.scale || 6, canvas: c, fill: (c.dataset.fill || '#FFF6C8,#F2A541').split(',') }));
     this.root.querySelectorAll('[data-act]').forEach((b) => b.addEventListener('click', () => this.app.onMenu(b.dataset.act, b.dataset)));
     const first = this.root.querySelector('[autofocus], button');
     if (first) first.focus({ preventScroll: true });
     this.trans = 0.25;
   }
-  hide() { this.cur = null; this.root.innerHTML = ''; this.root.className = 'screens'; }
+  hide() { this.cur = null; this.root.innerHTML = ''; this.root.className = 'screens'; delete document.body.dataset.screen; }
   // arrow-key / d-pad focus movement across visible buttons
   nav(m) {
     if (!this.cur) return false;
@@ -68,7 +69,7 @@ const TEMPLATES = {
   results: (app, { results, laps, trackName, gp, newRecord, mode }) => `
     <div class="panel results" role="dialog" aria-label="Race results">
       <canvas data-pixel="RESULTS" data-scale="6"></canvas>
-      <p class="sub">${mode === 'battle' ? `${trackName} · Water Fight: last tub with water wins` : `${trackName || ''} · ${laps} laps`}${newRecord ? ' · <b class="clean">NEW RECORD</b>' : ''}</p>
+      <p class="sub">${mode === 'battle' ? `${trackName} · Water Fight: last tub with water wins` : `${trackName || ''} · ${laps} ${laps === 1 ? 'lap' : 'laps'}`}${newRecord ? ' · <b class="clean">NEW RECORD</b>' : ''}</p>
       <table class="rtable"><thead><tr><th>#</th><th>Team</th><th>Time</th><th>Water</th><th>Pts</th></tr></thead><tbody>
       ${(results || []).map((r) => `<tr class="${r.human ? 'me' : ''}"><td>${r.place}</td><td><span class="sw" style="background:${TEAM_BY_ID[r.team].colors.tub}"></span>${TEAM_BY_ID[r.team].name}${r.human ? ' (you)' : ''}</td><td>${r.estimated ? '~' : ''}${fmtTime(r.time)}</td><td>${r.gal.toFixed(0)} gal${r.clean ? ' <b class="clean" title="Clean Finish: 10+ gallons and all four items">CLEAN</b>' : ''}</td><td>${r.points}</td></tr>`).join('')}
       </tbody></table>
@@ -211,7 +212,7 @@ const TEMPLATES = {
     return `
     <div class="panel settings" role="dialog" aria-label="Settings">
       <canvas data-pixel="SETTINGS" data-scale="5"></canvas>
-      <div class="set-row"><span>Picture</span>${opt('res', 'authentic', 'Authentic 240p', s.res)}${opt('res', 'crisp', 'Crisp 480p', s.res)}${opt('res', 'native', 'Native', s.res)}</div>
+      <div class="set-row"><span>Picture</span>${opt('res', 'native', 'Sharp', s.res)}${opt('res', 'crisp', '480p', s.res)}${opt('res', 'authentic', 'Retro 240p', s.res)}</div>
       <div class="set-row"><span>Detail</span>${opt('quality', 'auto', 'Auto', s.quality)}${opt('quality', 'low', 'Low', s.quality)}${opt('quality', 'medium', 'Medium', s.quality)}${opt('quality', 'high', 'High', s.quality)}</div>
       <div class="set-row"><span>Auto-push</span>${opt('autoPush', 'true', 'On', String(s.autoPush))}${opt('autoPush', 'false', 'Off', String(s.autoPush))}</div>
       <div class="set-row"><span>Sound</span>${opt('sound', 'true', 'On', String(s.sound))}${opt('sound', 'false', 'Off', String(s.sound))}</div>

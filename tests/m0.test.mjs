@@ -13,7 +13,12 @@ export const tests = [
       const s = await t.state();
       t.equal(s.scene, 'title', 'title scene');
       t.equal(s.screen, 'title', 'title menu shown');
-      t.expect(s.render.h === 240 || s.render.w === 240, `authentic mode renders 240 lines (got ${s.render.w}x${s.render.h})`);
+      t.equal(s.render.mode, 'native', 'the brick look renders at native resolution by default');
+      t.expect(Math.min(s.render.w, s.render.h) > 240, `native resolution (got ${s.render.w}x${s.render.h})`);
+      await t.game('setState', { res: 'authentic' });
+      const r = (await t.state()).render;
+      t.expect(r.h === 240 || r.w === 240, `the Retro setting renders 240 lines (got ${r.w}x${r.h})`);
+      await t.game('setState', { res: 'native' });
       await t.shot('m0-title');
       await t.checkLayout();
       t.log('load ms', t.loadMs);
@@ -37,7 +42,8 @@ export const tests = [
       await t.shot('m0-graybox');
       s = await t.state();
       t.log('render', JSON.stringify(s.render), 'world', JSON.stringify(s.world));
-      t.expect(s.render.draws <= 120, `draw calls within budget (${s.render.draws})`);
+      const budget = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools', 'perf-budgets.json'), 'utf8')).tiers[s.render.builtTier || s.render.tier].draws; // reviews/PERF.md
+      t.expect(s.render.draws <= budget, `draw calls within budget (${s.render.draws} ≤ ${budget}, ${s.render.tier})`);
       // a power slide into the hairpin region for a mid-action frame
       await t.game('act', 'teleport', 400, 0);
       await t.game('act', 'input', { steer: 0, push: 1, brake: false, hop: false });

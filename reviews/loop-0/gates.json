@@ -1,0 +1,5 @@
+{
+  "perf": { "pass": true, "note": "baseline measured on all proxies (perf.json); per-tier budgets are set in the loop-1 perf study" },
+  "fidelity": null,
+  "ip": { "pass": true, "note": "box-head figures; no minifigure shapes, no LEGO name or logo" }
+}

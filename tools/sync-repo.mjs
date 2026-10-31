@@ -16,7 +16,7 @@ const DRY = process.argv.includes('--dry');
 // patterns mirror .gitignore (kept simple: directory names, path prefixes and suffixes)
 const SKIP_DIRS = new Set(['node_modules', '.git', 'screenshots', 'reference-samples', 'benchmarks', 'renders', '.tmp']);
 const SKIP_PREFIX = ['art-src/geo/raw', 'art-src/dem', 'tools/out', 'shared/test-harness/smoke/screenshots'];
-const skipFile = (rel) => (rel.startsWith('art-src/') && rel.endsWith('.png')) || rel.endsWith('.blend1') || rel.endsWith('.log') || /(^|\/)(Thumbs\.db|\.DS_Store)$/.test(rel);
+const skipFile = (rel) => ((rel.startsWith('art-src/') || rel.startsWith('reviews/')) && rel.endsWith('.png')) || rel.endsWith('.blend1') || rel.endsWith('.log') || /(^|\/)(Thumbs\.db|\.DS_Store)$/.test(rel);
 
 function walk(dir, base = '') {
   const out = [];

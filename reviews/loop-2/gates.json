@@ -1,0 +1,12 @@
+{
+  "perf": {
+    "pass": true,
+    "checked": 52,
+    "failed": []
+  },
+  "fidelity": null,
+  "ip": {
+    "pass": true,
+    "note": "developer check: crew shapes unchanged from loop 1 (rounded-cube heads, box torsos, mitten hands); new brick spectators and judges use the same box parts; no LEGO name or logo in source, UI or captures; critics re-check"
+  }
+}
