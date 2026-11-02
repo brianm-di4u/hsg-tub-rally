@@ -1,5 +1,5 @@
 // OSM road graph and routing for the track tools. Graph build, oneway handling, routing profiles and Dijkstra are
-// adapted from tools/geo/survey.mjs (this repo). Data: art-src/geo/raw/osm-roads.json
+// adapted from tools/geo/survey.mjs (this repo). Data: osm-roads.json in geo-lib's RAW
 // (© OpenStreetMap contributors, ODbL 1.0; see research/geo/SOURCES.md).
 import fs from 'node:fs';
 import path from 'node:path';

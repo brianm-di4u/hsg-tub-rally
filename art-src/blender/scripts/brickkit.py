@@ -54,7 +54,7 @@ sys.dont_write_bytecode = True               # no __pycache__ next to the script
 from common import (hexc, lin, srgb, mix, shade, reset, save_blend, export_glb,  # noqa: E402,F401
                     descendants, ROOT, EXPORT_DIR, RENDER_DIR)
 
-GAME = os.path.dirname(os.path.dirname(ROOT))            # games/Cart Racing
+GAME = os.path.dirname(os.path.dirname(ROOT))            # the repo root
 
 # ---------------------------------------------------------------- standards
 REAL_MM = {'pitch': 8.0, 'brick': 9.6, 'plate': 3.2, 'stud_d': 4.8, 'stud_h': 1.7,

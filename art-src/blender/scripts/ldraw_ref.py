@@ -1,7 +1,7 @@
 """A small LDraw .dat reader and Cycles renders of generic parts: the plastic/bevel quality ceiling.
 
 Reference only: nothing read here ships, and no LDraw geometry is copied into game assets. The parts
-library (reference-samples/ldraw, CC BY 4.0 per file; see reference-samples/MANIFEST.md) is read as
+library (the workspace's reference/models/ldraw, CC BY 4.0 per file; see reference/models/MANIFEST.md) is read as
 data, never executed. No third-party add-on is used.
 
 Reader
@@ -18,7 +18,7 @@ Reader
 
 Run from the game folder:
   blender -b --factory-startup --python art-src/blender/scripts/ldraw_ref.py -- \
-      --lib reference-samples/ldraw/extracted/ldraw [--samples 256]
+      [--lib <path to the LDraw library>] [--samples 256]   (default: ../../reference/models/ldraw)
 Writes art-src/blender/renders/goldmaster/ldraw_*.png and ldraw_parts.json (licence lines per part).
 """
 import bpy
@@ -43,7 +43,7 @@ def arg(name, default=None):
     return ARGV[ARGV.index(name) + 1] if name in ARGV else default
 
 
-LIB = os.path.abspath(os.path.join(GAME, arg('--lib', 'reference-samples/ldraw/extracted/ldraw')))
+LIB = os.path.abspath(os.path.join(GAME, arg('--lib', '../../reference/models/ldraw')))
 SAMPLES = int(arg('--samples', '256'))
 OUT = os.path.join(RENDER_DIR, 'goldmaster')
 TO_BLENDER = Matrix(((1, 0, 0, 0), (0, 0, 1, 0), (0, -1, 0, 0), (0, 0, 0, 1))) @ Matrix.Scale(LDU, 4)

@@ -14,7 +14,15 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-export const RAW = path.join(ROOT, 'art-src', 'geo', 'raw');
+// Raw geodata (git-ignored, refetched by tools/geo/fetch.mjs). In the Hot Springs Games workspace it is shared:
+// reference/geo/city/ holds the OSM and GNIS downloads, reference/geo/elevation/ the 3DEP DEM tiles the trivia board
+// also uses. A checkout outside the workspace keeps both in art-src/geo/raw/. HSG_GEO_DIR overrides reference/geo.
+const GEO = process.env.HSG_GEO_DIR || path.resolve(ROOT, '..', '..', 'reference', 'geo');
+const SHARED = fs.existsSync(GEO);
+export const RAW = SHARED ? path.join(GEO, 'city') : path.join(ROOT, 'art-src', 'geo', 'raw');
+export const DEM_DIR = SHARED ? path.join(GEO, 'elevation') : RAW;
+/** Where a raw file lives: DEM tiles (.tif) in DEM_DIR, everything else in RAW. */
+export const rawPath = (file) => path.join(/\.tif$/i.test(file) ? DEM_DIR : RAW, file);
 
 // ---------------------------------------------------------------------------------------------------------------
 // TIFF
@@ -131,7 +139,7 @@ export function lineLength(pts) {
 /**
  * new Dem([{ file, bbox? }]) where bbox = {west,south,east,north} or [west,south,east,north].
  * The GeoTIFF extent inside the file wins over a supplied bbox (the 3DEP service silently widens the requested
- * extent to keep pixels square in degrees: games/trivia's dem-downtown.tif asked for 34.495-34.535 but holds
+ * extent to keep pixels square in degrees: the trivia DEM dem-downtown.tif asked for 34.495-34.535 but holds
  * 34.4909-34.5391). Tiles are tried finest-first; a tile is used when the point and its 2x2 bilinear
  * neighbourhood are inside it and finite.
  */
@@ -139,7 +147,7 @@ export class Dem {
   constructor(specs) {
     this.tiles = [];
     for (const s of specs) {
-      const file = path.isAbsolute(s.file) ? s.file : path.join(RAW, s.file);
+      const file = path.isAbsolute(s.file) ? s.file : rawPath(s.file);
       if (!fs.existsSync(file)) { if (s.optional) continue; throw new Error('missing DEM ' + file); }
       const t = readTiff(fs.readFileSync(file));
       let bb = t.bbox;

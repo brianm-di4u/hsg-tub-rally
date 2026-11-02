@@ -12,7 +12,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const GAME = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const REL = 'games/Cart Racing';
+// Benchmark screenshots (git-ignored): the workspace's shared reference/benchmarks/racing/, else benchmarks/ here.
+const BENCH = [path.resolve(GAME, '..', '..', 'reference', 'benchmarks', 'racing'), BENCH].find((d) => fs.existsSync(d)) || BENCH;
+const REL = 'repos/hsg-tub-rally';
 const args = process.argv.slice(2);
 const N = +args.find((a) => /^\d+$/.test(a));
 if (!(N >= 0)) { console.error('usage: review-prep.mjs <N> [--tier=high] [--shots=review-loop-N]'); process.exit(2); }
@@ -62,10 +64,10 @@ fs.writeFileSync(path.join(loopDir, 'brief-advocate.md'), fill(read(path.join(br
 fs.writeFileSync(path.join(loopDir, 'brief-prosecutor.md'), fill(read(path.join(briefs, 'prosecutor.md'))));
 let drift = '';
 if (N > 0 && N % 3 === 0) {
-  const bench = fs.existsSync(path.join(GAME, 'benchmarks')) ? fs.readdirSync(path.join(GAME, 'benchmarks')).filter((f) => /^calib-.*\.jpe?g$/.test(f)).sort() : [];
+  const bench = fs.existsSync(BENCH) ? fs.readdirSync(BENCH).filter((f) => /^calib-.*\.jpe?g$/.test(f)).sort() : [];
   if (bench.length) {
     const pick = bench[(N / 3 - 1) % bench.length];
-    fs.copyFileSync(path.join(GAME, 'benchmarks', pick), path.join(loopDir, 'calibration.jpg'));
+    fs.copyFileSync(path.join(BENCH, pick), path.join(loopDir, 'calibration.jpg'));
     fs.writeFileSync(path.join(loopDir, '.calibration'), pick + '\n');
     drift = `- **Calibration:** also open \`${REL}/reviews/loop-${N}/calibration.jpg\`, an unlabeled reference frame. Score its \`materials\` and \`lighting\` on the rubric anchors alone, and add \`"calibration": {"materials": x, "lighting": y}\` to your JSON block.`;
   }

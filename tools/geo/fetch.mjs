@@ -1,7 +1,8 @@
-// Downloads the raw real-geography data for Tub Rally into art-src/geo/raw/ (git-ignored, refetchable).
+// Downloads the raw real-geography data for Tub Rally (git-ignored, refetchable) into RAW and DEM_DIR: the
+// workspace's reference/geo/city/ and reference/geo/elevation/, or art-src/geo/raw/ outside the workspace (geo-lib.mjs).
 //
 //   node tools/geo/fetch.mjs                 fetch whatever is missing
-//   node tools/geo/fetch.mjs --force         refetch everything (the copied trivia DEMs are re-copied)
+//   node tools/geo/fetch.mjs --force         refetch everything (outside the workspace the trivia DEMs are re-copied)
 //   node tools/geo/fetch.mjs --only=osm,dem  limit to some steps: osm, dem, copy, gnis
 //
 // Sources (see research/geo/SOURCES.md for licences, dates and gotchas):
@@ -11,25 +12,27 @@
 //     https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer
 //     (request pattern copied from repos/hsg-theme-park/tools/geo/fetch.mjs)
 //   USGS GNIS (Geographic Names) landform and hydrographic points, carto.nationalmap.gov geonames MapServer (public domain)
-//   Copies of games/trivia/art-src/geo/raw/dem-downtown.tif and dem-region.tif (same 3DEP service, fetched 2026-10-28)
+//   dem-downtown.tif and dem-region.tif, fetched 2026-10-28 by hsg-trivia (same 3DEP service): shared in the workspace's
+//   reference/geo/elevation/, copied from ../hsg-trivia/art-src/geo/raw/ outside it
 //
 // Be a good API citizen: one request at a time, a descriptive User-Agent, backoff on 429/504, then the mirror.
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { RAW, ROOT, readTiff, M_PER_DEG_LAT, M_PER_DEG_LON } from './geo-lib.mjs';
+import { RAW, DEM_DIR, ROOT, rawPath, readTiff, M_PER_DEG_LAT, M_PER_DEG_LON } from './geo-lib.mjs';
 
 const UA = 'HotSpringsGames-TubRally/0.1 (open-source game; contact via github.com/brianm-di4u)';
 const OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
 const DEM_SERVICE = 'https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer/exportImage';
 const GNIS_SERVICE = 'https://carto.nationalmap.gov/arcgis/rest/services/geonames/MapServer';
-const TRIVIA_RAW = path.resolve(ROOT, '..', 'trivia', 'art-src', 'geo', 'raw');
+const TRIVIA_RAW = path.resolve(ROOT, '..', 'hsg-trivia', 'art-src', 'geo', 'raw');
 
 const args = process.argv.slice(2);
 const FORCE = args.includes('--force');
 const ONLY = (args.find((a) => a.startsWith('--only=')) || '').slice(7).split(',').filter(Boolean);
 const want = (step) => !ONLY.length || ONLY.includes(step);
 fs.mkdirSync(RAW, { recursive: true });
+fs.mkdirSync(DEM_DIR, { recursive: true });
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const kb = (n) => (n / 1024).toFixed(0) + ' KB';
@@ -37,12 +40,12 @@ const sha256 = (buf) => crypto.createHash('sha256').update(buf).digest('hex');
 const MANIFEST = path.join(RAW, 'manifest.json');
 const manifest = fs.existsSync(MANIFEST) ? JSON.parse(fs.readFileSync(MANIFEST, 'utf8')) : {};
 function record(file, info) {
-  const buf = fs.readFileSync(path.join(RAW, file));
+  const buf = fs.readFileSync(rawPath(file));
   manifest[file] = { bytes: buf.length, sha256: sha256(buf), fetched: new Date().toISOString(), ...info };
   fs.writeFileSync(MANIFEST, JSON.stringify(manifest, null, 2) + '\n');
 }
 function skip(file) {
-  if (!FORCE && fs.existsSync(path.join(RAW, file))) { console.log('skip', file, '(exists; --force to refetch)'); return true; }
+  if (!FORCE && fs.existsSync(rawPath(file))) { console.log('skip', file, '(exists; --force to refetch)'); return true; }
   return false;
 }
 
@@ -186,7 +189,7 @@ async function fetchDem() {
     const buf = await getBinary(url);
     const t = readTiff(buf); // throws on a bad/compressed/HTML reply
     if (t.w !== W || t.h !== H) console.warn(`  size mismatch: asked ${W}x${H}, got ${t.w}x${t.h}`);
-    fs.writeFileSync(path.join(RAW, file), buf);
+    fs.writeFileSync(rawPath(file), buf);
     const info = demInfo(t);
     console.log('  got', file, kb(buf.length), JSON.stringify(info));
     record(file, { source: url, requestedBbox: bb, ...info, license: 'USGS 3DEP, public domain' });
@@ -195,15 +198,17 @@ async function fetchDem() {
 }
 
 function copyTrivia() {
+  // In the workspace the trivia DEMs already sit in the shared reference/geo/elevation/.
+  if (DEM_DIR !== RAW) { console.log('skip copy: the trivia DEMs are shared in', DEM_DIR); return; }
   for (const file of ['dem-downtown.tif', 'dem-region.tif']) {
     if (skip(file)) continue;
     const src = path.join(TRIVIA_RAW, file);
     if (!fs.existsSync(src)) { console.warn('  missing source', src, '(the trivia game must fetch it first)'); continue; }
-    fs.copyFileSync(src, path.join(RAW, file));
-    const t = readTiff(fs.readFileSync(path.join(RAW, file)));
+    fs.copyFileSync(src, rawPath(file));
+    const t = readTiff(fs.readFileSync(rawPath(file)));
     const info = demInfo(t);
     console.log('copied', file, kb(fs.statSync(src).size), JSON.stringify(info));
-    record(file, { source: 'copy of ' + path.relative(ROOT, src).replace(/\\/g, '/') + ' (USGS 3DEP exportImage, fetched 2026-10-28 by games/trivia)', ...info, license: 'USGS 3DEP, public domain' });
+    record(file, { source: 'copy of ' + path.relative(ROOT, src).replace(/\\/g, '/') + ' (USGS 3DEP exportImage, fetched 2026-10-28 by hsg-trivia)', ...info, license: 'USGS 3DEP, public domain' });
   }
 }
 
