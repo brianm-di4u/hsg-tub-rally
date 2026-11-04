@@ -103,7 +103,10 @@ async function boot() {
 }
 
 function onKey(e) {
-  if (App.scene === 'race' && (e.code === 'Escape' || e.code === 'KeyP') && !e.repeat) { togglePause(); return true; }
+  if (App.scene === 'race' && (e.code === 'Escape' || e.code === 'KeyP')) {
+    if (!e.repeat) togglePause();
+    return true;
+  }
   return false;
 }
 

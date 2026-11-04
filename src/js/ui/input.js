@@ -38,13 +38,13 @@ function recompute() {
 export function initInput(onKey) {
   window.addEventListener('keydown', (e) => {
     I.last = 'keyboard';
+    if (onKey && onKey(e) === true) { e.preventDefault(); return; }
     const m = I.menu;
     if (e.code === 'ArrowUp' || e.code === 'KeyW') m.up = true;
     if (e.code === 'ArrowDown' || e.code === 'KeyS') m.down = true;
     if (e.code === 'ArrowLeft' || e.code === 'KeyA') m.left = true;
     if (e.code === 'ArrowRight' || e.code === 'KeyD') m.right = true;
     if (e.code === 'Escape' || e.code === 'Backspace') m.cancel = true;
-    if (onKey && onKey(e) === true) { e.preventDefault(); return; }
     const a = map[e.code];
     if (!a || !enabled) return;
     e.preventDefault();
