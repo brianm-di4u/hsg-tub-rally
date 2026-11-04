@@ -37,7 +37,7 @@ export class Screens {
     else if (m.ok && i >= 0) { btns[i].click(); return true; }
     else if (m.cancel) { const back = this.root.querySelector('[data-back]'); if (back) back.click(); return true; }
     else return false;
-    btns[Math.max(0, i)].focus({ preventScroll: true });
+    btns[Math.max(0, i)].focus();
     return true;
   }
 }
