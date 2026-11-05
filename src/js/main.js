@@ -288,6 +288,33 @@ function builtCourses() {
 }
 
 // Menu flow: mode → team → class → cup/course → race. App.flow remembers the choices on the way.
+// Adopt preferences from the same fresh merge that will be stored. Quality keeps
+// its existing boot/reload semantics; do not rebuild the active race or tier here.
+function persistSave(intent) {
+  const result = writeSave(App.save, intent), s = App.save.settings;
+  if (App.renderer && App.renderer.mode !== s.res) App.renderer.setMode(s.res);
+  INPUT.autoPush = !!s.autoPush;
+  const mq = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+  App.reducedMotion = s.reducedMotion ?? !!(mq && mq.matches);
+  setAudio(s);
+  App.saveError = result.stored ? '' : 'Changes kept in this tab, but not saved. Storage is unavailable or the saved data could not be read.';
+  if (App.saveError) App.hud.flash('Changes not saved · kept in this tab', 'bad', 3);
+  else {
+    App.screens.root.querySelector('[data-save-status]')?.remove();
+    // Retire only our own stale warning; leave later lap/boost callouts intact.
+    if (App.hud.el.call.textContent === 'Changes not saved · kept in this tab') App.hud.flash('Changes saved', '', 1.4);
+  }
+  return result;
+}
+
+function showSaveStatus() {
+  if (!App.saveError || !App.screens.cur || App.screens.root.querySelector('[data-save-status]')) return;
+  const p = document.createElement('p');
+  p.className = 'sub'; p.dataset.saveStatus = ''; p.setAttribute('role', 'status');
+  p.textContent = App.saveError;
+  (App.screens.root.querySelector('.panel, .title-wrap') || App.screens.root).appendChild(p);
+}
+
 function onMenu(act, data) {
   const s = App.save;
   const F = App.flow || (App.flow = {});
@@ -319,7 +346,7 @@ function onMenu(act, data) {
       break;
     case 'team': showTeams(data.id); break;
     case 'teamOk':
-      s.lastTeam = F.team; writeSave(s);
+      persistSave({ lastTeam: F.team });
       if (F.mode === 'battle') { setPreview(null); startRace({ mode: 'battle', track: 'hill-wheatley', team: F.team, classId: F.classId }); break; }
       if (F.mode === 'row') {
         App.row = { bracket: makeBracket(TEAMS.find((t) => t.id === F.team).div, F.team, makeRng((Math.random() * 1e9) | 0)), heats: [] };
@@ -330,7 +357,7 @@ function onMenu(act, data) {
       else App.screens.show('classes');
       break;
     case 'cls':
-      F.classId = data.id; s.lastClass = data.id; writeSave(s);
+      F.classId = data.id; persistSave({ lastClass: data.id });
       if (F.mode === 'gp') App.screens.show('cups', { built: builtCourses().map((c) => c.id) });
       else App.screens.show('courses', { list: builtCourses() });
       break;
@@ -368,12 +395,7 @@ function onMenu(act, data) {
     case 'set': {
       let v = data.v;
       if (v === 'true') v = true; else if (v === 'false') v = false;
-      s.settings[data.k] = v;
-      if (data.k === 'res') App.renderer.setMode(v);
-      if (data.k === 'autoPush') INPUT.autoPush = v;
-      if (data.k === 'reducedMotion') App.reducedMotion = v;
-      if (data.k === 'sound' || data.k === 'music') setAudio(s.settings);
-      writeSave(s);
+      persistSave({ settings: { [data.k]: v } });
       App.screens.show('settings');
       break;
     }
@@ -457,16 +479,10 @@ function showStandings() {
   App.screens.show('standings', { rows: gpRows(), round: g.round + 1, rounds: g.tracks.length, cupName: g.name, final });
 }
 function showTrophy() {
-  const g = App.gp, rows = gpRows(), place = rows.findIndex((r) => r.human) + 1, s = App.save;
-  const key = g.cup + ':' + App.raceOpts.classId;
-  if (!s.cups[key] || place < s.cups[key]) s.cups[key] = place;
-  let unlockedTeam = null;
-  if (place === 1) {
-    const locked = TEAMS.filter((t) => !t.unlocked && !s.unlocked.teams.includes(t.id));
-    if (locked.length) { unlockedTeam = locked[0].id; s.unlocked.teams.push(unlockedTeam); }
-    if (App.raceOpts.classId === 'soak' && !s.unlocked.classes.includes('scald')) s.unlocked.classes.push('scald');
-  }
-  writeSave(s);
+  const g = App.gp, rows = gpRows(), place = rows.findIndex((r) => r.human) + 1;
+  const saved = persistSave({ cup: { token: g, key: g.cup + ':' + App.raceOpts.classId, place,
+    soak: App.raceOpts.classId === 'soak', teamOrder: TEAMS.filter((t) => !t.unlocked).map((t) => t.id) } });
+  const unlockedTeam = saved.unlockedTeam;
   App.screens.show('trophy', { place, cupName: g.name, unlockedTeam });
   App.gp = null;
 }
@@ -525,18 +541,16 @@ function stepOnce() {
   if (me && me.water.gal > 1) App._dryShown = false;
   if (r.phase === 'done' && !App._resultsShown) {
     App._resultsShown = true;
-    const st = App.save.stats; st.races++; if (r.results[0] && r.results[0].human) st.wins++;
     const me = r.player >= 0 ? r.karts[r.player] : null;
+    let record = null;
     if (me && me.finished && r.mode !== 'row' && r.mode !== 'battle') {
-      const tid = App.track.id, best = App.save.best[tid];
       const lap = me.lapTimes.length ? Math.min(...me.lapTimes.slice(1).concat(me.lapTimes.length === 1 ? me.lapTimes : [])) : null;
-      if (!best || me.finishT < best.race) {
-        App.save.best[tid] = { race: +me.finishT.toFixed(3), lap: lap ? +lap.toFixed(3) : null, team: me.team, cls: r.classId };
-        if (App.rec && App.rec.t.length > 10) App.save.ghosts[tid] = packGhost(App.rec, { team: me.team, total: +me.finishT.toFixed(3) });
-        App.newRecord = !!best || r.mode === 'timetrial';
-      }
+      record = { track: App.track.id, finishT: me.finishT,
+        value: { race: +me.finishT.toFixed(3), lap: lap ? +lap.toFixed(3) : null, team: me.team, cls: r.classId },
+        ghost: App.rec && App.rec.t.length > 10 ? packGhost(App.rec, { team: me.team, total: +me.finishT.toFixed(3) }) : null };
     }
-    writeSave(App.save);
+    const saved = persistSave({ race: { token: r, won: !!(r.results[0] && r.results[0].human), record } });
+    App.newRecord = !!saved.recordAccepted && (saved.hadBest || r.mode === 'timetrial');
     if (r.mode === 'gp') recordGp(r);
     if (r.mode === 'row') { setTimeout(() => { if (App.race === r) onHeatDone(r); }, window.__TEST__ ? 0 : 1200); return; }
     setTimeout(() => { if (App.race === r) App.screens.show('results', { results: r.results, laps: r.laps, trackName: App.track.name, gp: r.mode === 'gp', newRecord: App.newRecord, mode: r.mode }); }, window.__TEST__ ? 0 : 1500);
@@ -558,6 +572,7 @@ function frame(t) {
   const m = consumeMenu();
   if (consumePause() && App.scene === 'race') togglePause();
   if (App.screens.cur) App.screens.nav(m);
+  showSaveStatus();
   const r = App.race;
   if (App.scene === 'race' && r) {
     if (!App.paused && !App.testPaused) {
