@@ -9,7 +9,12 @@ const state = { on: true, music: true, vol: 0.6, started: false, theme: null, st
 
 export function initAudio(settings) {
   state.on = settings.sound !== false; state.music = settings.music !== false; state.vol = settings.volume ?? 0.6;
-  const start = () => { if (!state.started) unlock(); };
+  const start = () => {
+    if (!state.started) unlock();
+    // iPad Safari can suspend an existing context while backgrounded. Resume it
+    // inside the next user gesture instead of leaving a started game silent.
+    if (ctx && ctx.state !== 'running') ctx.resume().catch(() => {});
+  };
   window.addEventListener('keydown', start, { once: false });
   window.addEventListener('pointerdown', start, { once: false });
 }

@@ -91,6 +91,7 @@ async function boot() {
   initAudio(App.save.settings);
   App.audioState = audioState;
   initTouch($('#touch-steer'), { push: $('#t-push'), brake: $('#t-brake'), hop: $('#t-hop'), item: $('#t-item') });
+  $('#t-pause').addEventListener('click', () => togglePause(true));
   window.addEventListener('resize', () => App.renderer.resize());
   installHooks(App, { startRace, gotoTitle, setScene, stepOnce, kartEvents, onMenu, perfLab, labStats: () => labStats(window.THREE) });
   // the title screen sits over a slow flyover of the first course

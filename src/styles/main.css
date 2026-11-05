@@ -46,8 +46,10 @@ canvas[data-pixel], .hud canvas { image-rendering: pixelated; }
 .hud-call.lap { color: #FFF6C8; background: rgba(30,78,121,0.85); }
 
 /* ---------- touch controls (only on coarse pointers, only while racing) ---------- */
-.touch { display: none; }
+.touch, .t-pause { display: none; }
 @media (pointer: coarse) {
+  body.racing .t-pause { display: block; position: fixed; right: max(12px, env(safe-area-inset-right)); top: calc(max(12px, env(safe-area-inset-top)) + 86px); z-index: 6; min-width: 76px; min-height: 44px; padding: 8px 12px; border: 3px solid var(--ink); border-radius: 12px; color: #fff; background: rgba(30,78,121,0.9); font: 800 15px var(--font-ui); touch-action: manipulation; }
+  body[data-screen] .t-pause { display: none; }
   body.racing .touch { display: block; position: fixed; inset: 0; z-index: 4; pointer-events: none; }
   .t-steer { position: absolute; left: 0; top: 30%; bottom: 0; width: 50%; pointer-events: auto; touch-action: none; }
   .t-steer em { position: absolute; left: 50%; bottom: 190px; transform: translateX(-50%); font: 700 12px var(--font-ui); color: rgba(255,255,255,0.55); font-style: normal; }
@@ -114,6 +116,7 @@ kbd { display: inline-block; padding: 0 5px; border: 2px solid var(--ink); borde
   .hud-call { font-size: 20px; }
 }
 @media (pointer: coarse) and (max-aspect-ratio: 4/5) {
+  body.racing .t-pause { top: calc(max(12px, env(safe-area-inset-top)) + 160px); }
   .t-btns { bottom: 16px; right: 10px; }
   .t-steer em, .t-steer-knob { bottom: 150px; }
   .t-steer em { bottom: 130px; }
