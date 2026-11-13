@@ -74,7 +74,7 @@ const TEMPLATES = {
       <table class="rtable"><thead><tr><th>#</th><th>Team</th><th>Time</th><th>Water</th><th>Pts</th></tr></thead><tbody>
       ${(results || []).map((r) => `<tr class="${r.human ? 'me' : ''}"><td>${r.place}</td><td><span class="sw" style="background:${TEAM_BY_ID[r.team].colors.tub}"></span>${TEAM_BY_ID[r.team].name}${r.human ? ' (you)' : ''}</td><td>${r.estimated ? '~' : ''}${fmtTime(r.time)}</td><td>${r.gal.toFixed(0)} gal${r.clean ? ' <b class="clean" title="Clean Finish: 10+ gallons and all four items">CLEAN</b>' : ''}</td><td>${r.points}</td></tr>`).join('')}
       </tbody></table>
-      <nav class="menu row">${gp ? btn('standingsGo', 'Standings', 'autofocus') : btn('restart', mode === 'timetrial' ? 'Try again' : 'Race again', 'autofocus')}${btn('quit', gp ? 'Quit cup' : 'Title', 'data-back')}</nav>
+      <nav class="menu row">${gp ? btn('standingsGo', 'Standings', 'autofocus') : btn('restart', mode === 'timetrial' ? 'Try again' : 'Race again', 'autofocus')}${gp ? btn('quitCup', 'Quit cup') : btn('quit', 'Title', 'data-back')}</nav>
     </div>`,
   help: () => `
     <div class="panel help" role="dialog" aria-label="How to play">
@@ -142,7 +142,7 @@ const TEMPLATES = {
       <table class="rtable"><thead><tr><th>#</th><th>Team</th><th>Pts</th><th>Clean</th></tr></thead><tbody>
       ${rows.map((r, i) => `<tr class="${r.human ? 'me' : ''}"><td>${i + 1}</td><td><span class="sw" style="background:${TEAM_BY_ID[r.team].colors.tub}"></span>${TEAM_BY_ID[r.team].name}${r.human ? ' (you)' : ''}</td><td>${r.points}</td><td>${r.clean}</td></tr>`).join('')}
       </tbody></table>
-      <nav class="menu row">${final ? btn('trophy', 'Trophy ceremony', 'autofocus') : btn('nextRace', 'Next race', 'autofocus')}${btn('quit', 'Quit cup', 'data-back')}</nav>
+      <nav class="menu row">${final ? btn('trophy', 'Trophy ceremony', 'autofocus') : btn('nextRace', 'Next race', 'autofocus')}${btn('quitCup', 'Quit cup')}</nav>
     </div>`,
   trophy: (app, { place, cupName, unlockedTeam }) => `
     <div class="panel trophy" role="dialog" aria-label="Trophy">

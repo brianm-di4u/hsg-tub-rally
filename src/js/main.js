@@ -438,6 +438,11 @@ function onMenu(act, data) {
     case 'resume': togglePause(false); break;
     case 'resetSave': persistSave({ reset: true }); break;
     case 'restart': startRace({ ...App.raceOpts, seed: App.raceOpts.seed + 1 }); break;
+    case 'quitCup': { // abandoning a cup needs a second, deliberate press; Back and Esc never reach this button
+      const b = App.screens.root.querySelector('[data-act="quitCup"]');
+      if (b && !b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'Quit cup? Press again'; break; }
+      App.gp = null; gotoTitle(); break;
+    }
     case 'quit': App.gp = null; gotoTitle(); break;
     case 'set': {
       let v = data.v;
