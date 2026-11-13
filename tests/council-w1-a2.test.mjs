@@ -1,6 +1,49 @@
 // Wave 1, batch A2 regressions: frame guard and context loss (S6-03, S6-08), audio unlock (S5-30), setting values (S6-04).
+import assert from 'node:assert/strict';
+import { createSaveWriter } from '../src/js/save.js';
+
+const loadWith = (settings) => {
+  const raw = JSON.stringify({ v: 1, settings });
+  return createSaveWriter({ read: () => raw, write: () => {}, backup: () => {} }).load().settings;
+};
 
 export const tests = [
+  {
+    name: 'council A2 S6-04: stored setting values are coerced to valid ones',
+    node: true,
+    run() {
+      for (const bad of ['loud', null, NaN, {}, [], Infinity]) assert.equal(loadWith({ volume: bad }).volume, 0.6, 'volume ' + JSON.stringify(bad));
+      assert.equal(loadWith({ volume: 5 }).volume, 1);
+      assert.equal(loadWith({ volume: -2 }).volume, 0);
+      assert.equal(loadWith({ volume: 0.25 }).volume, 0.25);
+      assert.equal(loadWith({ res: 'huge' }).res, 'native');
+      assert.equal(loadWith({ res: 'crisp' }).res, 'crisp');
+      assert.equal(loadWith({ quality: 'ultra' }).quality, 'auto');
+      assert.equal(loadWith({ quality: 'high' }).quality, 'high');
+    },
+  },
+  {
+    name: 'council A2 S6-04: a bad stored volume does not silence audio or leak AudioContexts',
+    viewports: ['desktop'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.page.evaluate(() => localStorage.setItem('hsg-tub-rally-v1', JSON.stringify({ v: 1, settings: { volume: 'loud' } })));
+      await t.page.addInitScript(() => {
+        const AC = window.AudioContext; window.__acCount = 0;
+        window.AudioContext = function (...a) { window.__acCount++; return new AC(...a); };
+      });
+      await t.reload();
+      await t.waitIdle(8000);
+      await t.page.keyboard.press('Shift');
+      await t.page.keyboard.press('Shift');
+      await t.page.mouse.click(300, 300);
+      await t.waitFrames(3);
+      const s = await t.state();
+      t.expect(s.audio.started, 'audio started');
+      t.equal(s.audio.ctx === 'none', false, 'a context exists');
+      t.equal(await t.page.evaluate(() => window.__acCount), 1, 'one AudioContext, however many gestures');
+    },
+  },
   {
     name: 'council A2 S5-30: touchend and click also unlock audio',
     viewports: ['desktop'],

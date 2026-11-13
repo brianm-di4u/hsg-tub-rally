@@ -36,6 +36,11 @@ function projection(raw) {
   }
   const d = DEFAULT_SAVE();
   const out = { ...d, ...s, settings: { ...d.settings, ...s.settings }, unlocked: { ...d.unlocked, ...s.unlocked }, stats: { ...d.stats, ...s.stats } };
+  // Stored setting values that would break the game (a text volume throws inside the audio setup) fall back to defaults.
+  const st = out.settings;
+  st.volume = Number.isFinite(st.volume) ? Math.min(1, Math.max(0, st.volume)) : d.settings.volume;
+  if (!['authentic', 'crisp', 'native'].includes(st.res)) st.res = d.settings.res;
+  if (!['auto', 'low', 'medium', 'high'].includes(st.quality)) st.quality = d.settings.quality;
   // Apply the existing migration before this action's explicit resolution choice.
   if (!out.settings.brick) {
     if (out.settings.res === 'authentic') out.settings.res = 'native';

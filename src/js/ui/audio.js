@@ -29,6 +29,7 @@ function unlock() {
   try {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
+    state.started = true; // one attempt only: a failed build must not leave every later gesture making another context
     ctx = new AC();
     master = ctx.createGain(); master.gain.value = state.on ? state.vol * 0.5 : 0; master.connect(ctx.destination);
     sfxBus = ctx.createGain(); sfxBus.gain.value = 0.9; sfxBus.connect(master);
@@ -36,12 +37,11 @@ function unlock() {
     musicBus = ctx.createGain(); musicBus.gain.value = musicLevel(); musicBus.connect(musicLP);
     noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
     const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-    state.started = true;
     // a silent one-frame buffer on the gesture finishes the iOS unlock
     const silent = ctx.createBufferSource(); silent.buffer = ctx.createBuffer(1, 1, 22050); silent.connect(ctx.destination); silent.start(0);
     buildLoops();
     if (state.theme) playTheme(state.theme, true);
-  } catch (e) { ctx = null; }
+  } catch (e) { if (ctx) ctx.close().catch(() => {}); ctx = null; }
 }
 
 export function setAudio(settings) {
