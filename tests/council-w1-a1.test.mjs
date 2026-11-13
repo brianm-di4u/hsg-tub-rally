@@ -114,4 +114,16 @@ export const tests = [
       t.equal(s.audio.muffled, false, 'music back to normal after resume');
     },
   },
+  {
+    name: 'council A1 S6-06: a phone on the Low tier renders at least one pixel per CSS pixel',
+    viewports: ['mobile'],
+    async run(t) {
+      await t.waitIdle(8000);
+      const s = await t.state();
+      const css = await t.page.evaluate(() => ({ w: document.querySelector('#gl').clientWidth, h: document.querySelector('#gl').clientHeight }));
+      t.equal(s.render.tier, 'low', 'phone starts on the Low tier');
+      t.equal(s.render.mode, 'native', 'native resolution');
+      t.expect(s.render.w >= css.w && s.render.h >= css.h, 'backing store ' + s.render.w + 'x' + s.render.h + ' covers the ' + css.w + 'x' + css.h + ' CSS canvas');
+    },
+  },
 ];
