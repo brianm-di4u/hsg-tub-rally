@@ -29,7 +29,7 @@ import { initInput, initTouch, pollGamepads, readIntent, consumeMenu, consumePau
 import { Hud } from './ui/hud.js';
 import { Screens } from './ui/screens.js';
 import { loadSave, writeSave } from './save.js';
-import { initAudio, setAudio, sfx, tubLoop, playTheme, audioState } from './ui/audio.js';
+import { initAudio, setAudio, sfx, tubLoop, playTheme, audioState, suspendAudio, resumeAudio } from './ui/audio.js';
 import { installHooks } from './hooks.js';
 
 export const App = {
@@ -285,8 +285,8 @@ function gotoTitle() {
 function pauseRace() {
   if (App.scene === 'race' && App.race && App.race.phase !== 'done' && !App.paused) togglePause(true);
 }
-function onAway() { pauseRace(); }
-function onBack() { App.last = 0; }
+function onAway() { pauseRace(); suspendAudio(); }
+function onBack() { App.last = 0; resumeAudio(); }
 
 function togglePause(force) {
   if (App.scene !== 'race' || !App.race || App.race.phase === 'done') return;

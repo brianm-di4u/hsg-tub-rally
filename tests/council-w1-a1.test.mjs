@@ -74,4 +74,22 @@ export const tests = [
       }
     },
   },
+  {
+    name: 'council A1 S5-27: audio is suspended while the page is hidden and resumes on return',
+    viewports: ['desktop'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.page.keyboard.press('Shift');
+      await t.page.waitForFunction(() => window.__game.getState().audio?.ctx === 'running', null, { timeout: 5000 });
+      await t.page.evaluate(() => {
+        Object.defineProperty(document, 'hidden', { value: true, configurable: true });
+        document.dispatchEvent(new Event('visibilitychange'));
+      });
+      await t.page.waitForFunction(() => window.__game.getState().audio.ctx === 'suspended', null, { timeout: 3000 }).catch(() => {});
+      t.equal((await t.state()).audio.ctx, 'suspended', 'AudioContext suspended while hidden');
+      await t.page.evaluate(() => { delete document.hidden; document.dispatchEvent(new Event('visibilitychange')); });
+      await t.page.waitForFunction(() => window.__game.getState().audio.ctx === 'running', null, { timeout: 3000 }).catch(() => {});
+      t.equal((await t.state()).audio.ctx, 'running', 'AudioContext running again when visible');
+    },
+  },
 ];

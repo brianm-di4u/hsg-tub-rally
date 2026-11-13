@@ -41,6 +41,13 @@ export function setAudio(settings) {
   master.gain.setTargetAtTime(state.on ? state.vol * 0.5 : 0, ctx.currentTime, 0.05);
   musicBus.gain.setTargetAtTime(state.music ? 0.32 : 0, ctx.currentTime, 0.05);
 }
+// Page hidden: stop the clock so the rumble drone and the music scheduler do not run on in the background.
+export function suspendAudio() { if (ctx && ctx.state === 'running') ctx.suspend().catch(() => {}); }
+export function resumeAudio() {
+  if (!ctx) return;
+  if (state.nextT < ctx.currentTime) state.nextT = ctx.currentTime + 0.1;
+  if (ctx.state !== 'running') ctx.resume().catch(() => {});
+}
 export function audioState() { return { started: state.started, on: state.on, music: state.music, theme: state.theme, ctx: ctx ? ctx.state : 'none' }; }
 
 function tone(freq, dur, { type = 'square', vol = 0.2, at = 0, slide = 0, attack = 0.005, bus = sfxBus, filter = 0 } = {}) {
