@@ -2,6 +2,20 @@
 
 export const tests = [
   {
+    name: 'council A2 S5-30: touchend and click also unlock audio',
+    viewports: ['desktop'],
+    async run(t) {
+      for (const type of ['touchend', 'click']) {
+        await t.reload();
+        await t.waitIdle(8000);
+        t.equal((await t.state()).audio.started, false, type + ': not started before a gesture');
+        await t.page.evaluate((ty) => window.dispatchEvent(new Event(ty)), type);
+        await t.waitFrames(2);
+        t.equal((await t.state()).audio.started, true, type + ' unlocks audio');
+      }
+    },
+  },
+  {
     name: 'council A2 S6-03: an exception in one frame does not stop the race or the picture',
     viewports: ['desktop'],
     allowConsoleErrors: true,

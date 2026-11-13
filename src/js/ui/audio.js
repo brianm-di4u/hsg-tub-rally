@@ -20,6 +20,9 @@ export function initAudio(settings) {
   };
   window.addEventListener('keydown', start, { once: false });
   window.addEventListener('pointerdown', start, { once: false });
+  // Safari has asked for the unlock inside touchend or click; either may be the first gesture it accepts.
+  window.addEventListener('touchend', start, { once: false });
+  window.addEventListener('click', start, { once: false });
 }
 
 function unlock() {
@@ -34,6 +37,8 @@ function unlock() {
     noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
     const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     state.started = true;
+    // a silent one-frame buffer on the gesture finishes the iOS unlock
+    const silent = ctx.createBufferSource(); silent.buffer = ctx.createBuffer(1, 1, 22050); silent.connect(ctx.destination); silent.start(0);
     buildLoops();
     if (state.theme) playTheme(state.theme, true);
   } catch (e) { ctx = null; }
