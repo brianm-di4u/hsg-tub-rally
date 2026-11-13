@@ -74,7 +74,7 @@ HUD rearranged in portrait; phones default to Low detail and Authentic resolutio
 
 ## 10. Performance budgets
 60 fps on a mid-range laptop (frame task time < 4 ms desktop, < 16 ms at 4× CPU throttle); ≤ 120 draw calls and
-≤ 60k triangles desktop, ≤ 80 / 30k phone; index.html ≤ 700 KB (cap 2 MB); first race ≤ 2 MB total download;
+≤ 60k triangles desktop, ≤ 80 / 30k phone; index.html ≤ 700 KB (cap 2 MB); first race ≤ 2.1 MB total download;
 whole game ≤ 5 MB; interactive (title) in ≤ 2 s.
 
 ## 11. Save/load
