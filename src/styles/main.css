@@ -452,3 +452,13 @@ body.clock-frozen *, body.clock-frozen *::before, body.clock-frozen *::after { t
 .hud-item:not(.has) .bubble { opacity: 1; background: rgba(16,30,48,0.55); border: 3px dashed rgba(233,251,255,0.7); }
 .hud-item:not(.has) .bubble { position: relative; }
 .hud-item:not(.has) .bubble::after { content: 'ITEM'; position: absolute; inset: 0; display: grid; place-items: center; font: 800 12px/1 var(--font-ui); letter-spacing: 0.06em; color: rgba(233,251,255,0.85); }
+
+/* screens taller than the viewport scroll instead of being cut off at both ends (320x568 phones) */
+.screens { align-items: flex-start; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
+.screens > * { margin-block: auto; }
+@media (max-height: 640px) {
+  .title-wrap { gap: 10px; }
+  .scr-title .menu { gap: 12px 10px; }
+  .scr-title .mbtn { min-height: 40px; padding-top: 6px; padding-bottom: 6px; }
+  .scr-title .menu > .mbtn:first-child { min-height: 46px; }
+}
