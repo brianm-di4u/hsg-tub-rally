@@ -24,11 +24,11 @@ import { makeBattle } from './sim/battle.js';
 import { makeRng } from './rng.js';
 import { trackData, TRACK_BY_ID, TRACKS, builtIds } from './data/tracks.js';
 import { CUP_BY_ID } from './data/cups.js';
-import { TEAMS } from './data/teams.js';
+import { TEAMS, TEAM_BY_ID, CLASSES } from './data/teams.js';
 import { initInput, initTouch, pollGamepads, readIntent, consumeMenu, consumePause, I as INPUT } from './ui/input.js';
 import { Hud } from './ui/hud.js';
 import { Screens } from './ui/screens.js';
-import { loadSave, writeSave, resetSave, saveProblem } from './save.js';
+import { loadSave, writeSave, resetSave, saveProblem, storeCup, loadCup, clearCup } from './save.js';
 import { initAudio, setAudio, sfx, tubLoop, playTheme, audioState, setMuffle, suspendAudio, resumeAudio } from './ui/audio.js';
 import { installHooks } from './hooks.js';
 
@@ -88,7 +88,7 @@ async function boot() {
   App.frameEvents = [];
   App.hud = new Hud($('#hud'));
   App.screens = new Screens($('#screens'), { save: App.save, onMenu });
-  App.screens.app = { save: App.save, onMenu };
+  App.screens.app = { save: App.save, onMenu, cup: savedCup() };
   initInput(onKey);
   initAudio(App.save.settings);
   App.audioState = audioState;
@@ -417,6 +417,15 @@ function onMenu(act, data) {
       if (App.scene === 'race' && App.paused) App.screens.show('pause');
       else { setPreview(null); App.screens.show('title'); }
       break;
+    case 'continueCup': {
+      const c = savedCup();
+      if (!c) { refreshCup(); App.screens.show('title'); break; }
+      App.gp = { cup: c.cup, name: c.name, tracks: c.tracks, round: c.round, table: c.table, rivals: c.rivals, recorded: c.round };
+      App.raceOpts = { team: c.team, classId: c.classId, seed: c.seed };
+      App.flow = { mode: 'gp', team: c.team, classId: c.classId };
+      showStandings();
+      break;
+    }
     case 'resume': togglePause(false); break;
     case 'resetSave': persistSave({ reset: true }); break;
     case 'restart': startRace({ ...App.raceOpts, seed: App.raceOpts.seed + 1 }); break;
@@ -499,7 +508,24 @@ function recordGp(r) {
     const row = g.table[res.team] || (g.table[res.team] = { team: res.team, points: 0, clean: 0, human: res.human, bribes: 0 });
     row.points += res.points; row.clean += res.clean ? 1 : 0; row.bribes += res.tickets || 0;
   }
+  storeCup({ v: 1, cup: g.cup, name: g.name, tracks: g.tracks, round: g.round, table: g.table, rivals: g.rivals, team: App.raceOpts.team, classId: App.raceOpts.classId, seed: App.raceOpts.seed });
+  refreshCup();
 }
+// The cup in progress is kept after every recorded race so a reload or a discarded tab can pick it up again.
+function savedCup() {
+  const c = loadCup();
+  if (!c || !CUP_BY_ID[c.cup] || typeof c.name !== 'string') return null;
+  const built = builtIds();
+  const ok = Array.isArray(c.tracks) && c.tracks.length > 0 && c.tracks.every((id) => built.includes(id))
+    && Number.isInteger(c.round) && c.round >= 0 && c.round < c.tracks.length
+    && c.table && typeof c.table === 'object' && Array.isArray(c.rivals) && c.rivals.every((id) => TEAM_BY_ID[id])
+    && TEAM_BY_ID[c.team] && CLASSES[c.classId] && Number.isFinite(c.seed);
+  if (!ok) return null;
+  const rows = Object.values(c.table);
+  const rowsOk = rows.length > 0 && rows.some((r) => r && r.human) && rows.every((r) => r && TEAM_BY_ID[r.team] && [r.points, r.clean, r.bribes].every(Number.isFinite));
+  return rowsOk ? c : null;
+}
+function refreshCup() { if (App.screens && App.screens.app) App.screens.app.cup = savedCup(); }
 function gpRows() {
   return Object.values(App.gp.table).sort((a, b) => b.points - a.points || b.bribes - a.bribes);
 }
@@ -512,6 +538,7 @@ function showTrophy() {
   const saved = persistSave({ cup: { token: g, key: g.cup + ':' + App.raceOpts.classId, place,
     soak: App.raceOpts.classId === 'soak', teamOrder: TEAMS.filter((t) => !t.unlocked).map((t) => t.id) } });
   const unlockedTeam = saved.unlockedTeam;
+  clearCup(); refreshCup();
   App.screens.show('trophy', { place, cupName: g.name, unlockedTeam });
   App.gp = null;
 }

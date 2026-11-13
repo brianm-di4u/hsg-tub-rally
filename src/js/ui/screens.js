@@ -50,6 +50,7 @@ const TEMPLATES = {
       <div class="logo"><canvas data-pixel="SPA CITY" data-scale="7" data-fill="#E9FBFF,#3FA8C0"></canvas><canvas data-pixel="TUB RALLY" data-scale="11"></canvas>
         <p class="tagline">Bathtub racing on the streets and mountain roads of Hot Springs, Arkansas</p></div>
       <nav class="menu" aria-label="Main menu">
+        ${app.cup ? btn('continueCup', 'Continue cup') : ''}
         ${btn('gp', 'Grand Prix', 'autofocus')}
         ${btn('quick', 'Quick Race')}
         ${btn('timetrial', 'Time Trial')}

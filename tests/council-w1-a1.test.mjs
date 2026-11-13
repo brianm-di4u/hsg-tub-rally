@@ -211,4 +211,57 @@ export const tests = [
       t.expect(await t.page.locator('[data-save-status] button').count() === 0, 'no reset action for blocked storage');
     },
   },
+  {
+    name: 'council A1 S2-23: a Grand Prix survives a reload and can be continued',
+    viewports: ['desktop'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.game('act', 'menu', 'gp');
+      await t.game('act', 'menu', 'cup', { id: 'bathhouse' });
+      await t.waitIdle(8000);
+      await t.game('newGame', { mode: 'gp', track: 'bathhouse-row', team: 'engine-six', classId: 'soak', laps: 1, seed: 12, autoplay: true, paused: true });
+      await t.stepUntil((st) => st.race.phase === 'done', { max: 60 * 300, chunk: 600, label: 'race done' });
+      await t.waitFrames(3);
+      const stored = await t.page.evaluate(() => JSON.parse(localStorage.getItem('hsg-tub-rally-cup-v1')));
+      t.expect(stored && stored.round === 0 && stored.tracks.length === 4, 'cup written after the first recorded race');
+      t.expect(stored && Object.keys(stored.table).length === 8, 'standings table kept');
+      await t.reload();
+      await t.waitIdle(8000);
+      t.expect(await t.page.locator('[data-act="continueCup"]').count() === 1, 'title offers Continue cup after the reload');
+      await t.page.locator('[data-act="continueCup"]').click();
+      await t.waitFrames(3);
+      t.equal((await t.state()).screen, 'standings', 'standings shown');
+      t.expect((await t.page.locator('.standings tbody tr').count()) === 8, 'eight rows restored');
+      await t.page.locator('[data-act="nextRace"]').click();
+      await t.page.waitForFunction(() => window.__game.getState().race?.mode === 'gp', null, { timeout: 15000 });
+      const s = await t.state();
+      t.equal(s.track.id, stored.tracks[1], 'the next race of the cup starts');
+      t.equal(s.race.classId, 'soak', 'same speed class');
+    },
+  },
+  {
+    name: 'council A1 S2-23: finishing the cup clears it, and a bad stored cup is ignored',
+    viewports: ['desktop'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.page.evaluate(() => localStorage.setItem('hsg-tub-rally-cup-v1', '{"v":1,"cup":"nope"}'));
+      await t.reload();
+      await t.waitIdle(8000);
+      t.equal(await t.page.locator('[data-act="continueCup"]').count(), 0, 'invalid cup gives no Continue button');
+      const cup = {
+        v: 1, cup: 'bathhouse', name: 'Bathhouse Cup', tracks: ['bathhouse-row', 'park-avenue', 'whittington-valley', 'bridge-street'], round: 3,
+        table: { 'engine-six': { team: 'engine-six', points: 40, clean: 2, human: true, bribes: 0 }, 'lather-linen': { team: 'lather-linen', points: 30, clean: 1, bribes: 0 } },
+        rivals: ['lather-linen'], team: 'engine-six', classId: 'soak', seed: 5,
+      };
+      await t.page.evaluate((c) => localStorage.setItem('hsg-tub-rally-cup-v1', JSON.stringify(c)), cup);
+      await t.reload();
+      await t.waitIdle(8000);
+      await t.page.locator('[data-act="continueCup"]').click();
+      await t.waitFrames(3);
+      await t.page.locator('[data-act="trophy"]').click();
+      await t.waitFrames(3);
+      t.equal(await t.page.evaluate(() => localStorage.getItem('hsg-tub-rally-cup-v1')), null, 'finished cup removed from storage');
+      t.equal((await t.state()).screen, 'trophy', 'trophy shown');
+    },
+  },
 ];

@@ -176,3 +176,16 @@ export const loadSave = () => writer.load();
 export const writeSave = (save, intent) => writer.commit(save, intent);
 export const resetSave = (save) => writer.reset(save);
 export const saveProblem = () => writer.problem();
+
+// A Grand Prix in progress lives under its own key, so a damaged cup can never affect the main save. It is a
+// convenience: every access is guarded and a failure just means no "Continue cup".
+const CUP_KEY = 'hsg-tub-rally-cup-v1';
+export function storeCup(cup) { try { window.localStorage.setItem(CUP_KEY, JSON.stringify(cup)); } catch (e) { /* not kept */ } }
+export function loadCup() {
+  try {
+    const raw = window.localStorage.getItem(CUP_KEY);
+    const cup = raw === null ? null : JSON.parse(raw);
+    return object(cup) && cup.v === 1 ? cup : null;
+  } catch (e) { return null; }
+}
+export function clearCup() { try { window.localStorage.removeItem(CUP_KEY); } catch (e) { /* not kept */ } }
