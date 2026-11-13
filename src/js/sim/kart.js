@@ -10,7 +10,7 @@ const A0 = 8.6; // push acceleration at rest for the reference mass (m/s²)
 const M0 = 85 + 80 + 38 * GAL_KG; // a full Stock tub with captain
 const HOP_V = 3.4;
 const HIT_IMMUNE_T = 1.0; // protected window after the fumble circle ends (s)
-const WARM_T = 0.85, HOT_T = 1.9; // power-slide charge thresholds (s)
+export const WARM_T = 0.85, HOT_T = 1.9; // power-slide charge thresholds (s)
 
 export const SURF_CAP = { road: 1, curb: 0.93, gravel: 0.66, grass: 0.58, water: 0.7 };
 

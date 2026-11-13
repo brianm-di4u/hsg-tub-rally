@@ -4,6 +4,8 @@
 // Music: original short loops on a tiny step sequencer (ragtime downtown, bluegrass in the mountains, a march for
 // Rules of the Row and the Water Fight).
 
+import { HOT_T } from '../sim/kart.js';
+
 let ctx = null, rev = null, comp = null, master = null, sfxBus = null, musicBus = null, musicLP = null, noiseBuf = null;
 // bus levels (the mix the game ships; audioRender measures them at SHIP_VOL, the default volume setting)
 const SHIP_VOL = 0.6;
@@ -46,9 +48,9 @@ function bindBuses(b) { rev = b.rev; comp = b.comp; master = b.master; sfxBus = 
 // Run fn with the module's audio graph pointed at another context (an offline one), then restore the live one.
 // Everything inside fn is synchronous, so the live timers cannot interleave.
 function withContext(c, vol, fn) {
-  const saved = { ctx, rev, comp, master, sfxBus, musicBus, musicLP, noiseBuf };
-  ctx = c; bindBuses(makeBuses(c, vol, false));
-  try { return fn(); } finally { ({ ctx, rev, comp, master, sfxBus, musicBus, musicLP, noiseBuf } = saved); }
+  const saved = { slide, rumble, ctx, rev, comp, master, sfxBus, musicBus, musicLP, noiseBuf };
+  ctx = c; slide = null; rumble = null; bindBuses(makeBuses(c, vol, false));
+  try { return fn(); } finally { ({ slide, rumble, ctx, rev, comp, master, sfxBus, musicBus, musicLP, noiseBuf } = saved); }
 }
 
 export function initAudio(settings) {
@@ -103,7 +105,7 @@ export function resumeAudio() {
   if (ctx.state !== 'running') ctx.resume().catch(() => {});
 }
 export function audioState() {
-  return { started: state.started, on: state.on, music: state.music, muffled: state.muffle, theme: state.theme, ctx: ctx ? ctx.state : 'none', ducks: state.ducks, cues: state.cues.slice(),
+  return { started: state.started, on: state.on, music: state.music, muffled: state.muffle, theme: state.theme, ctx: ctx ? ctx.state : 'none', ducks: state.ducks, slide: { ...slideInfo }, cues: state.cues.slice(),
     mix: ctx ? { master: +master.gain.value.toFixed(3), sfx: sfxBus.gain.value, musicLP: Math.round(musicLP.frequency.value), limiter: { threshold: comp.threshold.value, ratio: comp.ratio.value } } : null };
 }
 
@@ -226,7 +228,25 @@ export function sfx(name, ...a) {
 
 // Continuous tub sounds, driven every frame by the player's tub: footsteps tick faster with speed, a rumble
 // rises with speed, slosh follows spilling.
-let footT = 0, rumble = null;
+let footT = 0, rumble = null, slide = null;
+// Power-slide voice: a tone and a hiss that climb with the charge, so Warm and Hot can be heard coming.
+const SLIDE_LEVEL = 0.13;           // output level of the whole voice (cues sit well above it)
+const SLIDE_HZ = 260, SLIDE_OCT = 1.75; // tone: 260 Hz uncharged, 875 Hz fully charged (the Hot tick is 1320 Hz)
+const slideInfo = { on: false, charge: 0, hz: 0 };
+function slideUpdate(k, active, when, record) {
+  if (!slide) {
+    const o = ctx.createOscillator(), og = ctx.createGain(), n = ctx.createBufferSource(), nf = ctx.createBiquadFilter(), ng = ctx.createGain(), g = ctx.createGain();
+    o.type = 'triangle'; o.frequency.value = SLIDE_HZ; og.gain.value = 0.5;
+    n.buffer = noiseBuf; n.loop = true; nf.type = 'bandpass'; nf.Q.value = 1.2; nf.frequency.value = 900; ng.gain.value = 0.5; g.gain.value = 0;
+    o.connect(og); og.connect(g); n.connect(nf); nf.connect(ng); ng.connect(g); g.connect(sfxBus); o.start(); n.start();
+    slide = { o, nf, g };
+  }
+  const on = !!(active && k && k.drift && k.state === 'run' && !k.air && Math.abs(k.vf) > 5);
+  const c = on ? clamp01(k.charge / HOT_T) : 0, hz = SLIDE_HZ * 2 ** (SLIDE_OCT * c);
+  slide.g.gain.setTargetAtTime(on ? SLIDE_LEVEL : 0, when, 0.05);
+  if (on) { slide.o.frequency.setTargetAtTime(hz, when, 0.04); slide.nf.frequency.setTargetAtTime(900 + 2200 * c, when, 0.06); }
+  if (record) { slideInfo.on = on; slideInfo.charge = +c.toFixed(3); slideInfo.hz = Math.round(on ? hz : 0); }
+}
 export function tubLoop(k, dt, active) {
   if (!ctx || !state.on) return;
   if (!rumble) {
@@ -238,6 +258,7 @@ export function tubLoop(k, dt, active) {
   const v = active && k ? Math.abs(k.vf) : 0;
   rumble.g.gain.setTargetAtTime(Math.min(0.12, v * 0.006), ctx.currentTime, 0.08);
   rumble.f.frequency.setTargetAtTime(160 + v * 18, ctx.currentTime, 0.1);
+  slideUpdate(k, active, ctx.currentTime, true);
   if (!active || !k || v < 0.8 || k.state === 'judge') return;
   footT -= dt;
   if (footT <= 0) { footT = Math.max(0.07, 0.34 - v * 0.012); noise(0.035, { vol: 0.05, freq: 500 + Math.random() * 300, q: 1.5 }); }
@@ -323,6 +344,11 @@ export function audioList() { return { music: musicNames(), ambience: [], cues: 
 export function audioRender(name, seconds = 10, wantWav = false, args = []) {
   const build = (oc) => withContext(oc, SHIP_VOL, () => {
     if (name.startsWith('cue:')) { playCue(name.slice(4), ...args); return null; }
+    if (name === 'loop:slide') { // a slide held for the whole render: the charge climbs from 0 to just past Hot
+      const track = [];
+      for (let t = 0; t < seconds; t += 0.05) { const k = { drift: 1, state: 'run', air: false, vf: 15, charge: (t / seconds) * HOT_T * 1.05 }; slideUpdate(k, true, t, false); track.push([+t.toFixed(2), +(k.charge / HOT_T).toFixed(3), Math.round(SLIDE_HZ * 2 ** (SLIDE_OCT * clamp01(k.charge / HOT_T)))]); }
+      return { track };
+    }
     if (name.startsWith('mix:')) { // the busiest moment: a tune with the loudest cues stacked on it
       const L = LOOPS[name.slice(4)]; pumpMusic(L, { step: 0, nextT: 0.1 }, seconds + 0.2);
       for (const [c, t] of [['finish', 2], ['hit', 2.3], ['go', 2.4], ['boost', 2.5], ['bump', 2.6], ['pickup', 2.7]]) { cueAt = t; try { playCue(c); } finally { cueAt = 0; } }

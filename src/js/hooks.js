@@ -70,6 +70,7 @@ export function installHooks(App, api) {
       switch (name) {
         case 'input': App.held = args[0] || null; return true; // held player input for following steps
         case 'hit': if (k) { const ok = fumble(k, r.rng.items, args[0] ?? 3); api.kartEvents(k); return ok; } return false;
+        case 'event': if (k) { k.events.push({ ...args[0] }); api.kartEvents(k); return true; } return false; // hand the player a sim event (wall, land, charge...) as a step would
         case 'water': if (k) { k.water.gal = Math.max(0, Math.min(k.water.cap, args[0])); return true; } return false;
         case 'teleport': if (k) { teleport(App, k, args[0], args[1] ?? 0); return true; } return false;
         case 'skipCountdown': if (r && r.phase === 'countdown') { r.time = -DT; api.stepOnce(); } return summary();
