@@ -93,6 +93,10 @@ async function boot() {
   initTouch($('#touch-steer'), { push: $('#t-push'), brake: $('#t-brake'), hop: $('#t-hop'), item: $('#t-item') });
   $('#t-pause').addEventListener('click', () => togglePause(true));
   window.addEventListener('resize', () => App.renderer.resize());
+  document.addEventListener('visibilitychange', () => { if (document.hidden) onAway(); else onBack(); });
+  window.addEventListener('pagehide', onAway);
+  window.addEventListener('pageshow', onBack);
+  window.addEventListener('blur', pauseRace);
   installHooks(App, { startRace, gotoTitle, setScene, stepOnce, kartEvents, onMenu, perfLab, labStats: () => labStats(window.THREE) });
   // the title screen sits over a slow flyover of the first course
   await ensureTrack(builtIds()[0] || 'bathhouse-row');
@@ -276,6 +280,13 @@ function gotoTitle() {
   App.screens.show('title');
   playTheme('rag');
 }
+
+// A live race stops when the player leaves the page (tab switch, phone call, window blur); they resume it from the pause screen.
+function pauseRace() {
+  if (App.scene === 'race' && App.race && App.race.phase !== 'done' && !App.paused) togglePause(true);
+}
+function onAway() { pauseRace(); }
+function onBack() { App.last = 0; }
 
 function togglePause(force) {
   if (App.scene !== 'race' || !App.race || App.race.phase === 'done') return;

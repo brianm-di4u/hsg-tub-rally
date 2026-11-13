@@ -45,4 +45,33 @@ export const tests = [
       assert.equal(fumble(k, rng, 3), true, 'hittable again after the window');
     },
   },
+  {
+    name: 'council A1 S1-28: hiding the page, pagehide or blur pauses a live race',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.game('newGame', {});
+      await t.game('act', 'skipCountdown');
+      for (const how of ['visibility', 'pagehide', 'blur']) {
+        await t.game('resume');
+        let s = await t.state();
+        if (s.paused) await t.page.evaluate(() => document.querySelector('[data-act="resume"]')?.click());
+        await t.waitFrames(3);
+        s = await t.state();
+        t.expect(!s.paused && s.scene === 'race', how + ': racing before the event');
+        await t.page.evaluate((h) => {
+          if (h === 'visibility') {
+            Object.defineProperty(document, 'hidden', { value: true, configurable: true });
+            document.dispatchEvent(new Event('visibilitychange'));
+          } else window.dispatchEvent(new Event(h));
+        }, how);
+        s = await t.state();
+        t.expect(s.paused && s.screen === 'pause', how + ': race paused with the pause screen open');
+        const steps = s.steps;
+        await t.waitFrames(5);
+        t.equal((await t.state()).steps, steps, how + ': simulation frozen');
+        await t.page.evaluate(() => { delete document.hidden; document.dispatchEvent(new Event('visibilitychange')); });
+      }
+    },
+  },
 ];
