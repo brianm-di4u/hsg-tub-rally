@@ -562,7 +562,7 @@ function showTrophy() {
 function playerFeedback(me) {
   for (const e of me.events) {
     const snd = { boost: 'boost', fumble: 'hit', wall: 'bump', bump: 'bump', pickup: 'pickup', ticket: 'ticket', bribe: 'whistle', judge: 'whistle', taskDone: 'cheer', blocked: 'snap', drained: 'splash' }[e.type];
-    if (snd) sfx(snd, e.type === 'drained');
+    if (snd) sfx(snd, e.type === 'drained' || (e.type === 'wall' || e.type === 'bump' ? e.v : e.type === 'boost' ? e.kind : undefined)); // splash(big), bump(speed), boost(kind)
     if (e.type === 'use') sfx({ duck: 'quack', towel: 'snap', blaster: 'splash', hose: 'splash', jet: 'steam', jet3: 'steam', bubble: 'pickup' }[e.item] || 'menu');
     if (e.type === 'boost') { App.hud.flash(e.kind === 'hot' ? 'HOT STEAM!' : e.kind === 'start' ? 'GREAT START!' : 'WARM STEAM', 'boost', 1); App.cam.punch = e.kind === 'hot' ? 6 : 4; App.cam.shake = Math.max(App.cam.shake, 0.25); }
     else if (e.type === 'fumble') { App.hud.flash('Dropped the ' + (e.item || 'item') + '! Circle the tub!', 'bad', 1.6); App.cam.shake = 0.8; App.views[me.id].flash = 1; }
@@ -604,7 +604,7 @@ function stepOnce() {
   }
   if (me) playerFeedback(me);
   for (const e of r.events) {
-    if (me && e.kart === me.id && e.type === 'lap') sfx(e.lap > r.laps ? 'finish' : 'lap');
+    if (me && e.kart === me.id && e.type === 'lap') { if (e.lap > r.laps) sfx('finish', r.finishOrder.indexOf(me.id) + 1 || me.place); else sfx(e.lap === r.laps ? 'finalLap' : 'lap'); }
     if (me && e.kart === me.id && e.type === 'lap') App.hud.flash(e.lap === r.laps ? 'FINAL LAP!' : e.lap > r.laps ? 'FINISH!' : `LAP ${e.lap}`, 'lap', 1.4);
   }
   if (me && me.water.gal <= 0.01 && !App._dryShown) { App.hud.flash('BONE DRY!', 'bad', 1.4); App._dryShown = true; }
