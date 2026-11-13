@@ -195,4 +195,112 @@ export const tests = [
       await t.page.waitForFunction(() => !window.__game.getState().audio.slide.on, null, { timeout: 5000 });
     },
   },
+  {
+    name: 'council A S5-03: rival footsteps sit under the cues, pan to their side and fall with distance (rendered)',
+    viewports: ['desktop'],
+    async run(t) {
+      await t.waitIdle(8000);
+      const R = (pan, dist) => render(t, 'loop:rivals:' + pan + ':' + dist, 3);
+      const left = await R(-0.7, 4), right = await R(0.7, 4), mid = await R(0, 12), edge = await R(0, 24), gone = await R(0, 26), near = await R(0, 2);
+      t.expect(left.peak >= 0.05 && left.peak <= 0.2 && right.peak >= 0.05 && right.peak <= 0.2, 'a rival at 4 m peaks ' + left.peak + ' and ' + right.peak + ' (under the cues, over the music)');
+      t.expect(left.rmsDb >= -44 && left.rmsDb <= -28, 'a rival at 4 m has rms ' + left.rmsDb);
+      t.expect(left.balance <= -0.4, 'a rival on the left is in the left ear: ' + left.balance);
+      t.expect(right.balance >= 0.4, 'a rival on the right is in the right ear: ' + right.balance);
+      t.expect(Math.abs(mid.balance) < 0.05, 'a rival ahead is centred: ' + mid.balance);
+      t.expect(near.rms > mid.rms * 1.5 && mid.rms > edge.rms * 2, 'it falls with distance: ' + near.rms + ', ' + mid.rms + ', ' + edge.rms);
+      t.expect(gone.peak < 0.001, 'at 26 m (past 25) it is silent: ' + gone.peak);
+      const swish = [await render(t, 'cue:swish@-0.7', 1.5), await render(t, 'cue:swish@0.7', 1.5)];
+      t.expect(swish[0].balance <= -0.4 && swish[1].balance >= 0.4 && swish.every((x) => x.peak >= 0.15 && x.peak <= 0.45), 'the swish is panned: ' + swish.map((x) => x.balance + ' / ' + x.peak));
+      const pc = await render(t, 'cue:bump@0.5', 1.5, false, [10]);
+      t.expect(pc.balance > 0.2, 'a panned cue comes from its side: ' + pc.balance);
+      fs.writeFileSync(SHOTS + '/rivals.json', JSON.stringify({ left: strip(left), right: strip(right), at12: strip(mid), at24: strip(edge), at26: strip(gone), at2: strip(near), swishLeft: strip(swish[0]), swishRight: strip(swish[1]) }, null, 1));
+    },
+  },
+  {
+    name: 'council A S5-03: in a race the nearest three rivals are voiced by distance and screen side, and their events are heard',
+    viewports: ['desktop'],
+    async run(t) {
+      await unlock(t);
+      await t.game('newGame', { seed: 12, paused: true });
+      await t.game('act', 'skipCountdown');
+      await t.waitFrames(4);
+      await t.game('act', 'camSnap');
+      await t.waitFrames(3);
+      const base = await t.state(), me = base.race.player, my = base.race.karts[me], rivals = base.race.karts.filter((k) => k.id !== me).map((k) => k.id);
+      const place = async (id, ds, d) => { await t.game('setState', { kart: { id, s: my.s + ds, d, vf: 16 } }); };
+      const frame = (dt) => t.page.evaluate((x) => { window.__game.act('audioFrame', x); return window.__game.getState().audio.rivals; }, dt || 0.05);
+      const heard = async () => (await t.state()).audio.cues.filter((c) => c.includes('@')).length;
+      for (const id of rivals) await place(id, 60 + id * 3, 0);
+      let r = await frame();
+      t.equal(r.voices.length, 0, 'nobody is close: no rival voice');
+      for (const side of [6, -6]) {
+        await place(rivals[0], 9, side);
+        const ndc = await t.game('act', 'ndc', rivals[0]);
+        r = await frame();
+        const v = r.voices.find((x) => x.id === rivals[0]);
+        t.expect(v && v.gain > 0, 'a rival 9 m ahead is voiced');
+        t.expect(Math.abs(ndc.x) > 0.1, 'the rival is clearly off centre on screen: ' + ndc.x);
+        t.expect(v && Math.sign(v.pan) === Math.sign(ndc.x) && Math.abs(v.pan) > 0.05, 'its pan ' + (v && v.pan) + ' is on its side of the screen (ndc x ' + ndc.x + ') at lateral ' + side);
+        t.expect(v && Math.abs(v.pan) <= 0.7, 'pan stays within 0.7');
+      }
+      const gains = [];
+      for (const ds of [6, 12, 20]) { await place(rivals[0], ds, 0); r = await frame(); gains.push((r.voices.find((x) => x.id === rivals[0]) || {}).gain || 0); }
+      t.expect(gains[0] > gains[1] && gains[1] > gains[2] && gains[2] > 0, 'gain falls with distance: ' + gains);
+      await place(rivals[0], 30, 0); r = await frame();
+      t.expect(!r.voices.find((x) => x.id === rivals[0]), 'beyond 25 m a rival is not voiced');
+      for (const [i, id] of rivals.slice(0, 5).entries()) await place(id, 5 + i * 3, i % 2 ? 3 : -3);
+      r = await frame();
+      t.equal(r.voices.length, 3, 'only the nearest three get a voice');
+      t.expect(r.voices.every((v) => rivals.slice(0, 3).includes(v.id)), 'they are the nearest three: ' + JSON.stringify(r.voices.map((v) => v.id)));
+      for (const id of rivals) await place(id, 60 + id * 3, 0);
+      await frame();
+      // events: a rival's bump near is heard panned and quieter, far is not, on top of the player is left to the player's own bump
+      const n0 = await heard();
+      await place(rivals[0], 8, 3.5);
+      await t.game('act', 'event', { type: 'bump', v: 10 }, rivals[0]);
+      const cues = (await t.state()).audio.cues;
+      t.expect(cues.some((c) => /^bump:10@-?[0-9]\.[0-9]+\*0\.[0-9]+$/.test(c)), 'a near rival bump is heard, panned and quieter: ' + cues.slice(-3));
+      const n1 = await heard();
+      t.equal(n1, Math.min(n0 + 1, 24), 'one cue for it');
+      await place(rivals[0], 45, 0);
+      await t.game('act', 'event', { type: 'bump', v: 10 }, rivals[0]);
+      await t.game('act', 'event', { type: 'fumble' }, rivals[0]);
+      t.equal(await heard(), n1, 'rival events 45 m away are silent');
+      await place(rivals[0], 1, 1);
+      await t.game('act', 'event', { type: 'bump', v: 10 }, rivals[0]);
+      t.equal(await heard(), n1, 'a bump against the player is left to the player cue: ' + (await t.state()).audio.cues.slice(-4));
+      await place(rivals[0], 10, 3.5);
+      await t.game('act', 'event', { type: 'fumble' }, rivals[0]);
+      t.expect((await t.state()).audio.cues.some((c) => /^hit@/.test(c)), 'a rival that is hit is heard');
+    },
+  },
+  {
+    name: 'council A S5-03: a rival that overtakes within 4 m gets a swish on its side; one far off does not',
+    viewports: ['desktop'],
+    async run(t) {
+      await unlock(t);
+      await t.game('newGame', { seed: 12, paused: true });
+      await t.game('act', 'skipCountdown');
+      await t.waitFrames(4);
+      await t.game('act', 'camSnap');
+      await t.waitFrames(3);
+      const base = await t.state(), me = base.race.player, my = base.race.karts[me], rival = base.race.karts.find((k) => k.id !== me).id;
+      for (const k of base.race.karts) if (k.id !== me && k.id !== rival) await t.game('setState', { kart: { id: k.id, s: my.s + 80, d: 0 } });
+      // each walk runs inside one page call, so no real frame (which is not live while paused) clears the tracking between steps
+      const walk = (steps) => t.page.evaluate(([id, s0, list]) => {
+        const g = window.__game;
+        for (const [ds, d, dt] of list) { g.setState({ kart: { id, s: s0 + ds, d, vf: 16 } }); g.act('audioFrame', dt); }
+        const a = g.getState().audio; return { passes: a.rivals.passes, cues: a.cues };
+      }, [rival, my.s, steps]);
+      let r = await walk([[-2.5, 2.5, 0.05], [2.5, 2.5, 0.05]]);
+      const first = r.passes;
+      t.expect(first >= 1 && r.cues.some((c) => /^swish@/.test(c)), 'overtaking within 4 m plays a swish: ' + r.cues.slice(-2));
+      r = await walk([[-2.5, 2.5, 0.05], [2.5, 2.5, 0.05]]);
+      t.equal(r.passes, first, 'a second pass within the 1.2 s cool-down is not repeated');
+      r = await walk([[-20, 2.5, 0.4], [20, 2.5, 0.4]]);
+      t.equal(r.passes, first, 'a rival 20 m away going by does not swish');
+      r = await walk([[2.5, 2.5, 2], [-2.5, 2.5, 2]]);
+      t.expect(r.passes === first + 1 && /^swish@-?[0-9]\.[0-9]+\*0\.70$/.test(r.cues[r.cues.length - 1]), 'the player overtaking a rival gets the softer swish after the cool-down: ' + r.cues.slice(-1));
+    },
+  },
 ];

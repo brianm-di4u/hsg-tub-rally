@@ -29,7 +29,7 @@ import { initInput, initTouch, pollGamepads, readIntent, consumeMenu, consumePau
 import { Hud } from './ui/hud.js';
 import { Screens } from './ui/screens.js';
 import { loadSave, writeSave, resetSave, saveProblem, storeCup, loadCup, clearCup } from './save.js';
-import { initAudio, setAudio, sfx, tubLoop, playTheme, audioState, setMuffle, suspendAudio, resumeAudio } from './ui/audio.js';
+import { initAudio, setAudio, sfx, tubLoop, rivalLoop, rivalEvent, setListener, USE_CUE, playTheme, audioState, setMuffle, suspendAudio, resumeAudio } from './ui/audio.js';
 import { installHooks } from './hooks.js';
 
 export const App = {
@@ -102,7 +102,7 @@ async function boot() {
   window.addEventListener('pagehide', onAway);
   window.addEventListener('pageshow', onBack);
   window.addEventListener('blur', pauseRace);
-  installHooks(App, { startRace, gotoTitle, setScene, stepOnce, kartEvents, onMenu, perfLab, labStats: () => labStats(window.THREE) });
+  installHooks(App, { startRace, gotoTitle, setScene, stepOnce, kartEvents, audioFrame, onMenu, perfLab, labStats: () => labStats(window.THREE) });
   // the title screen sits over a slow flyover of the first course
   await ensureTrack(builtIds()[0] || 'bathhouse-row');
   loadCourse(builtIds()[0] || 'bathhouse-row');
@@ -297,6 +297,16 @@ function gotoTitle() {
   App.hud.root.classList.remove('on');
   App.screens.show('title');
   playTheme('rag');
+}
+
+// Per-frame sound for a race: the player's tub, then the rivals placed by where the camera points.
+function audioFrame(r, dt, live) {
+  const me = r.player >= 0 ? r.karts[r.player] : null;
+  tubLoop(me, dt, live && r.phase !== 'done');
+  const cam = App.renderer.camera;
+  cam.getWorldDirection(SHADOW_DIR);
+  setListener(-SHADOW_DIR.z, SHADOW_DIR.x); // the camera's right on the ground
+  rivalLoop(me, r.karts, live && r.phase === 'race', dt);
 }
 
 // A live race stops when the player leaves the page (tab switch, phone call, window blur); they resume it from the pause screen.
@@ -564,7 +574,7 @@ function playerFeedback(me) {
     const snd = { boost: 'boost', fumble: 'hit', wall: 'bump', bump: 'bump', pickup: 'pickup', ticket: 'ticket', bribe: 'whistle', judge: 'whistle', taskDone: 'cheer', blocked: 'snap', drained: 'splash', charge: 'charge', land: 'land' }[e.type];
     // the one argument a cue takes: splash(big), bump, land(speed), boost(kind), charge(stage)
     if (snd) sfx(snd, e.type === 'drained' ? true : e.type === 'wall' || e.type === 'bump' || e.type === 'land' ? e.v : e.type === 'boost' ? e.kind : e.type === 'charge' ? e.stage : undefined);
-    if (e.type === 'use') sfx({ duck: 'quack', towel: 'snap', blaster: 'splash', hose: 'splash', jet: 'steam', jet3: 'steam', bubble: 'pickup' }[e.item] || 'menu');
+    if (e.type === 'use') sfx(USE_CUE[e.item] || 'menu');
     if (e.type === 'boost') { App.hud.flash(e.kind === 'hot' ? 'HOT STEAM!' : e.kind === 'start' ? 'GREAT START!' : 'WARM STEAM', 'boost', 1); App.cam.punch = e.kind === 'hot' ? 6 : 4; App.cam.shake = Math.max(App.cam.shake, 0.25); }
     else if (e.type === 'fumble') { App.hud.flash('Dropped the ' + (e.item || 'item') + '! Circle the tub!', 'bad', 1.6); App.cam.shake = 0.8; App.views[me.id].flash = 1; }
     else if (e.type === 'wall' && e.v > 7) App.cam.shake = Math.min(1, e.v / 14);
@@ -581,7 +591,9 @@ function playerFeedback(me) {
 // test hooks that act on a kart outside a sim step (act('hit')) hand its events to the frame here, as a step would
 function kartEvents(k) {
   for (const e of k.events) App.frameEvents.push({ k, e });
-  if (App.race && App.race.karts[App.race.player] === k) playerFeedback(k);
+  const r = App.race, me = r && r.player >= 0 ? r.karts[r.player] : null;
+  if (me === k) playerFeedback(k);
+  else if (me) for (const e of k.events) rivalEvent(me, k, e, r.time);
 }
 
 function stepOnce() {
@@ -596,6 +608,7 @@ function stepOnce() {
   // HUD call-outs and camera shake from sim events; effects get every kart's events for this frame
   for (const kk of r.karts) for (const e of kk.events) App.frameEvents.push({ k: kk, e });
   const me = r.player >= 0 ? r.karts[r.player] : null;
+  if (me) for (const kk of r.karts) if (kk !== me) for (const e of kk.events) rivalEvent(me, kk, e, r.time); // the other tubs are heard too
   // countdown beeps
   const tPrev = r.time - DT;
   if (r.phase === 'countdown' || (r.phase === 'race' && r.time < DT * 1.5)) {
@@ -664,11 +677,12 @@ function frameStep(t) {
     }
     const alpha = App.paused || App.testPaused ? 1 : App.acc / DT;
     drawRace(r, alpha, dt);
-    tubLoop(r.player >= 0 ? r.karts[r.player] : null, dt, !App.paused && !App.testPaused && r.phase !== 'done');
+    audioFrame(r, dt, !App.paused && !App.testPaused);
     const down = App.governor.frame(dt, !App.paused && !App.testPaused);
     if (down) { App.tier = down; if (App.renderer.ssao) { App.renderer.ssao.dispose(); App.renderer.ssao = null; } if (down === 'low' && App.shadow) App.shadow.setEnabled(false); const env = App.track.json.env || {}; App.renderer.setEnv({ ...env, fog: env.fog ? [Math.min(env.fog[0], TIERS[down].fogFar * 0.4), Math.min(env.fog[1], TIERS[down].fogFar)] : undefined }); }
   } else {
     tubLoop(null, dt, false);
+    rivalLoop(null, [], false, dt);
     drawAttract(dt);
   }
   // the shadow map follows the action: a little ahead of the chased tub, or ahead of the attract camera

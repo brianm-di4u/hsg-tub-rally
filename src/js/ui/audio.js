@@ -48,9 +48,9 @@ function bindBuses(b) { rev = b.rev; comp = b.comp; master = b.master; sfxBus = 
 // Run fn with the module's audio graph pointed at another context (an offline one), then restore the live one.
 // Everything inside fn is synchronous, so the live timers cannot interleave.
 function withContext(c, vol, fn) {
-  const saved = { slide, rumble, ctx, rev, comp, master, sfxBus, musicBus, musicLP, noiseBuf };
-  ctx = c; slide = null; rumble = null; bindBuses(makeBuses(c, vol, false));
-  try { return fn(); } finally { ({ slide, rumble, ctx, rev, comp, master, sfxBus, musicBus, musicLP, noiseBuf } = saved); }
+  const saved = { rivalVoices, slide, rumble, ctx, rev, comp, master, sfxBus, musicBus, musicLP, noiseBuf };
+  ctx = c; slide = null; rumble = null; rivalVoices = null; bindBuses(makeBuses(c, vol, false));
+  try { return fn(); } finally { ({ rivalVoices, slide, rumble, ctx, rev, comp, master, sfxBus, musicBus, musicLP, noiseBuf } = saved); }
 }
 
 export function initAudio(settings) {
@@ -105,7 +105,7 @@ export function resumeAudio() {
   if (ctx.state !== 'running') ctx.resume().catch(() => {});
 }
 export function audioState() {
-  return { started: state.started, on: state.on, music: state.music, muffled: state.muffle, theme: state.theme, ctx: ctx ? ctx.state : 'none', ducks: state.ducks, slide: { ...slideInfo }, cues: state.cues.slice(),
+  return { started: state.started, on: state.on, music: state.music, muffled: state.muffle, theme: state.theme, ctx: ctx ? ctx.state : 'none', ducks: state.ducks, rivals: { ...rivalInfo, voices: rivalInfo.voices.slice() }, slide: { ...slideInfo }, cues: state.cues.slice(),
     mix: ctx ? { master: +master.gain.value.toFixed(3), sfx: sfxBus.gain.value, musicLP: Math.round(musicLP.frequency.value), limiter: { threshold: comp.threshold.value, ratio: comp.ratio.value } } : null };
 }
 
@@ -211,7 +211,9 @@ export const SFX = {
   // a rival goes by: a band of air sweeping up
   swish() { noise(0.38, { vol: 0.14, freq: 500, q: 0.9, sweep: 5 }); noise(0.3, { vol: 0.06, type: 'highpass', freq: 3000, at: 0.05 }); },
 };
-function playCue(name, ...a) { cueG = CUE_TRIM[name] ?? 1; try { SFX[name](...a); } finally { cueG = 1; cuePan = 0; } }
+// pos: { pan, gain } puts the cue somewhere in the stereo field and quieter (a rival's cue); null for the player's own.
+function playCue(name, pos, ...a) { cueG = (CUE_TRIM[name] ?? 1) * (pos ? pos.gain : 1); cuePan = pos ? pos.pan : 0; try { SFX[name](...a); } finally { cueG = 1; cuePan = 0; } }
+function logCue(name, pos, a) { state.cues.push(name + (a.length && a[0] !== undefined ? ':' + a.map(String).join(',') : '') + (pos ? '@' + pos.pan.toFixed(2) + '*' + pos.gain.toFixed(2) : '')); if (state.cues.length > 24) state.cues.shift(); }
 // Dip the music under a big cue: DUCK_DB for about DUCK_MS, then back to its own level.
 function duckMusic() {
   const t = ctx.currentTime, lvl = musicLevel();
@@ -221,8 +223,7 @@ function duckMusic() {
 }
 export function sfx(name, ...a) {
   if (!ctx || !state.on || !SFX[name]) return;
-  playCue(name, ...a);
-  state.cues.push(a.length && a[0] !== undefined ? name + ":" + a.map(String).join(",") : name); if (state.cues.length > 24) state.cues.shift();
+  playCue(name, null, ...a); logCue(name, null, a);
   if (DUCKS[name] && state.music) { duckMusic(); state.ducks++; }
 }
 
@@ -264,6 +265,89 @@ export function tubLoop(k, dt, active) {
   if (footT <= 0) { footT = Math.max(0.07, 0.34 - v * 0.012); noise(0.035, { vol: 0.05, freq: 500 + Math.random() * 300, q: 1.5 }); }
   if (k.water.spillFx > 0.25 && Math.random() < 0.06) sfx('splash');
 }
+
+// ---- rivals: the seven other tubs are heard where they are ----
+// A pool of three feet-and-water voices follows the nearest rivals inside RIVAL_RANGE: quieter with distance,
+// panned to the side of the screen they are on, pulsing faster when they are quicker. Their item hits, bumps and
+// falls play as the ordinary cues, quieter and panned. A rival going by within 4 m gets a swish.
+const RIVAL_VOICES = 3, RIVAL_RANGE = 25, EVENT_RANGE = 30; // m
+const RIVAL_LEVEL = 0.16;     // voice level at 0 m and full speed (output peak is measured by audioRender)
+const RIVAL_CUE_GAIN = 0.8;   // a rival's cue at 0 m, against the same cue for the player
+const MAX_PAN = 0.7;
+const falloff = (dist, range) => Math.pow(clamp01(1 - dist / range), 1.5);
+let rivalVoices = null, listener = { rx: 1, rz: 0 };
+const rivalInfo = { voices: [], passes: 0 }, lastRel = new Map(), lastPass = new Map();
+export const USE_CUE = { duck: 'quack', towel: 'snap', blaster: 'splash', hose: 'splash', jet: 'steam', jet3: 'steam', bubble: 'pickup' };
+const RIVAL_CUE = { wall: 'bump', bump: 'bump', fumble: 'hit', pickup: 'pickup', boost: 'boost', fall: 'splash' };
+// where the camera's right-hand side points on the ground, set every frame
+export function setListener(rx, rz) { const n = Math.hypot(rx, rz) || 1; listener = { rx: rx / n, rz: rz / n }; }
+function spatial(me, k, range) {
+  const dx = k.x - me.x, dz = k.z - me.z, dist = Math.hypot(dx, dz);
+  return { dx, dz, dist, pan: dist < 0.01 ? 0 : Math.max(-MAX_PAN, Math.min(MAX_PAN, MAX_PAN * ((dx * listener.rx + dz * listener.rz) / dist))), gain: falloff(dist, range) };
+}
+function makeRivalVoices() {
+  return Array.from({ length: RIVAL_VOICES }, () => {
+    const n = ctx.createBufferSource(), f = ctx.createBiquadFilter(), amp = ctx.createGain(), lfo = ctx.createOscillator(), lg = ctx.createGain(), pan = ctx.createStereoPanner();
+    n.buffer = noiseBuf; n.loop = true; f.type = 'lowpass'; f.frequency.value = 520; f.Q.value = 0.9; amp.gain.value = 0; lfo.frequency.value = 4; lg.gain.value = 0;
+    n.connect(f); f.connect(amp); lfo.connect(lg); lg.connect(amp.gain); amp.connect(pan); pan.connect(sfxBus); n.start(0, Math.random()); lfo.start();
+    return { id: -1, amp, lfo, lg, pan, hz: 0 };
+  });
+}
+// list: [{ id, dist, pan, speed }] nearest first. Each voice keeps following the rival it started with.
+function rivalUpdate(list, when, record) {
+  if (!rivalVoices) rivalVoices = makeRivalVoices();
+  const take = list.slice(0, RIVAL_VOICES), free = rivalVoices.filter((v) => !take.some((r) => r.id === v.id));
+  for (const v of rivalVoices) if (!take.some((r) => r.id === v.id)) v.id = -1;
+  for (const r of take) { let v = rivalVoices.find((x) => x.id === r.id); if (!v) { v = free.shift(); v.id = r.id; v.pan.pan.setValueAtTime(r.pan, when); } r.v = v; }
+  for (const v of rivalVoices) {
+    const r = take.find((x) => x.v === v), g = r ? RIVAL_LEVEL * falloff(r.dist, RIVAL_RANGE) * clamp01(r.speed / 16) : 0;
+    v.amp.gain.setTargetAtTime(g, when, 0.08); v.lg.gain.setTargetAtTime(g * 0.8, when, 0.08);
+    if (r) { v.lfo.frequency.setTargetAtTime(2.5 + r.speed * 0.28, when, 0.15); v.pan.pan.setTargetAtTime(r.pan, when, 0.08); }
+    v.g = g; v.p = r ? r.pan : 0;
+  }
+  if (record) rivalInfo.voices = rivalVoices.filter((v) => v.id >= 0).map((v) => ({ id: v.id, pan: +v.p.toFixed(3), gain: +v.g.toFixed(4) }));
+}
+// every frame of a race: rivals = all karts; `me` is the player's tub, or null when nothing should be heard
+export function rivalLoop(me, karts, active, dt) {
+  if (!ctx || !state.on || (!rivalVoices && !(active && me))) return;
+  const list = [];
+  if (active && me) {
+    const fx = Math.sin(me.yaw), fz = Math.cos(me.yaw);
+    for (const k of karts) {
+      if (k === me) continue;
+      const sp = spatial(me, k, RIVAL_RANGE), rel = sp.dx * fx + sp.dz * fz, prev = lastRel.get(k.id);
+      lastRel.set(k.id, rel);
+      if (sp.dist < RIVAL_RANGE) list.push({ id: k.id, dist: sp.dist, pan: sp.pan, speed: Math.abs(k.vf) });
+      // passing: it crossed the player's side-line within 4 m, fast enough to be a pass and not a wobble
+      if (prev !== undefined && sp.dist < 4 && Math.sign(prev) !== Math.sign(rel) && Math.abs(rel - prev) / Math.max(dt, 1e-3) >= 1.5 && (rivalPassT - (lastPass.get(k.id) ?? -9)) > 1.2) {
+        lastPass.set(k.id, rivalPassT); rivalInfo.passes++;
+        const pos = { pan: sp.pan, gain: prev < rel ? 1 : 0.7 }; // 1: it overtook the player; 0.7: the player overtook it
+        playCue('swish', pos); logCue('swish', pos, []);
+      }
+    }
+    list.sort((a, b) => a.dist - b.dist);
+  }
+  else lastRel.clear();
+  rivalPassT += dt;
+  rivalUpdate(list, ctx.currentTime, true);
+}
+let rivalPassT = 0;
+// a rival's sim event: heard if it is close enough, from its side, never twice for the same bump
+export function rivalEvent(me, k, e, time) {
+  if (!ctx || !state.on) return;
+  const name = e.type === 'use' ? USE_CUE[e.item] : RIVAL_CUE[e.type];
+  if (!name || (e.type === 'wall' && !(e.v > 4))) return;
+  const sp = spatial(me, k, EVENT_RANGE), near = { pickup: 14, boost: 22 }[e.type] ?? EVENT_RANGE;
+  if (sp.gain < 0.05 || sp.dist > near) return;
+  if (e.type === 'bump') { // the player's own bump already sounds; both karts of a pair report it
+    if (sp.dist < 3 || (lastRivalBump && time - lastRivalBump.t < 0.15 && Math.hypot(k.x - lastRivalBump.x, k.z - lastRivalBump.z) < 4)) return;
+    lastRivalBump = { t: time, x: k.x, z: k.z };
+  }
+  const a = e.type === 'wall' || e.type === 'bump' ? [e.v] : e.type === 'boost' ? [e.kind] : [];
+  const pos = { pan: sp.pan, gain: sp.gain * RIVAL_CUE_GAIN };
+  playCue(name, pos, ...a); logCue(name, pos, a);
+}
+let lastRivalBump = null;
 
 // ---- music: tiny step sequencer (16th notes), original loops ----
 const N = (s) => s.split(' ').map((t) => (t === '.' ? 0 : t === '-' ? -1 : noteHz(t)));
@@ -317,20 +401,20 @@ export function stopTheme() { if (state.timer) clearInterval(state.timer); state
 // ---- test hooks: render a piece or a cue by itself, faster than real time, and measure it ----
 // Never touches the live context or the settings: it builds the same bus tree on an OfflineAudioContext.
 // peak, rms: linear 0..1 (peakDb, rmsDb in dBFS). longestSilence: seconds in a row below -60 dBFS. stereo: side
-// level over mid level. secs: RMS of each second. wav: base64 16-bit WAV when asked. (After hsg audio kit.)
+// level over mid level. balance: -1 all left to +1 all right. secs: RMS of each second. wav: base64 16-bit WAV when asked. (After hsg audio kit.)
 async function measureAudio(build, seconds, o = {}) {
   const rate = o.rate || 22050, OC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
   const oc = new OC(2, Math.ceil(rate * seconds), rate), made = build(oc, oc.destination);
   const buf = await oc.startRendering(), L = buf.getChannelData(0), R = buf.getChannelData(1), n = L.length;
-  let peak = 0, peakAt = 0, mid = 0, side = 0, run = 0, longest = 0; const secs = [];
+  let peak = 0, peakAt = 0, eL = 0, eR = 0, mid = 0, side = 0, run = 0, longest = 0; const secs = [];
   for (let s = 0; s * rate < n; s++) {
     const end = Math.min(n, (s + 1) * rate); let e = 0;
-    for (let i = s * rate; i < end; i++) { const a = (L[i] + R[i]) / 2, d = (L[i] - R[i]) / 2, p = Math.max(Math.abs(L[i]), Math.abs(R[i])); if (p > peak) { peak = p; peakAt = i; } e += a * a; side += d * d; }
+    for (let i = s * rate; i < end; i++) { const a = (L[i] + R[i]) / 2, d = (L[i] - R[i]) / 2, p = Math.max(Math.abs(L[i]), Math.abs(R[i])); if (p > peak) { peak = p; peakAt = i; } e += a * a; side += d * d; eL += L[i] * L[i]; eR += R[i] * R[i]; }
     mid += e; const r = Math.sqrt(e / (end - s * rate)); secs.push(+r.toFixed(5));
     if (r < 0.001) { run++; longest = Math.max(longest, run); } else run = 0;
   }
   const rms = Math.sqrt(mid / n), db = (x) => +(20 * Math.log10(Math.max(x, 1e-9))).toFixed(1);
-  const res = { seconds, peakAt: +(peakAt / rate).toFixed(3), peak: +peak.toFixed(4), rms: +rms.toFixed(4), peakDb: db(peak), rmsDb: db(rms), longestSilence: longest, stereo: +(Math.sqrt(side / n) / (rms || 1)).toFixed(3), secs, built: typeof made === 'function' ? made() : made };
+  const res = { seconds, peakAt: +(peakAt / rate).toFixed(3), peak: +peak.toFixed(4), rms: +rms.toFixed(4), peakDb: db(peak), rmsDb: db(rms), longestSilence: longest, stereo: +(Math.sqrt(side / n) / (rms || 1)).toFixed(3), balance: +((Math.sqrt(eR) - Math.sqrt(eL)) / (Math.sqrt(eL) + Math.sqrt(eR) || 1)).toFixed(3), secs, built: typeof made === 'function' ? made() : made };
   if (o.wav) {
     const bytes = new Uint8Array(44 + n * 4), v = new DataView(bytes.buffer), str = (at, t) => { for (let i = 0; i < t.length; i++) bytes[at + i] = t.charCodeAt(i); };
     str(0, 'RIFF'); v.setUint32(4, 36 + n * 4, true); str(8, 'WAVEfmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 2, true); v.setUint32(24, rate, true); v.setUint32(28, rate * 4, true); v.setUint16(32, 4, true); v.setUint16(34, 16, true); str(36, 'data'); v.setUint32(40, n * 4, true);
@@ -343,15 +427,19 @@ export function audioList() { return { music: musicNames(), ambience: [], cues: 
 // name: a music piece ('rag'), or 'cue:<name>' (args for the cue in `args`).
 export function audioRender(name, seconds = 10, wantWav = false, args = []) {
   const build = (oc) => withContext(oc, SHIP_VOL, () => {
-    if (name.startsWith('cue:')) { playCue(name.slice(4), ...args); return null; }
+    if (name.startsWith('cue:')) { const [c, pan] = name.slice(4).split('@'); playCue(c, pan ? { pan: +pan, gain: 1 } : null, ...args); return null; } // 'cue:swish@-0.7' is panned left
     if (name === 'loop:slide') { // a slide held for the whole render: the charge climbs from 0 to just past Hot
       const track = [];
       for (let t = 0; t < seconds; t += 0.05) { const k = { drift: 1, state: 'run', air: false, vf: 15, charge: (t / seconds) * HOT_T * 1.05 }; slideUpdate(k, true, t, false); track.push([+t.toFixed(2), +(k.charge / HOT_T).toFixed(3), Math.round(SLIDE_HZ * 2 ** (SLIDE_OCT * clamp01(k.charge / HOT_T)))]); }
       return { track };
     }
+    if (name.startsWith('loop:rivals:')) { // one rival held at a pan and a distance, running: 'loop:rivals:-0.7:8'
+      const [, , pan, dist] = name.split(':'); rivalUpdate([{ id: 1, dist: +dist, pan: +pan, speed: 18 }], 0, false);
+      return null;
+    }
     if (name.startsWith('mix:')) { // the busiest moment: a tune with the loudest cues stacked on it
       const L = LOOPS[name.slice(4)]; pumpMusic(L, { step: 0, nextT: 0.1 }, seconds + 0.2);
-      for (const [c, t] of [['finish', 2], ['hit', 2.3], ['go', 2.4], ['boost', 2.5], ['bump', 2.6], ['pickup', 2.7]]) { cueAt = t; try { playCue(c); } finally { cueAt = 0; } }
+      for (const [c, t] of [['finish', 2], ['hit', 2.3], ['go', 2.4], ['boost', 2.5], ['bump', 2.6], ['pickup', 2.7]]) { cueAt = t; try { playCue(c, null); } finally { cueAt = 0; } }
       return null;
     }
     const L = LOOPS[name]; if (!L) throw new Error('no such piece: ' + name);

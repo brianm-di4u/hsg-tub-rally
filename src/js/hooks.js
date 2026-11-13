@@ -70,7 +70,16 @@ export function installHooks(App, api) {
       switch (name) {
         case 'input': App.held = args[0] || null; return true; // held player input for following steps
         case 'hit': if (k) { const ok = fumble(k, r.rng.items, args[0] ?? 3); api.kartEvents(k); return ok; } return false;
-        case 'event': if (k) { k.events.push({ ...args[0] }); api.kartEvents(k); return true; } return false; // hand the player a sim event (wall, land, charge...) as a step would
+        case 'event': { // hand a kart (the player's by default) a sim event (wall, land, charge...) as a step would
+          const t = args[1] != null && r ? r.karts[args[1]] : k;
+          if (t) { const ev = { ...args[0] }; t.events.push(ev); api.kartEvents(t); t.events.splice(t.events.indexOf(ev), 1); return true; }
+          return false;
+        }
+        case 'audioFrame': if (r) { api.audioFrame(r, args[0] || 1 / 60, true); return true; } return false; // run one frame of race sound as if the race were live
+        case 'ndc': { // where a kart is on screen: x -1 (left) to 1 (right)
+          const t = r && r.karts[args[0]]; if (!t) return null;
+          const v = new window.THREE.Vector3(t.x, t.y + 0.5, t.z).project(App.renderer.camera); return { x: +v.x.toFixed(3), y: +v.y.toFixed(3), z: +v.z.toFixed(3) };
+        }
         case 'water': if (k) { k.water.gal = Math.max(0, Math.min(k.water.cap, args[0])); return true; } return false;
         case 'teleport': if (k) { teleport(App, k, args[0], args[1] ?? 0); return true; } return false;
         case 'skipCountdown': if (r && r.phase === 'countdown') { r.time = -DT; api.stepOnce(); } return summary();
