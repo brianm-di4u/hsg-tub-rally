@@ -95,6 +95,9 @@ async function boot() {
   initTouch($('#touch-steer'), { push: $('#t-push'), brake: $('#t-brake'), hop: $('#t-hop'), item: $('#t-item') });
   $('#t-pause').addEventListener('click', () => togglePause(true));
   window.addEventListener('resize', () => App.renderer.resize());
+  // three.js re-creates its own resources after a lost context; the app tells the player and refits its render targets
+  $('#gl').addEventListener('webglcontextlost', (e) => { e.preventDefault(); App.glLost = true; showGlNotice('Graphics were interrupted. Waiting for the browser to restore them...'); });
+  $('#gl').addEventListener('webglcontextrestored', () => { App.glLost = false; App.renderer.resize(true); showGlNotice(''); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) onAway(); else onBack(); });
   window.addEventListener('pagehide', onAway);
   window.addEventListener('pageshow', onBack);
@@ -107,6 +110,12 @@ async function boot() {
   App.loading--;
   App.ready = true;
   requestAnimationFrame(frame);
+}
+
+function showGlNotice(text) {
+  const el = $('#boot-error');
+  if (!el) return;
+  el.textContent = text; el.hidden = !text;
 }
 
 // What the player is told when progress cannot be kept, by cause.
@@ -614,8 +623,17 @@ function stepOnce() {
   if (r.phase !== 'done') App._resultsShown = false;
 }
 
+// One exception in a frame must not freeze the picture: report it (once per message), then still draw.
+let lastFrameError = '';
 function frame(t) {
   requestAnimationFrame(frame);
+  try { frameStep(t); } catch (e) {
+    if (String(e) !== lastFrameError) { lastFrameError = String(e); console.error(e); }
+    try { if (!App.glLost) App.renderer.render(App.time); } catch (e2) { /* the next frame tries again */ }
+  }
+}
+
+function frameStep(t) {
   const t0 = performance.now();
   const now = t / 1000;
   let dt = App.last ? now - App.last : 0;
