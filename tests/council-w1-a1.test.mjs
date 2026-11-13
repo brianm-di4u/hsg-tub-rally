@@ -92,4 +92,26 @@ export const tests = [
       t.equal((await t.state()).audio.ctx, 'running', 'AudioContext running again when visible');
     },
   },
+  {
+    name: 'council A1 S5-14: the music is muffled under the pause menu and restored on resume',
+    viewports: ['desktop'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.page.keyboard.press('Shift');
+      await t.game('newGame', {});
+      await t.game('act', 'skipCountdown');
+      await t.waitFrames(3);
+      t.equal((await t.state()).audio.muffled, false, 'not muffled while racing');
+      await t.page.keyboard.press('Escape');
+      await t.waitFrames(3);
+      let s = await t.state();
+      t.expect(s.paused, 'paused');
+      t.equal(s.audio.muffled, true, 'music muffled under the pause menu');
+      await t.page.keyboard.press('Escape');
+      await t.waitFrames(3);
+      s = await t.state();
+      t.expect(!s.paused, 'resumed');
+      t.equal(s.audio.muffled, false, 'music back to normal after resume');
+    },
+  },
 ];

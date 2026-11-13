@@ -29,7 +29,7 @@ import { initInput, initTouch, pollGamepads, readIntent, consumeMenu, consumePau
 import { Hud } from './ui/hud.js';
 import { Screens } from './ui/screens.js';
 import { loadSave, writeSave } from './save.js';
-import { initAudio, setAudio, sfx, tubLoop, playTheme, audioState, suspendAudio, resumeAudio } from './ui/audio.js';
+import { initAudio, setAudio, sfx, tubLoop, playTheme, audioState, setMuffle, suspendAudio, resumeAudio } from './ui/audio.js';
 import { installHooks } from './hooks.js';
 
 export const App = {
@@ -581,6 +581,7 @@ function frame(t) {
   // moving the frozen clock forward hands exactly that step to one frame (motion strips)
   if (App.clock != null) { dt = Math.min(0.25, Math.max(0, App.clock - App.time)); App.time = App.clock; } else App.time += dt;
   pollGamepads();
+  setMuffle(!!App.paused && App.scene === 'race');
   const m = consumeMenu();
   if (consumePause() && App.scene === 'race') togglePause();
   if (App.screens.cur) App.screens.nav(m);

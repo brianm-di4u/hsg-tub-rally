@@ -4,8 +4,11 @@
 // Music: original short loops on a tiny step sequencer (ragtime downtown, bluegrass in the mountains, a march for
 // Rules of the Row and the Water Fight).
 
-let ctx = null, master = null, sfxBus = null, musicBus = null, noiseBuf = null;
-const state = { on: true, music: true, vol: 0.6, started: false, theme: null, step: 0, nextT: 0, timer: null };
+let ctx = null, master = null, sfxBus = null, musicBus = null, musicLP = null, noiseBuf = null;
+const state = { on: true, music: true, vol: 0.6, started: false, theme: null, muffle: false, step: 0, nextT: 0, timer: null };
+
+const MUFFLE_HZ = 900, OPEN_HZ = 22000;
+const musicLevel = () => (state.music ? 0.32 * (state.muffle ? 0.4 : 1) : 0);
 
 export function initAudio(settings) {
   state.on = settings.sound !== false; state.music = settings.music !== false; state.vol = settings.volume ?? 0.6;
@@ -26,7 +29,8 @@ function unlock() {
     ctx = new AC();
     master = ctx.createGain(); master.gain.value = state.on ? state.vol * 0.5 : 0; master.connect(ctx.destination);
     sfxBus = ctx.createGain(); sfxBus.gain.value = 0.9; sfxBus.connect(master);
-    musicBus = ctx.createGain(); musicBus.gain.value = state.music ? 0.32 : 0; musicBus.connect(master);
+    musicLP = ctx.createBiquadFilter(); musicLP.type = 'lowpass'; musicLP.frequency.value = state.muffle ? MUFFLE_HZ : OPEN_HZ; musicLP.connect(master);
+    musicBus = ctx.createGain(); musicBus.gain.value = musicLevel(); musicBus.connect(musicLP);
     noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
     const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     state.started = true;
@@ -39,7 +43,15 @@ export function setAudio(settings) {
   state.on = settings.sound !== false; state.music = settings.music !== false; state.vol = settings.volume ?? state.vol;
   if (!ctx) return;
   master.gain.setTargetAtTime(state.on ? state.vol * 0.5 : 0, ctx.currentTime, 0.05);
-  musicBus.gain.setTargetAtTime(state.music ? 0.32 : 0, ctx.currentTime, 0.05);
+  musicBus.gain.setTargetAtTime(musicLevel(), ctx.currentTime, 0.05);
+}
+// Under the pause menu the tune drops to 40% and is low-passed, so it sits behind the menu instead of competing with it.
+export function setMuffle(on) {
+  if (state.muffle === on) return;
+  state.muffle = on;
+  if (!ctx) return;
+  musicBus.gain.setTargetAtTime(musicLevel(), ctx.currentTime, 0.08);
+  musicLP.frequency.setTargetAtTime(on ? MUFFLE_HZ : OPEN_HZ, ctx.currentTime, 0.08);
 }
 // Page hidden: stop the clock so the rumble drone and the music scheduler do not run on in the background.
 export function suspendAudio() { if (ctx && ctx.state === 'running') ctx.suspend().catch(() => {}); }
@@ -48,7 +60,7 @@ export function resumeAudio() {
   if (state.nextT < ctx.currentTime) state.nextT = ctx.currentTime + 0.1;
   if (ctx.state !== 'running') ctx.resume().catch(() => {});
 }
-export function audioState() { return { started: state.started, on: state.on, music: state.music, theme: state.theme, ctx: ctx ? ctx.state : 'none' }; }
+export function audioState() { return { started: state.started, on: state.on, music: state.music, muffled: state.muffle, theme: state.theme, ctx: ctx ? ctx.state : 'none' }; }
 
 function tone(freq, dur, { type = 'square', vol = 0.2, at = 0, slide = 0, attack = 0.005, bus = sfxBus, filter = 0 } = {}) {
   if (!ctx) return;
