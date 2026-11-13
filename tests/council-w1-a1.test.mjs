@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { Track } from '../src/js/sim/track.js';
+import { createSaveWriter, DEFAULT_SAVE } from '../src/js/save.js';
 import { makeKart, stepKart, fumble } from '../src/js/sim/kart.js';
 
 const DT = 1 / 60;
@@ -124,6 +125,61 @@ export const tests = [
       t.equal(s.render.tier, 'low', 'phone starts on the Low tier');
       t.equal(s.render.mode, 'native', 'native resolution');
       t.expect(s.render.w >= css.w && s.render.h >= css.h, 'backing store ' + s.render.w + 'x' + s.render.h + ' covers the ' + css.w + 'x' + css.h + ' CSS canvas');
+    },
+  },
+  {
+    name: 'council A1 S6-01: reset keeps a copy of the unreadable save and lets saving resume',
+    node: true,
+    run() {
+      for (const bad of ['{bad', 'null', '{"v":2}', '{"v":1,"best":[]}']) {
+        const box = { raw: bad, copy: null };
+        const w = createSaveWriter({ read: () => box.raw, write: (r) => { box.raw = r; }, backup: (r) => { box.copy = r; } });
+        const save = w.load();
+        const before = w.commit(save, { settings: { sound: false } });
+        assert.equal(before.stored, false, bad + ': unreadable save is not overwritten by ordinary commits');
+        assert.equal(before.problem, 'damaged');
+        assert.equal(box.raw, bad);
+        const r = w.reset(save);
+        assert.equal(r.stored, true, bad + ': reset stores a fresh save');
+        assert.equal(box.copy, bad, 'the damaged bytes are kept');
+        const stored = JSON.parse(box.raw);
+        assert.equal(stored.v, 1);
+        assert.equal(stored.settings.sound, false, 'the pending change is kept');
+        assert.equal(w.commit(save, { settings: { music: false } }).stored, true, 'later changes save');
+        assert.deepEqual(Object.keys(stored.unlocked), Object.keys(DEFAULT_SAVE().unlocked));
+      }
+    },
+  },
+  {
+    name: 'council A1 S6-01: blocked storage reports its cause and reset does not touch it',
+    node: true,
+    run() {
+      let blocked = true, writes = 0;
+      const w = createSaveWriter({ read: () => { if (blocked) throw Error('blocked'); return null; }, write: () => { writes++; }, backup: () => { writes++; } });
+      const save = w.load();
+      const r = w.reset(save);
+      assert.equal(r.stored, false); assert.equal(r.problem, 'blocked'); assert.equal(writes, 0);
+    },
+  },
+  {
+    name: 'council A1 S6-01: a damaged save can be reset from the warning in the game',
+    viewports: ['desktop'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.page.evaluate(() => localStorage.setItem('hsg-tub-rally-v1', '{"v":1,"settings":{'));
+      await t.reload();
+      await t.waitIdle(8000);
+      await t.game('scene', 'settings');
+      await t.page.locator('[data-act="set"][data-k="sound"][data-v="false"]').click();
+      await t.waitFrames(3);
+      t.equal(await t.page.evaluate(() => localStorage.getItem('hsg-tub-rally-v1')), '{"v":1,"settings":{', 'damaged value untouched by ordinary changes');
+      await t.page.locator('[data-save-status] button').click();
+      await t.waitFrames(3);
+      const stored = await t.page.evaluate(() => JSON.parse(localStorage.getItem('hsg-tub-rally-v1')));
+      t.equal(stored.v, 1, 'fresh save written');
+      t.equal(stored.settings.sound, false, 'the change made in this session is kept');
+      t.equal(await t.page.evaluate(() => localStorage.getItem('hsg-tub-rally-v1-corrupt')), '{"v":1,"settings":{', 'damaged copy kept');
+      t.equal(await t.page.locator('[data-save-status]').count(), 0, 'warning gone');
     },
   },
 ];

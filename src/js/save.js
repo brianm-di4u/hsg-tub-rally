@@ -48,13 +48,17 @@ function projection(raw) {
 export function createSaveWriter({
   read = () => window.localStorage.getItem(KEY),
   write = (raw) => window.localStorage.setItem(KEY, raw),
+  backup = (raw) => window.localStorage.setItem(KEY + '-corrupt', raw),
 } = {}) {
   let memory = null;
   let settings = {}, selection = {}, races = 0, wins = 0, runs = new Map(), cups = [];
   const raceSeen = new WeakMap(), cupSeen = new WeakMap();
+  let problem = null; // why the last read failed: 'blocked' (storage unavailable) or 'damaged' (unreadable value)
   const current = () => {
-    try { return { readable: true, save: projection(read()) }; }
-    catch (e) { return { readable: false, save: null }; }
+    let raw;
+    try { raw = read(); } catch (e) { problem = 'blocked'; return { readable: false, save: null }; }
+    try { const save = projection(raw); problem = null; return { readable: true, save }; }
+    catch (e) { problem = 'damaged'; return { readable: false, save: null }; }
   };
   const sync = (target, value) => {
     // Screens holds the outer save object: adopt fresh data without replacing that alias.
@@ -150,13 +154,25 @@ export function createSaveWriter({
       if (fresh.readable) {
         try { write(JSON.stringify(value)); stored = true; } catch (e) { /* keep pending changes */ }
       }
-      const result = { stored, readable: fresh.readable, ...(info || {}) };
+      const result = { stored, readable: fresh.readable, problem: fresh.readable ? (stored ? null : 'blocked') : problem, ...(info || {}) };
       if (stored) { memory = copy(value); settings = {}; selection = {}; races = 0; wins = 0; runs = new Map(); cups = []; }
       return result;
     },
+    // Player-chosen recovery: keep a copy of the unreadable value under KEY-corrupt, store a fresh save, then
+    // merge this session's pending changes into it. Never runs on its own.
+    reset(target) {
+      let raw;
+      try { raw = read(); } catch (e) { return this.commit(target); }
+      if (raw !== null) { try { backup(raw); } catch (e) { /* the player asked for a reset: carry on */ } }
+      try { write(JSON.stringify(DEFAULT_SAVE())); } catch (e) { /* commit reports the failure */ }
+      return this.commit(target);
+    },
+    problem: () => problem,
   };
 }
 
 const writer = createSaveWriter();
 export const loadSave = () => writer.load();
 export const writeSave = (save, intent) => writer.commit(save, intent);
+export const resetSave = (save) => writer.reset(save);
+export const saveProblem = () => writer.problem();

@@ -28,7 +28,7 @@ import { TEAMS } from './data/teams.js';
 import { initInput, initTouch, pollGamepads, readIntent, consumeMenu, consumePause, I as INPUT } from './ui/input.js';
 import { Hud } from './ui/hud.js';
 import { Screens } from './ui/screens.js';
-import { loadSave, writeSave } from './save.js';
+import { loadSave, writeSave, resetSave } from './save.js';
 import { initAudio, setAudio, sfx, tubLoop, playTheme, audioState, setMuffle, suspendAudio, resumeAudio } from './ui/audio.js';
 import { installHooks } from './hooks.js';
 
@@ -303,12 +303,13 @@ function builtCourses() {
 // Adopt preferences from the same fresh merge that will be stored. Quality keeps
 // its existing boot/reload semantics; do not rebuild the active race or tier here.
 function persistSave(intent) {
-  const result = writeSave(App.save, intent), s = App.save.settings;
+  const result = intent && intent.reset ? resetSave(App.save) : writeSave(App.save, intent), s = App.save.settings;
   if (App.renderer && App.renderer.mode !== s.res) App.renderer.setMode(s.res);
   INPUT.autoPush = !!s.autoPush;
   const mq = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
   App.reducedMotion = s.reducedMotion ?? !!(mq && mq.matches);
   setAudio(s);
+  App.saveProblem = result.stored ? null : result.problem;
   App.saveError = result.stored ? '' : 'Changes kept in this tab, but not saved. Storage is unavailable or the saved data could not be read.';
   if (App.saveError) App.hud.flash('Changes not saved · kept in this tab', 'bad', 3);
   else {
@@ -324,6 +325,12 @@ function showSaveStatus() {
   const p = document.createElement('p');
   p.className = 'sub'; p.dataset.saveStatus = ''; p.setAttribute('role', 'status');
   p.textContent = App.saveError;
+  if (App.saveProblem === 'damaged') {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'mbtn'; b.textContent = 'Reset saved data';
+    b.addEventListener('click', () => onMenu('resetSave'));
+    p.append(' ', b);
+  }
   (App.screens.root.querySelector('.panel, .title-wrap') || App.screens.root).appendChild(p);
 }
 
@@ -402,6 +409,7 @@ function onMenu(act, data) {
       else { setPreview(null); App.screens.show('title'); }
       break;
     case 'resume': togglePause(false); break;
+    case 'resetSave': persistSave({ reset: true }); break;
     case 'restart': startRace({ ...App.raceOpts, seed: App.raceOpts.seed + 1 }); break;
     case 'quit': App.gp = null; gotoTitle(); break;
     case 'set': {
