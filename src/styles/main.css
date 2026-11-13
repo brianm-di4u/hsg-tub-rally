@@ -447,3 +447,8 @@ body[data-screen="results"] .touch, body[data-screen="standings"] .touch, body[d
 @media (max-height: 500px) and (min-aspect-ratio: 1/1) { .hud-task { top: 100px; } }
 /* review captures freeze the render clock; the HUD's CSS transitions and animations jump to their end state with it */
 body.clock-frozen *, body.clock-frozen *::before, body.clock-frozen *::after { transition: none !important; animation: none !important; }
+
+/* an empty item orb reads as an empty slot, not a dark ball */
+.hud-item:not(.has) .bubble { opacity: 1; background: rgba(16,30,48,0.55); border: 3px dashed rgba(233,251,255,0.7); }
+.hud-item:not(.has) .bubble { position: relative; }
+.hud-item:not(.has) .bubble::after { content: 'ITEM'; position: absolute; inset: 0; display: grid; place-items: center; font: 800 12px/1 var(--font-ui); letter-spacing: 0.06em; color: rgba(233,251,255,0.85); }
