@@ -141,15 +141,17 @@ export function makeBracket(division, human, rng) {
 export function awards(heats, rng) {
   const all = {};
   for (const h of heats) for (const r of h.results) {
-    const a = all[r.team] || (all[r.team] = { team: r.team, best: Infinity, tickets: 0, refilled: 0, human: r.human });
+    const a = all[r.team] || (all[r.team] = { team: r.team, best: Infinity, tickets: 0, refilled: 0, gal: 0, items: 0, heats: 0, human: r.human });
     if (r.time != null && !r.dq) a.best = Math.min(a.best, r.time);
     a.tickets += r.tickets || 0; a.refilled += r.refilled || 0;
+    a.gal += r.gal || 0; a.items += r.items || 0; a.heats++;
   }
+  for (const a of Object.values(all)) { a.gal /= a.heats; a.items /= a.heats; }
   const list = Object.values(all);
   const pick = (f) => list.slice().sort(f)[0]?.team;
   return {
     bestOverall: pick((a, b) => a.best - b.best),
-    mostSpirit: pick((a, b) => b.tickets - a.tickets || a.best - b.best),
+    mostSpirit: pick((a, b) => b.items - a.items || b.gal - a.gal || a.best - b.best), // spirit: every item kept and the most water carried to the line
     mostOriginal: list[rng.int(list.length)]?.team, // the judges' taste is a mystery (rule 13)
     fanAward: pick((a, b) => b.refilled - a.refilled),
   };

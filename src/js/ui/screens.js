@@ -160,7 +160,7 @@ const TEMPLATES = {
           <li>Captain rides and steers; four bath attendants push, each holding a towel, bath mat, soap or loofah mitt.</li>
           <li>Stop at every <b>blue feather flag</b> and do the judges' task.</li>
           <li>Cross the line with <b>10 gallons or more</b> and all four items, or you are <b>disqualified</b>.</li>
-          <li>Bath tickets bribe the judges; they may give a head start on a whim.</li></ul></section>
+          <li>The judges may give one team a head start on a whim.</li></ul></section>
         <section><h3>${DIVISIONS[TEAM_BY_ID[team].div].name} division bracket</h3><ul class="bracket">
           ${bracket.semis.map((p, i) => `<li><b>Semifinal ${i + 1}:</b> ${p.map((t) => TEAM_BY_ID[t].name + (t === team ? ' (you)' : '')).join(' vs ')}</li>`).join('')}
           <li><b>Final:</b> the two heat winners</li></ul>
