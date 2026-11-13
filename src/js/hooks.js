@@ -3,6 +3,7 @@ import { fumble } from './sim/kart.js';
 import { DT } from './sim/race.js';
 import { makeDriver, driveAI } from './sim/ai.js';
 import { makeRng } from './rng.js';
+import { audioList, audioRender } from './ui/audio.js';
 
 export function installHooks(App, api) {
   const summary = () => {
@@ -33,6 +34,8 @@ export function installHooks(App, api) {
   window.__game = {
     seed(n) { App.nextSeed = n; return true; },
     getState: summary,
+    audioList,
+    audioRender,
     setState(s = {}) {
       if (s.settings) Object.assign(App.save.settings, s.settings);
       if (s.res) App.renderer.setMode(s.res);
