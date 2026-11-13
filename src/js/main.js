@@ -28,7 +28,7 @@ import { TEAMS } from './data/teams.js';
 import { initInput, initTouch, pollGamepads, readIntent, consumeMenu, consumePause, I as INPUT } from './ui/input.js';
 import { Hud } from './ui/hud.js';
 import { Screens } from './ui/screens.js';
-import { loadSave, writeSave, resetSave } from './save.js';
+import { loadSave, writeSave, resetSave, saveProblem } from './save.js';
 import { initAudio, setAudio, sfx, tubLoop, playTheme, audioState, setMuffle, suspendAudio, resumeAudio } from './ui/audio.js';
 import { installHooks } from './hooks.js';
 
@@ -55,6 +55,8 @@ export function loadScript(src) {
 
 async function boot() {
   App.save = loadSave();
+  App.saveProblem = saveProblem();
+  App.saveError = saveMessage(App.saveProblem);
   App.loading++;
   await loadScript('vendor/three-r186.min.js');
   await loadScript('assets/pack-core.js');
@@ -105,6 +107,13 @@ async function boot() {
   App.loading--;
   App.ready = true;
   requestAnimationFrame(frame);
+}
+
+// What the player is told when progress cannot be kept, by cause.
+function saveMessage(problem) {
+  if (problem === 'damaged') return 'Your saved data is damaged and cannot be read, so changes are kept in this tab only. Use Reset saved data to start fresh; a copy of the old data is kept.';
+  if (problem) return 'Saving is blocked in this browser, so changes are kept in this tab only. Allow site data for this page (or leave private browsing) and try again.';
+  return '';
 }
 
 function onKey(e) {
@@ -310,7 +319,7 @@ function persistSave(intent) {
   App.reducedMotion = s.reducedMotion ?? !!(mq && mq.matches);
   setAudio(s);
   App.saveProblem = result.stored ? null : result.problem;
-  App.saveError = result.stored ? '' : 'Changes kept in this tab, but not saved. Storage is unavailable or the saved data could not be read.';
+  App.saveError = saveMessage(App.saveProblem);
   if (App.saveError) App.hud.flash('Changes not saved · kept in this tab', 'bad', 3);
   else {
     App.screens.root.querySelector('[data-save-status]')?.remove();

@@ -182,4 +182,33 @@ export const tests = [
       t.equal(await t.page.locator('[data-save-status]').count(), 0, 'warning gone');
     },
   },
+  {
+    name: 'council A1 S6-14: a damaged save is reported at boot, with its own wording and the reset action',
+    viewports: ['desktop'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.page.evaluate(() => localStorage.setItem('hsg-tub-rally-v1', 'null'));
+      await t.reload();
+      await t.waitIdle(8000);
+      await t.waitFrames(3);
+      const text = await t.page.evaluate(() => document.querySelector('[data-save-status]')?.textContent || null);
+      t.expect(text && /damaged/i.test(text), 'warning on the title before any change: ' + text);
+      t.expect(await t.page.locator('[data-save-status] button').count() === 1, 'reset action offered');
+    },
+  },
+  {
+    name: 'council A1 S6-14: blocked storage is reported at boot, with its own wording and no reset action',
+    viewports: ['desktop'],
+    initScript: () => {
+      const get = Storage.prototype.getItem;
+      Storage.prototype.getItem = function (k) { if (k === 'hsg-tub-rally-v1') throw new Error('blocked'); return get.call(this, k); };
+    },
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.waitFrames(3);
+      const text = await t.page.evaluate(() => document.querySelector('[data-save-status]')?.textContent || null);
+      t.expect(text && /blocked/i.test(text), 'blocked wording on the title: ' + text);
+      t.expect(await t.page.locator('[data-save-status] button').count() === 0, 'no reset action for blocked storage');
+    },
+  },
 ];
