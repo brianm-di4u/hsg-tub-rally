@@ -59,6 +59,23 @@ export const tests = [
     },
   },
   {
+    name: 'council B S5-02: with the Volume at its maximum the busiest moment of every tune stays under full scale',
+    viewports: ['desktop'],
+    async run(t) {
+      await t.waitIdle(8000);
+      // Before the soft clip at the end of the chain, these reached 1.00 to 1.09 and clipped.
+      const full = (name, secs, args) => t.page.evaluate(([n, s, a]) => window.__game.audioRender(n, s, false, a, 1), [name, secs, args || []]);
+      const list = await t.game('audioList');
+      for (const m of list.music) {
+        const mix = await full('mix:' + m, 8, [1]);
+        t.expect(mix.peak < 0.95, `${m} with the town crowd and the loudest cues, Volume at maximum, peaks ${mix.peak}`);
+      }
+      const go = await full('cue:go', 3), shipped = await t.page.evaluate(() => window.__game.audioRender('cue:go', 3, false, []));
+      t.expect(go.peak > shipped.peak * 1.3, `the slider still makes a single cue louder: ${shipped.peak} at the shipped volume, ${go.peak} at maximum`);
+      t.expect(go.peak < 0.95, `and a single cue stays under full scale at maximum (${go.peak})`);
+    },
+  },
+  {
     name: 'council B S5-04: every ambience scene sits under the music with no silent stretch, at a still and at a full race',
     viewports: ['desktop'],
     async run(t) {

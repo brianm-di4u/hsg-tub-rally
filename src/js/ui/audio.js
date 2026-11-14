@@ -20,6 +20,12 @@ const AMBIENCE_BUS = 1.0; // the ambience beds are levelled by each scene's trim
 const KIT_SEED = 0x7B1;   // seeds the kit's ambience one-shots; every tune has its own seed in scores.js
 const COMP = { threshold: -14, ratio: 4, knee: 8, attack: 0.004, release: 0.25 }; // limiter between master and speakers (none before)
 const REVERB_WET = 0.7;
+const CLIP_FROM = 0.75, CLIP_TOP = 0.94; // the soft clip: straight up to 0.75, then curving towards 0.94 (0.91 at an input of 1 or more)
+const SOFT_CLIP = (() => {
+  const n = 4097, curve = new Float32Array(n), span = CLIP_TOP - CLIP_FROM;
+  for (let i = 0; i < n; i++) { const x = (i / (n - 1)) * 2 - 1, v = Math.abs(x); curve[i] = Math.sign(x) * (v <= CLIP_FROM ? v : CLIP_FROM + span * Math.tanh((v - CLIP_FROM) / span)); }
+  return curve;
+})();
 const DUCK_DB = 6, DUCK_MS = 300; // music dips this much under the big cues
 // Per-cue output trim, found with audioRender so every gameplay cue peaks 0.25 to 0.45 at the shipped volume.
 const CUE_TRIM = { quack: 3.48, splash: 13.2, steam: 7.8, snap: 4.727, whistle: 2.303, cheer: 7.3, bump: 6.03, pickup: 3.096, ticket: 4.856, boost: 6.7, hit: 4.2, ready: 6.581, go: 4.4, menu: 16.265, lap: 2.55, finish: 2.2, finalLap: 3.66, charge: 8.188, land: 6.03, swish: 10.293 };
@@ -35,7 +41,11 @@ function makeBuses(c, vol) {
   const b = {};
   b.comp = c.createDynamicsCompressor();
   for (const k of Object.keys(COMP)) b.comp[k].value = COMP[k];
-  b.comp.connect(c.destination);
+  // Last in the chain, a soft clip. The compressor evens levels out but is no limiter: with the Volume slider at its
+  // maximum the busiest moments (a tune, the crowd and several cues together) reached 1.09 and clipped. The curve
+  // leaves everything under CLIP_FROM alone and bends what is above it over smoothly, so nothing passes CLIP_TOP.
+  b.clip = c.createWaveShaper(); b.clip.curve = SOFT_CLIP; b.clip.oversample = '4x';
+  b.comp.connect(b.clip); b.clip.connect(c.destination);
   b.master = c.createGain(); b.master.gain.value = vol * MASTER_K; b.master.connect(b.comp);
   b.sfx = c.createGain(); b.sfx.gain.value = SFX_BUS; b.sfx.connect(b.master);
   b.lp = c.createBiquadFilter(); b.lp.type = 'lowpass'; b.lp.frequency.value = OPEN_HZ; b.lp.connect(b.master);
@@ -416,9 +426,10 @@ async function measureAudio(build, seconds, o = {}) {
 export function audioList() { return { music: musicNames(), ambience: Object.keys(SCENES), cues: Object.keys(SFX) }; }
 // name: a music piece ('rag'), an ambience scene ('town'), 'mix:<piece>' or 'cue:<name>' (args for the cue in `args`).
 // For a piece args[0] is the intensity (0 to 1, default 0); for a scene args[0] is the crowd and wind level (default 0.5).
-export function audioRender(name, seconds = 10, wantWav = false, args = []) {
+// `vol` is the Volume setting to render at (the shipped one unless a test asks for another, such as 1 for the maximum).
+export function audioRender(name, seconds = 10, wantWav = false, args = [], vol = SHIP_VOL) {
   const T0 = 0.05, LOUD = [['finish', 2], ['hit', 2.3], ['go', 2.4], ['boost', 2.5], ['bump', 2.6], ['pickup', 2.7]];
-  const build = (oc) => withContext(oc, SHIP_VOL, () => {
+  const build = (oc) => withContext(oc, vol, () => {
     if (name.startsWith('cue:')) { const [c, pan] = name.slice(4).split('@'); playCue(c, pan ? { pan: +pan, gain: 1 } : null, ...args); return null; } // 'cue:swish@-0.7' is panned left
     if (name === 'loop:slide') { // a slide held for the whole render: the charge climbs from 0 to just past Hot
       const track = [];
