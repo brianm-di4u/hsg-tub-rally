@@ -15,10 +15,16 @@ export const DIVISIONS = {
 };
 
 // Speed classes (game difficulty; named for bath temperatures). vTop in m/s for a Stock tub.
+// The classes differ in how the rivals race, not only in how fast the player's tub can go (S3-01):
+//   ai      the rivals' pace against the baked line speed (was 0.92 / 0.97 / 1.0; Soak is unchanged)
+//   spill   how readily the water slops over the rim (1 = Soak); wall: how much a wall hit costs (1 = Soak)
+//   hunt    how much the rivals aim their items at the player: wider range and a surer throw (0 = as today)
+//   unlock  what opens the class; Splash and Soak are open from the start, Boil is new
 export const CLASSES = {
-  splash: { id: 'splash', name: 'Splash', vTop: 17.5, ai: 0.92, rubber: 0.06, noise: 0.9, aggro: 0.35 },
-  soak: { id: 'soak', name: 'Soak', vTop: 19.5, ai: 0.97, rubber: 0.04, noise: 0.55, aggro: 0.6 },
-  scald: { id: 'scald', name: 'Scald', vTop: 21.5, ai: 1.0, rubber: 0.02, noise: 0.3, aggro: 0.85 },
+  splash: { id: 'splash', name: 'Splash', vTop: 17.5, ai: 0.88, rubber: 0.06, noise: 0.9, aggro: 0.35, hunt: 0, spill: 0.9, wall: 0.7 },
+  soak: { id: 'soak', name: 'Soak', vTop: 19.5, ai: 0.97, rubber: 0.04, noise: 0.55, aggro: 0.6, hunt: 0, spill: 1, wall: 1 },
+  scald: { id: 'scald', name: 'Scald', vTop: 21.5, ai: 1.04, rubber: 0.02, noise: 0.3, aggro: 0.85, hunt: 0.5, spill: 1, wall: 1, unlock: 'Win a cup on Soak' },
+  boil: { id: 'boil', name: 'Boil', vTop: 23, ai: 1.08, rubber: 0, noise: 0.2, aggro: 1, hunt: 1, spill: 1.15, wall: 1.1, unlock: 'Win a cup on Scald' },
 };
 
 // Captain names are invented. `perk` nudges one stat a little (never more than 4%).
@@ -78,6 +84,6 @@ export function kartStats(teamId, classId, mods = {}) {
   const p = (k) => (d[k] ?? 1) * (t.perk[k] ?? 1) * (mods[k] ?? 1);
   return {
     team: t.id, div: d.id, tubKg: d.tubKg + 80, capGal: d.capGal,
-    vTop: c.vTop * p('top'), push: p('push'), turn: p('turn'), grip: p('grip'), slosh: p('slosh'), rim: p('rim'),
+    vTop: c.vTop * p('top'), push: p('push'), turn: p('turn'), grip: p('grip'), slosh: p('slosh'), rim: p('rim'), spill: c.spill ?? 1, wall: c.wall ?? 1,
   };
 }

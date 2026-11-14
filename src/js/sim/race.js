@@ -8,6 +8,8 @@ import { MIN_FINISH_GAL } from './water.js';
 import { stepItems, makeItemState } from './items.js';
 
 export const DT = 1 / 60;
+// How much of a class's rival pace (CLASSES.ai against Soak's) also scales the rivals' top speed (S3-01). Soak is exactly 1.
+const AI_CAP_SHARE = 0.6;
 export const COUNTDOWN = 3.2; // seconds: Ready (0..1.1) Set (1.1..2.2) SCRUB! at 3.2? see phaseLabel
 
 export function gridPoses(track, n) {
@@ -102,6 +104,7 @@ export function stepRace(race, track, inputs, dt = DT) {
       const gap = ref - progressOf(track, k);
       const fade = raceFrac > 0.7 ? Math.max(0, 1 - (raceFrac - 0.7) / 0.3) : 1;
       capMul = 1 + Math.max(-1, Math.min(1, gap / 70)) * drv.cls.rubber * fade;
+      capMul *= 1 + AI_CAP_SHARE * (drv.cls.ai / CLASSES.soak.ai - 1); // rivals in a harder class also get a faster top end, not only a faster line
       inp = driveAI(k, drv, track, { capMul, race }, dt);
     }
     inp = inp || { steer: 0, push: 0, brake: false, hop: false };

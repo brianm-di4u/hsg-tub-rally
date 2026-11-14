@@ -210,9 +210,11 @@ function clearKarts() {
   App.views = [];
 }
 
+// The class the player last chose, or Soak when that class is not open to them (a hand-edited save, say).
+const lastClass = () => (CLASSES[App.save.lastClass] && App.save.unlocked.classes.includes(App.save.lastClass) ? App.save.lastClass : 'soak');
 // opts: { track, team, classId, laps, seed, mode, noItems, paused, autoplay }
 export async function startRace(opts = {}) {
-  const o = { track: 'bathhouse-row', team: App.save.lastTeam, classId: App.save.lastClass, laps: 3, seed: (Math.random() * 1e9) | 0, mode: 'quick', ...opts };
+  const o = { track: 'bathhouse-row', team: App.save.lastTeam, classId: lastClass(), laps: 3, seed: (Math.random() * 1e9) | 0, mode: 'quick', ...opts };
   if (window.__TEST__ && opts.seed == null) o.seed = 7;
   App.raceOpts = o;
   setPreview(null);
@@ -377,11 +379,11 @@ function onMenu(act, data) {
   const F = App.flow || (App.flow = {});
   switch (act) {
     case 'battle':
-      App.flow = { mode: 'battle', team: s.lastTeam, classId: s.lastClass };
+      App.flow = { mode: 'battle', team: s.lastTeam, classId: lastClass() };
       showTeams(s.lastTeam);
       break;
     case 'row':
-      App.flow = { mode: 'row', team: s.lastTeam, classId: s.lastClass };
+      App.flow = { mode: 'row', team: s.lastTeam, classId: lastClass() };
       showTeams(s.lastTeam);
       break;
     case 'rowStart': {
@@ -398,7 +400,7 @@ function onMenu(act, data) {
     case 'rowFinal': startRace({ mode: 'row', track: 'bathhouse-row', team: F.team, heatTeams: App.row.bracket.final, label: 'Final', classId: F.classId }); break;
     case 'rowAwards': showRowAwards(); break;
     case 'gp': case 'quick': case 'timetrial':
-      App.flow = { mode: act, team: s.lastTeam, classId: s.lastClass };
+      App.flow = { mode: act, team: s.lastTeam, classId: lastClass() };
       showTeams(s.lastTeam);
       break;
     case 'team': showTeams(data.id); break;
@@ -570,10 +572,10 @@ function showStandings() {
 function showTrophy() {
   const g = App.gp, rows = gpRows(), place = rows.findIndex((r) => r.human) + 1;
   const saved = persistSave({ cup: { token: g, key: g.cup + ':' + App.raceOpts.classId, place,
-    soak: App.raceOpts.classId === 'soak', teamOrder: TEAMS.filter((t) => !t.unlocked).map((t) => t.id) } });
-  const unlockedTeam = saved.unlockedTeam;
+    soak: App.raceOpts.classId === 'soak', scald: App.raceOpts.classId === 'scald', teamOrder: TEAMS.filter((t) => !t.unlocked).map((t) => t.id) } });
+  const unlockedTeam = saved.unlockedTeam, unlockedClass = saved.unlockedClass || null;
   clearCup(); refreshCup();
-  App.screens.show('trophy', { place, cupName: g.name, unlockedTeam });
+  App.screens.show('trophy', { place, cupName: g.name, unlockedTeam, unlockedClass });
   App.gp = null;
 }
 

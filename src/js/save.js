@@ -104,7 +104,7 @@ export function createSaveWriter({
       if (!info) {
         info = { unlockedTeam: null, resolved: false };
         cupSeen.set(c.token, info);
-        cups.push({ key: c.key, place: c.place, won: c.place === 1, soak: c.soak === true, teamOrder: [...c.teamOrder], info });
+        cups.push({ key: c.key, place: c.place, won: c.place === 1, soak: c.soak === true, scald: c.scald === true, teamOrder: [...c.teamOrder], info });
       }
     }
     return info;
@@ -131,6 +131,7 @@ export function createSaveWriter({
       if (resolveAwards && !c.info.resolved) {
         c.info.unlockedTeam = c.won ? c.teamOrder.find((id) => !out.unlocked.teams.includes(id)) || null : null;
         c.info.scald = c.won && c.soak;
+        c.info.boil = c.won && c.scald; // a cup won on Scald opens the new class above it
         c.info.resolved = true;
       }
       // A blocked first read leaves the award intent unresolved, independently
@@ -138,6 +139,7 @@ export function createSaveWriter({
       if (c.info.resolved) {
         if (c.info.unlockedTeam && !out.unlocked.teams.includes(c.info.unlockedTeam)) out.unlocked.teams.push(c.info.unlockedTeam);
         if (c.info.scald && !out.unlocked.classes.includes('scald')) out.unlocked.classes.push('scald');
+        if (c.info.boil && !out.unlocked.classes.includes('boil')) { out.unlocked.classes.push('boil'); c.info.unlockedClass = 'boil'; }
       }
     }
     return out;

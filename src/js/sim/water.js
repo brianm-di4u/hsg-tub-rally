@@ -26,7 +26,7 @@ export function stepWater(w, aF, aR, stats, dt) {
   const tilt = Math.hypot(w.tf, w.tr);
   let spill = 0;
   if (tilt > rim && w.gal > 0) {
-    spill = SPILL_K * (tilt - rim) * (0.35 + 0.65 * fill) * (w.cap / 38) * dt;
+    spill = SPILL_K * (stats.spill ?? 1) * (tilt - rim) * (0.35 + 0.65 * fill) * (w.cap / 38) * dt;
     // the spill itself calms the surface a little
     const k = Math.max(0.6, 1 - 2.2 * dt);
     w.vf *= k; w.vr *= k;

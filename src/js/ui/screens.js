@@ -120,7 +120,7 @@ const TEMPLATES = {
     <div class="panel classes" role="dialog" aria-label="Choose a speed class">
       <canvas data-pixel="WATER TEMPERATURE" data-scale="4"></canvas>
       <p class="sub">Speed class: game difficulty, named for bath temperatures</p>
-      <nav class="menu">${Object.values(CLASSES).map((c, i) => `<button type="button" class="mbtn" data-act="${ok(c.id) ? 'cls' : 'locked'}" data-id="${c.id}" ${i === 1 ? 'autofocus' : ''} ${ok(c.id) ? '' : 'aria-disabled="true"'}>${c.name}${ok(c.id) ? '' : ' (win a cup on Soak)'}</button>`).join('')}${btn('back', 'Back', 'data-back')}</nav>
+      <nav class="menu">${Object.values(CLASSES).map((c, i) => `<button type="button" class="mbtn" data-act="${ok(c.id) ? 'cls' : 'locked'}" data-id="${c.id}" ${i === 1 ? 'autofocus' : ''} ${ok(c.id) ? '' : 'aria-disabled="true"'}>${c.name}${ok(c.id) ? '' : ` (${c.unlock || 'Win a cup'})`}</button>`).join('')}${btn('back', 'Back', 'data-back')}</nav>
     </div>`;
   },
   cups: (app, { built }) => `
@@ -144,11 +144,12 @@ const TEMPLATES = {
       </tbody></table>
       <nav class="menu row">${final ? btn('trophy', 'Trophy ceremony', 'autofocus') : btn('nextRace', 'Next race', 'autofocus')}${btn('quitCup', 'Quit cup')}</nav>
     </div>`,
-  trophy: (app, { place, cupName, unlockedTeam }) => `
+  trophy: (app, { place, cupName, unlockedTeam, unlockedClass }) => `
     <div class="panel trophy" role="dialog" aria-label="Trophy">
       <canvas data-pixel="${place <= 3 ? TROPHY[place - 1].toUpperCase() : 'GOOD EFFORT'}" data-scale="5" data-fill="${place === 1 ? '#FFF6C8,#F2C230' : place === 2 ? '#F4F6FA,#A9B4C2' : '#FFE1C4,#C8783C'}"></canvas>
       <p class="sub">${cupName}: you finished ${place}${['st', 'nd', 'rd'][place - 1] || 'th'} overall.</p>
       ${unlockedTeam ? `<p class="unlock">New team unlocked: <b>${TEAM_BY_ID[unlockedTeam].name}</b></p>` : ''}
+      ${unlockedClass && CLASSES[unlockedClass] ? `<p class="unlock">New speed class unlocked: <b>${CLASSES[unlockedClass].name}</b></p>` : ''}
       <nav class="menu row">${btn('quit', 'Back to title', 'autofocus data-back')}</nav>
     </div>`,
   rowIntro: (app, { team, bracket }) => `

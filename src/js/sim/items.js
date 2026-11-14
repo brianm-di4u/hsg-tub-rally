@@ -272,22 +272,26 @@ function aiItem(race, track, k, drv, dt) {
   drv.itemDelay -= dt;
   if (drv.itemDelay > 0) return { use: false, back: false };
   const aggro = drv.cls.aggro, item = k.held, karts = race.karts;
+  const hunt = drv.cls.hunt || 0; // Scald and Boil rivals aim at the player: a longer reach and a surer throw
+  const reach = (r, base, extra) => base + (r.o.human ? extra * hunt : 0);
   const fx = Math.sin(k.yaw), fz = Math.cos(k.yaw);
   const rel = (o) => { const dx = o.x - k.x, dz = o.z - k.z; return { along: dx * fx + dz * fz, side: dx * -fz + dz * fx }; };
   const ahead = karts.filter((o) => o !== k && o.state !== 'rescue').map((o) => ({ o, ...rel(o) })).filter((r) => r.along > 0);
   const behind = karts.filter((o) => o !== k && o.state !== 'rescue').map((o) => ({ o, ...rel(o) })).filter((r) => r.along < 0);
-  const go = (back = false) => { drv.itemDelay = 0.8 + race.rng.ai.next() * 2; return { use: true, back }; };
+  const go = (back = false) => { drv.itemDelay = (0.8 + race.rng.ai.next() * 2) * (1 - 0.35 * hunt); return { use: true, back }; };
   switch (item) {
     case 'duck': if (k.place > 1) return go(); break;
-    case 'soap':
-      if (ahead.some((r) => r.along < 35 && Math.abs(r.side) < 2.5) && race.rng.ai.next() < aggro) return go(false);
-      if (behind.some((r) => r.along > -18)) return go(true);
+    case 'soap': {
+      const inReach = ahead.filter((r) => r.along < reach(r, 35, 25) && Math.abs(r.side) < 2.5);
+      if (inReach.length && ((hunt > 0.4 && inReach.some((r) => r.o.human)) || race.rng.ai.next() < aggro)) return go(false);
+      if (behind.some((r) => r.along > -reach(r, 18, 12))) return go(true);
       break;
-    case 'bomb': if (behind.some((r) => r.along > -22) || drv.t % 9 < dt) return go(true); break;
+    }
+    case 'bomb': if (behind.some((r) => r.along > -reach(r, 22, 18)) || drv.t % 9 < dt) return go(true); break;
     case 'loofah': if (k.shield > 0 ? ahead.some((r) => r.along < 25 && Math.abs(r.side) < 2.5) : behind.some((r) => r.along > -30)) return go(); break;
     case 'towel': if (karts.some((o) => o !== k && near(k, o, 3.2))) return go(); break;
     case 'jet': case 'jet3': { const vm = track.a.vmax; if (!vm || vm[track.at(k.s + 30).i] > 18) return go(); break; }
-    case 'blaster': if (ahead.some((r) => r.along < 11 && Math.abs(r.side) < 4)) return go(); break;
+    case 'blaster': if (ahead.some((r) => r.along < reach(r, 11, 8) && Math.abs(r.side) < 4)) return go(); break;
     case 'bubble': if (k.water.gal < k.water.cap * 0.35 || race.rng.ai.next() < 0.004) return go(); break;
     case 'hose': return go();
     default: break;

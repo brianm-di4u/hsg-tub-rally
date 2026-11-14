@@ -170,7 +170,7 @@ export function stepKart(k, inp, track, dt, env = {}) {
         }
         if (fresh) {
           const square = clamp(vn / Math.max(Math.hypot(vx, vz), 1), 0, 1);
-          vt *= 1 - WALL_LOSS * square * (soft ? WALL_SOFT : 1);
+          vt *= 1 - WALL_LOSS * (st.wall ?? 1) * square * (soft ? WALL_SOFT : 1);
         } else {
           const f = Math.min(Math.abs(vt), WALL_SCRAPE * (soft ? WALL_SOFT : 1) * dt);
           vt -= Math.sign(vt) * f;
