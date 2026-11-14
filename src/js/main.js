@@ -29,7 +29,7 @@ import { TEAMS, TEAM_BY_ID, CLASSES } from './data/teams.js';
 import { initInput, initTouch, pollGamepads, readIntent, consumeMenu, consumePause, I as INPUT } from './ui/input.js';
 import { Hud } from './ui/hud.js';
 import { Screens } from './ui/screens.js';
-import { loadSave, writeSave, resetSave, saveProblem, storeCup, loadCup, clearCup } from './save.js';
+import { loadSave, writeSave, resetSave, saveProblem, saveGrandfathered, storeCup, loadCup, clearCup } from './save.js';
 import { initAudio, setAudio, sfx, tubLoop, rivalLoop, rivalEvent, setListener, USE_CUE, playTheme, playScene, setIntensity, audioState, setMuffle, suspendAudio, resumeAudio } from './ui/audio.js';
 import { dateKey, dailyPlan, liveStreak } from './daily.js';
 import { installHooks } from './hooks.js';
@@ -106,6 +106,8 @@ async function boot() {
   window.addEventListener('blur', pauseRace);
   installHooks(App, { startRace, gotoTitle, setScene, stepOnce, kartEvents, audioFrame, onMenu, perfLab, labStats: () => labStats(window.THREE) });
   // the title screen sits over a slow flyover of the first course
+  // a save from before the unlock record keeps everything it had: write that record down now, once
+  if (saveGrandfathered()) persistSave({});
   await ensureTrack(builtIds()[0] || 'bathhouse-row');
   loadCourse(builtIds()[0] || 'bathhouse-row');
   gotoTitle();
@@ -222,18 +224,29 @@ function clearKarts() {
 const today = () => App.dateOverride || dateKey();
 const dailyToday = () => dailyPlan(today(), builtCourses().map((c) => c.id));
 
+// Mirror: a course raced flipped left for right. The sim is untouched (so every time and ghost still counts); the picture is
+// flipped, and the steering, sound panning and minimap are flipped with it. Only when the mirror unlock is earned.
+const mirrorOn = () => App.save.unlocked.mirror === true && App.save.settings.mirror === true;
+function setMirror(on) {
+  App.mirror = !!on;
+  $('#gl').style.transform = on ? 'scaleX(-1)' : '';
+  App.hud.setMirror(!!on);
+}
+
 // The class the player last chose, or Soak when that class is not open to them (a hand-edited save, say).
 const lastClass = () => (CLASSES[App.save.lastClass] && App.save.unlocked.classes.includes(App.save.lastClass) ? App.save.lastClass : 'soak');
 // opts: { track, team, classId, laps, seed, mode, noItems, paused, autoplay }
 export async function startRace(opts = {}) {
   const o = { track: 'bathhouse-row', team: App.save.lastTeam, classId: lastClass(), laps: 3, seed: (Math.random() * 1e9) | 0, mode: 'quick', ...opts };
   if (window.__TEST__ && opts.seed == null) o.seed = 7;
+  o.mirror = opts.mirror ?? (o.daily ? false : mirrorOn() && o.mode !== 'battle' && o.mode !== 'row');
   App.raceOpts = o;
   setPreview(null);
   await ensureTrack(o.track);
   if (o.mode === 'timetrial') await ensurePar();
   const track = loadCourse(o.track);
   clearKarts();
+  setMirror(o.mirror);
   // the crews (and anything else built from here) follow the current tier, so a governor step-down mid-race
   // takes full effect from the next race
   setCrewDetail(App.tier, App.renderer.camera); setLite(App.tier === 'low'); setBevel(App.tier !== 'low');
@@ -323,6 +336,7 @@ function gotoTitle() {
   App.race = null;
   App.paused = false;
   setScene('title');
+  setMirror(false);
   document.body.classList.remove('racing');
   App.hud.root.classList.remove('on');
   App.screens.show('title');
@@ -343,7 +357,7 @@ function audioFrame(r, dt, live) {
   tubLoop(me, dt, live && r.phase !== 'done');
   const cam = App.renderer.camera;
   cam.getWorldDirection(SHADOW_DIR);
-  setListener(-SHADOW_DIR.z, SHADOW_DIR.x); // the camera's right on the ground
+  setListener(App.mirror ? SHADOW_DIR.z : -SHADOW_DIR.z, App.mirror ? -SHADOW_DIR.x : SHADOW_DIR.x); // the camera's right on the ground (flipped with the picture)
   rivalLoop(me, r.karts, live && r.phase === 'race', dt);
 }
 
@@ -456,6 +470,7 @@ function onMenu(act, data) {
       break;
     case 'cup': {
       const cup = CUP_BY_ID[data.id];
+      if (!cup || !s.unlocked.cups.includes(cup.id)) break; // a cup that is not open (a stale card, a hand-edited choice) is never raced
       const tracks = cup.tracks.filter((id) => builtIds().includes(id));
       App.gp = { cup: cup.id, name: cup.name, tracks, round: 0, table: {} };
       setPreview(null);
@@ -475,6 +490,13 @@ function onMenu(act, data) {
     case 'standingsGo': showStandings(); break;
     case 'trophy': showTrophy(); break;
     case 'locked': App.hud.flash('Locked for now', 'lap', 1); break;
+    case 'mirror': { // the Mirror switch on the course and cup screens
+      if (!s.unlocked.mirror) break;
+      persistSave({ settings: { mirror: data.v === 'true' } });
+      if (App.screens.cur === 'cups') App.screens.show('cups', { built: builtCourses().map((c) => c.id) });
+      else App.screens.show('courses', { list: builtCourses(), trial: F.mode === 'timetrial' });
+      break;
+    }
     case 'help': App.screens.show('help'); break;
     case 'credits': App.screens.show('credits'); break;
     case 'settings': App.prevScreen = App.screens.cur; App.screens.show('settings'); break;
@@ -617,9 +639,9 @@ function showTrophy() {
   const g = App.gp, rows = gpRows(), place = rows.findIndex((r) => r.human) + 1;
   const saved = persistSave({ cup: { token: g, key: g.cup + ':' + App.raceOpts.classId, place,
     soak: App.raceOpts.classId === 'soak', scald: App.raceOpts.classId === 'scald', teamOrder: TEAMS.filter((t) => !t.unlocked).map((t) => t.id) } });
-  const unlockedTeam = saved.unlockedTeam, unlockedClass = saved.unlockedClass || null;
+  const unlockedTeam = saved.unlockedTeam, unlockedClass = saved.unlockedClass || null, unlockedCup = saved.unlockedCup || null, unlockedMirror = !!saved.unlockedMirror;
   clearCup(); refreshCup();
-  App.screens.show('trophy', { place, cupName: g.name, unlockedTeam, unlockedClass });
+  App.screens.show('trophy', { place, cupName: g.name, unlockedTeam, unlockedClass, unlockedCup, unlockedMirror });
   App.gp = null;
 }
 
@@ -652,12 +674,15 @@ function kartEvents(k) {
   else if (me) for (const e of k.events) rivalEvent(me, k, e, r.time);
 }
 
+// a mirrored picture reverses what the player means by left and right
+function mirrored(i) { if (App.mirror) i.steer = -i.steer; return i; }
+
 function stepOnce() {
   const r = App.race;
   if (!r) return;
   App.prev = r.karts.map(poseOf);
   const inputs = [];
-  if (r.player >= 0) inputs[r.player] = App.held ? { ...App.held } : readIntent();
+  if (r.player >= 0) inputs[r.player] = App.held ? { ...App.held } : mirrored(readIntent());
   stepRace(r, App.track, inputs, DT);
   App.steps++;
   if (App.rec && r.phase === 'race' && r.player >= 0 && !r.karts[r.player].finished) record(App.rec, r.karts[r.player], r.time);

@@ -160,7 +160,7 @@ kbd { display: inline-block; padding: 0 5px; border: 2px solid var(--ink); borde
 .ccard .tt .tgt { font-size: 12px; font-weight: 600; opacity: 0.85; }
 .trial-lines { display: grid; gap: 2px; text-align: center; font-weight: 700; font-size: 14px; }
 .trial-lines p { margin: 0; }
-.unlock { background: rgba(242,165,65,0.25); padding: 6px 12px; border-radius: 10px; font-weight: 700; }
+.unlock { margin: 0; background: rgba(242,165,65,0.25); padding: 6px 12px; border-radius: 10px; font-weight: 700; }
 @media (max-width: 620px) {
   .team-grid { grid-template-columns: repeat(3, 1fr); }
   .scr-teams { justify-content: center; background: rgba(10,16,26,0.7); }
@@ -508,3 +508,10 @@ body.clock-frozen *, body.clock-frozen *::before, body.clock-frozen *::after { t
   .scr-title .menu > .mbtn:last-child { justify-self: center; width: calc(50% - 5px); }
   .scr-title .mbtn { padding-left: 8px; padding-right: 8px; }
 }
+
+/* ---------- Mirror switch and locked cups (S3-05) ---------- */
+.mirror-row { justify-content: center; }
+.mirror-row > span { width: auto; }
+.mirror-row small { flex-basis: 100%; text-align: center; color: var(--mist); font-weight: 600; }
+.chip[aria-disabled="true"] { opacity: 0.7; cursor: default; }
+.ccard[aria-disabled="true"] em { color: #FFD9A0; }

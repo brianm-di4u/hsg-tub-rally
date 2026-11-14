@@ -3,7 +3,7 @@
 import { pixelText } from './pixelfont.js';
 import { fmtTime } from './hud.js';
 import { TEAM_BY_ID, TEAMS, DIVISIONS, CLASSES, kartStats } from '../data/teams.js';
-import { CUPS, TROPHY } from '../data/cups.js';
+import { CUPS, CUP_BY_ID, TROPHY } from '../data/cups.js';
 import { factFor } from '../data/facts.js';
 import { MEDAL_NAMES, medalTimes } from '../sim/medals.js';
 import { addDays } from '../daily.js';
@@ -47,6 +47,12 @@ export class Screens {
 
 // a medal as a coloured disc with its name, so it reads without colour
 const medalChip = (m) => (m > 0 ? `<b class="medal m${m}">${MEDAL_NAMES[m]}</b>` : '');
+// The Mirror switch under the course and cup cards: locked until a cup is won on Scald
+const mirrorRow = (app) => {
+  const ok = app.save.unlocked.mirror === true, on = ok && app.save.settings.mirror === true;
+  const chip = (v, label, cur) => `<button type="button" class="chip ${cur ? 'sel' : ''}" data-act="mirror" data-v="${v}" aria-pressed="${cur}">${label}</button>`;
+  return `<div class="set-row two mirror-row"><span>Mirror</span>${ok ? chip('false', 'Off', !on) + chip('true', 'On', on) + '<small>Same course, left for right. Signs read backwards.</small>' : '<button type="button" class="chip" data-act="locked" aria-disabled="true">Win a cup on Scald to unlock</button>'}</div>`;
+};
 const btn = (act, label, extra = '') => `<button type="button" class="mbtn" data-act="${act}" ${extra}>${label}</button>`;
 
 const ord = (n) => n + (['th', 'st', 'nd', 'rd'][n % 100 >= 11 && n % 100 <= 13 ? 0 : n % 10] || 'th');
@@ -191,12 +197,14 @@ const TEMPLATES = {
   cups: (app, { built }) => `
     <div class="panel cups" role="dialog" aria-label="Choose a cup">
       <canvas data-pixel="CHOOSE A CUP" data-scale="4"></canvas>
-      <div class="card-row">${CUPS.map((c, i) => { const n = c.tracks.filter((id) => built.includes(id)).length; return `<button type="button" class="ccard" data-act="${n ? 'cup' : 'locked'}" data-id="${c.id}" ${i === 0 ? 'autofocus' : ''}><b>${c.name}</b><small>${c.blurb}</small><em>${n ? `${n} of 4 courses ready` : 'courses coming soon'}</em></button>`; }).join('')}</div>
+      ${mirrorRow(app)}
+      <div class="card-row">${CUPS.map((c, i) => { const n = c.tracks.filter((id) => built.includes(id)).length, open = app.save.unlocked.cups.includes(c.id); return `<button type="button" class="ccard" data-act="${n && open ? 'cup' : 'locked'}" data-id="${c.id}" ${i === 0 ? 'autofocus' : ''} ${open ? '' : 'aria-disabled="true"'}><b>${c.name}</b><small>${c.blurb}</small><em>${!open ? `Locked: ${c.unlock || 'win a cup'}` : n ? `${n} of 4 courses ready` : 'courses coming soon'}</em></button>`; }).join('')}</div>
       <nav class="menu row">${btn('back', 'Back', 'data-back')}</nav>
     </div>`,
   courses: (app, { list, trial }) => `
     <div class="panel courses" role="dialog" aria-label="Choose a course">
       <canvas data-pixel="CHOOSE A COURSE" data-scale="4"></canvas>
+      ${mirrorRow(app)}
       <div class="card-row">${list.map((t, i) => { const best = app.save.best[t.id], tt = (app.save.trial || {})[t.id], mt = medalTimes(t.id); return `<button type="button" class="ccard postcard" data-act="course" data-id="${t.id}" ${i === 0 ? 'autofocus' : ''}><b>${t.name}</b><small>${t.blurb || ''}</small><i class="fact">${factFor(t.id).t}</i><em>${Math.round(t.length || 0)} m lap${(window.TR_INFO || {})[t.id] && window.TR_INFO[t.id].real ? ` · real streets ${(window.TR_INFO[t.id].real / 1000).toFixed(1)} km, compressed` : ''}${trial ? '' : best ? ` · best ${fmtTime(best.race)}${best.lap ? ` · lap ${fmtTime(best.lap)}` : ''}` : ''}</em>${trial ? `<span class="tt">${tt ? `${medalChip(tt.medal)} <span>Best ${fmtTime(tt.race)}${tt.lap ? ` · lap ${fmtTime(tt.lap)}` : ''}</span>` : '<span>No time set yet</span>'}${mt ? `<span class="tgt">Gold ${fmtTime(mt.gold)} · Silver ${fmtTime(mt.silver)} · Bronze ${fmtTime(mt.bronze)}</span>` : ''}</span>` : ''}</button>`; }).join('')}</div>
       <nav class="menu row">${btn('back', 'Back', 'data-back')}</nav>
     </div>`,
@@ -209,12 +217,14 @@ const TEMPLATES = {
       </tbody></table>
       <nav class="menu row">${final ? btn('trophy', 'Trophy ceremony', 'autofocus') : btn('nextRace', 'Next race', 'autofocus')}${btn('quitCup', 'Quit cup')}</nav>
     </div>`,
-  trophy: (app, { place, cupName, unlockedTeam, unlockedClass }) => `
+  trophy: (app, { place, cupName, unlockedTeam, unlockedClass, unlockedCup, unlockedMirror }) => `
     <div class="panel trophy" role="dialog" aria-label="Trophy">
       <canvas data-pixel="${place <= 3 ? TROPHY[place - 1].toUpperCase() : 'GOOD EFFORT'}" data-scale="5" data-fill="${place === 1 ? '#FFF6C8,#F2C230' : place === 2 ? '#F4F6FA,#A9B4C2' : '#FFE1C4,#C8783C'}"></canvas>
       <p class="sub">${cupName}: you finished ${place}${['st', 'nd', 'rd'][place - 1] || 'th'} overall.</p>
       ${unlockedTeam ? `<p class="unlock">New team unlocked: <b>${TEAM_BY_ID[unlockedTeam].name}</b></p>` : ''}
       ${unlockedClass && CLASSES[unlockedClass] ? `<p class="unlock">New speed class unlocked: <b>${CLASSES[unlockedClass].name}</b></p>` : ''}
+      ${unlockedCup && CUP_BY_ID[unlockedCup] ? `<p class="unlock">New cup unlocked: <b>${CUP_BY_ID[unlockedCup].name}</b></p>` : ''}
+      ${unlockedMirror ? '<p class="unlock">Mirror unlocked: <b>race any course left for right</b></p>' : ''}
       <nav class="menu row">${btn('quit', 'Back to title', 'autofocus data-back')}</nav>
     </div>`,
   rowIntro: (app, { team, bracket }) => `

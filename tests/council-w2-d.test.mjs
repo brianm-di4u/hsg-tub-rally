@@ -393,4 +393,209 @@ export const tests = [
       t.equal((await t.state()).screen, 'title', 'Back returns to the title');
     },
   },
+
+  // ---------------------------------------------------------------- S3-05
+  {
+    name: 'council D S3-05: a fresh save locks the Ouachita Cup and Mirror, a pre-wave save keeps what it had, and the record is written once',
+    node: true,
+    async run(t) {
+      const fresh = mk(undefined);
+      t.equal(fresh.save.unlocked.cups.join(','), 'bathhouse', 'a fresh profile has only the Bathhouse Cup');
+      t.expect(fresh.save.unlocked.mirror === false && fresh.save.unlocked.rec === 2 && fresh.save.settings.mirror === false, 'Mirror is locked and off, and the unlock record is current');
+      t.expect(!fresh.writer.grandfathered(), 'a fresh profile is not a pre-wave save');
+      // a pre-wave save (the fixture the earlier tests use): both cups, nothing lost, then the record is written
+      const old = OLD(); old.unlocked.classes = ['splash', 'soak', 'scald']; old.unlocked.teams = ['gator-gang', 'tub-ninjas'];
+      old.settings.music = false; old.settings.sound = false;
+      const o = mk(old);
+      t.expect(o.writer.grandfathered(), 'the save is seen as one written before the unlock record');
+      t.equal(o.save.unlocked.cups.join(','), 'bathhouse,ouachita', 'an older save keeps both cups open');
+      t.equal(o.save.unlocked.mirror, false, 'Mirror did not exist before, so it starts locked');
+      t.equal(o.save.unlocked.classes.join(','), 'splash,soak,scald', 'its classes are kept');
+      t.equal(o.save.unlocked.teams.join(','), 'gator-gang,tub-ninjas', 'its teams are kept');
+      t.expect(o.box.raw === JSON.stringify(old), 'loading alone does not write');
+      o.commit({});
+      const st = o.stored();
+      t.expect(st.unlocked.rec === 2 && st.unlocked.cups.includes('ouachita') && !('grandfathered' in st.unlocked), 'the first write records the unlock: ' + JSON.stringify(st.unlocked));
+      for (const k of ['best', 'cups', 'ghosts', 'lastTeam', 'lastClass']) t.equal(JSON.stringify(st[k]), JSON.stringify(old[k]), `${k} is untouched`);
+      t.expect(st.stats.races === 12 && st.stats.wins === 5 && st.stats.gallonsSpilled === 40, 'its stats are untouched (new fields start at zero)');
+      t.expect(st.settings.sound === false && st.settings.music === false, 'a save that had sound off stays silent');
+      const again = o.reopen();
+      t.equal(again.unlocked.cups.join(','), 'bathhouse,ouachita', 'both cups are open after a reload');
+      const w2 = createSaveWriter({ read: () => o.box.raw, write: (r) => { o.box.raw = r; } }); w2.load();
+      t.expect(!w2.grandfathered(), 'and it is not treated as pre-wave again');
+      // a save that never had an unlocked section, and a damaged one
+      const bare = mk({ v: 1, best: { 'park-avenue': { race: 140, lap: 46, team: 'engine-six', cls: 'soak' } } });
+      t.expect(bare.save.unlocked.cups.includes('ouachita') && bare.save.best['park-avenue'].race === 140, 'a bare older save keeps both cups and its time');
+      const edited = mk({ ...OLD(), unlocked: { ...OLD().unlocked, rec: 2, mirror: 'yes' } });
+      t.equal(edited.save.unlocked.cups.join(','), 'bathhouse', 'a save with the record and one cup keeps one cup (no free unlock)');
+      t.equal(edited.save.unlocked.mirror, false, 'a mirror flag that is not true reads as locked');
+    },
+  },
+  {
+    name: 'council D S3-05: a Bathhouse podium opens the Ouachita Cup and a Scald win opens Mirror, each announced once and kept',
+    node: true,
+    async run(t) {
+      const teamOrder = ['gator-gang', 'silks-stirrups', 'flamingo-flock', 'tub-ninjas'];
+      const cup = (f, key, place, cls) => f.commit({ cup: { token: {}, key, place, soak: cls === 'soak', scald: cls === 'scald', teamOrder } });
+      const f = mk(undefined);
+      let r = cup(f, 'bathhouse:soak', 4, 'soak');
+      t.expect(!r.unlockedCup && f.stored().unlocked.cups.join(',') === 'bathhouse', 'fourth in the Bathhouse Cup opens nothing');
+      r = cup(f, 'ouachita:soak', 1, 'soak');
+      t.expect(!r.unlockedCup && f.stored().unlocked.cups.join(',') === 'bathhouse', 'a win in a cup that is not open does not open it by itself');
+      r = cup(f, 'bathhouse:soak', 3, 'soak');
+      t.equal(r.unlockedCup, 'ouachita', 'third place in the Bathhouse Cup opens the Ouachita Cup, and says so');
+      t.expect(f.stored().unlocked.cups.join(',') === 'bathhouse,ouachita' && !f.stored().unlocked.mirror, 'it is saved, and Mirror is still locked');
+      r = cup(f, 'bathhouse:soak', 1, 'soak');
+      t.expect(!r.unlockedCup && !r.unlockedMirror, 'a second podium announces nothing new');
+      r = cup(f, 'bathhouse:scald', 2, 'scald');
+      t.expect(!r.unlockedMirror && !f.stored().unlocked.mirror, 'second on Scald does not open Mirror');
+      r = cup(f, 'ouachita:scald', 1, 'scald');
+      t.expect(r.unlockedMirror && f.stored().unlocked.mirror === true && r.unlockedClass === 'boil', 'a cup won on Scald opens Mirror (and Boil)');
+      t.equal(f.reopen().unlocked.mirror, true, 'Mirror is open after a reload');
+      r = cup(f, 'ouachita:scald', 1, 'scald');
+      t.expect(!r.unlockedMirror, 'and is not announced twice');
+      // a failed write keeps the unlock pending and announced on the retry
+      const box = { raw: JSON.stringify(DEFAULT_SAVE()), fail: true };
+      const w = createSaveWriter({ read: () => box.raw, write: (raw) => { if (box.fail) throw new Error('blocked'); box.raw = raw; } });
+      const sv = w.load(), token = {};
+      const intent = { cup: { token, key: 'bathhouse:soak', place: 2, soak: true, scald: false, teamOrder } };
+      w.commit(sv, intent);
+      t.equal(sv.unlocked.cups.join(','), 'bathhouse,ouachita', 'the unlock shows in the tab while the write fails');
+      box.fail = false;
+      const again = w.commit(sv, intent);
+      t.expect(JSON.parse(box.raw).unlocked.cups.includes('ouachita') && again.unlockedCup === 'ouachita', 'the retry stores it and still announces it');
+    },
+  },
+  {
+    name: 'council D S3-05: the cup screen shows the Ouachita Cup locked with its condition, and a locked cup is never raced',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await fresh(t);
+      await t.game('act', 'menu', 'gp'); await t.waitFrames(3);
+      await t.game('act', 'menu', 'teamOk'); await t.waitFrames(3);
+      await t.game('act', 'menu', 'cls', { id: 'soak' }); await t.waitFrames(3);
+      t.equal((await t.state()).screen, 'cups', 'the cup screen is up');
+      const read = () => t.page.evaluate(() => [...document.querySelectorAll('.cups .ccard')].map((b) => ({ id: b.dataset.id, act: b.dataset.act, disabled: b.getAttribute('aria-disabled'), text: b.textContent.replace(/\s+/g, ' ').trim() })));
+      let rows = await read();
+      t.equal(rows.map((r) => r.act).join(','), 'cup,locked', 'Bathhouse is open and Ouachita is locked on a fresh profile');
+      t.expect(/Locked: Finish on the podium in the Bathhouse Cup/.test(rows[1].text) && rows[1].disabled === 'true', 'the lock names its condition: ' + rows[1].text);
+      const mirror = await t.page.evaluate(() => document.querySelector('.cups .mirror-row').textContent.replace(/\s+/g, ' ').trim());
+      t.expect(/Win a cup on Scald to unlock/.test(mirror), 'Mirror says what opens it: ' + mirror);
+      await shot(t, 'S3-05-cups-fresh');
+      await t.checkLayout({ allowScrollY: true });
+      await t.game('act', 'menu', 'cup', { id: 'ouachita' }); await t.waitFrames(3);
+      t.equal((await t.state()).scene, 'title', 'asking for the locked cup does not start a race (still on the menus)');
+      // an older save: both open, the record is written on load
+      const old = OLD(); old.unlocked.classes = ['splash', 'soak', 'scald'];
+      await fresh(t, old);
+      const raw = await readSave(t);
+      t.expect(raw.unlocked.rec === 2 && raw.unlocked.cups.includes('ouachita'), 'the unlock record was written when the game loaded: ' + JSON.stringify(raw.unlocked));
+      t.equal(raw.stats.races, 12, 'and nothing else changed');
+      await t.game('act', 'menu', 'gp'); await t.waitFrames(3);
+      await t.game('act', 'menu', 'teamOk'); await t.waitFrames(3);
+      await t.game('act', 'menu', 'cls', { id: 'soak' }); await t.waitFrames(3);
+      rows = await read();
+      t.equal(rows.map((r) => r.act).join(','), 'cup,cup', 'an older save has both cups open');
+      await shot(t, 'S3-05-cups-older-save');
+      await t.reload(); await t.waitIdle(8000);
+      t.equal((await readSave(t)).unlocked.cups.join(','), 'bathhouse,ouachita', 'both are still open after a reload');
+    },
+  },
+  {
+    name: 'council D S3-05: finishing a cup on the podium unlocks and announces the Ouachita Cup; a Scald win unlocks Mirror',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      const rivals = ['gator-gang', 'silks-stirrups', 'flamingo-flock', 'tub-ninjas', 'lather-linen', 'suds-posse', 'velvet-mob'];
+      const finishedCup = (humanPoints, classId, cupId = 'bathhouse') => {
+        const table = { 'engine-six': { team: 'engine-six', points: humanPoints, clean: 0, human: true, bribes: 0 } };
+        rivals.forEach((r, i) => { table[r] = { team: r, points: 40 - i * 4 + (r === 'gator-gang' ? 1 : 0), clean: 0, human: false, bribes: 0 }; });
+        return { v: 1, cup: cupId, name: cupId === 'bathhouse' ? 'Bathhouse Cup' : 'Ouachita Cup', tracks: cupId === 'bathhouse' ? ['bathhouse-row', 'park-avenue', 'whittington-valley', 'bridge-street'] : ['hs-mountain', 'goat-rock-gulpha', 'west-mountain', 'sunset-ridge'], round: 3, table, rivals, team: 'engine-six', classId, seed: 5 };
+      };
+      const trophy = async (cupState) => {
+        await t.page.evaluate((c) => localStorage.setItem('hsg-tub-rally-cup-v1', JSON.stringify(c)), cupState);
+        await t.reload(); await t.waitIdle(8000);
+        await t.game('act', 'menu', 'continueCup'); await t.waitFrames(3);
+        t.equal((await t.state()).screen, 'standings', 'the saved cup opens on its final standings');
+        await t.game('act', 'menu', 'trophy'); await t.waitFrames(3);
+        t.equal((await t.state()).screen, 'trophy', 'the trophy screen is up');
+        return t.page.evaluate(() => document.querySelector('.trophy').textContent.replace(/\s+/g, ' ').trim());
+      };
+      await fresh(t);
+      let x = await trophy(finishedCup(33, 'soak')); // third: above the 32 points of the best rival below
+      const place = x.match(/finished (\d)/);
+      t.expect(place && +place[1] <= 3, 'the human finished on the podium: ' + x);
+      t.expect(/New cup unlocked: Ouachita Cup/.test(x) && !/Mirror unlocked/.test(x), 'the trophy screen announces the Ouachita Cup and not Mirror: ' + x);
+      await shot(t, 'S3-05-trophy-ouachita');
+      await t.checkLayout({ allowScrollY: true });
+      let sv = await readSave(t);
+      t.expect(sv.unlocked.cups.includes('ouachita') && !sv.unlocked.mirror && sv.cups['bathhouse:soak'] <= 3, 'it is saved with the place');
+      // a cup won on Scald
+      await fresh(t, { ...OLD(), unlocked: { ...OLD().unlocked, cups: ['bathhouse', 'ouachita'], classes: ['splash', 'soak', 'scald'], rec: 2 }, cups: {} });
+      x = await trophy(finishedCup(99, 'scald', 'ouachita'));
+      t.expect(/finished 1st/.test(x) && /Mirror unlocked/.test(x) && /Boil/.test(x), 'a win on Scald announces Boil and Mirror: ' + x);
+      await shot(t, 'S3-05-trophy-mirror');
+      sv = await readSave(t);
+      t.expect(sv.unlocked.mirror === true && sv.unlocked.classes.includes('boil'), 'both are saved');
+      // the course screen now offers the switch, and it persists
+      await t.reload(); await t.waitIdle(8000);
+      await t.game('act', 'menu', 'quick'); await t.waitFrames(3);
+      await t.game('act', 'menu', 'teamOk'); await t.waitFrames(3);
+      await t.game('act', 'menu', 'cls', { id: 'soak' }); await t.waitFrames(3);
+      const chips = () => t.page.evaluate(() => [...document.querySelectorAll('.courses .mirror-row .chip')].map((c) => ({ v: c.dataset.v, on: c.getAttribute('aria-pressed') })));
+      let c = await chips();
+      t.expect(c.length === 2 && c[0].on === 'true' && c[1].on === 'false', 'Mirror is Off by default once unlocked: ' + JSON.stringify(c));
+      await t.game('act', 'menu', 'mirror', { v: 'true' }); await t.waitFrames(3);
+      c = await chips();
+      t.expect(c[1].on === 'true', 'turning it On shows On');
+      await shot(t, 'S3-05-courses-mirror-on');
+      await t.checkLayout({ allowScrollY: true });
+      await t.reload(); await t.waitIdle(8000);
+      t.equal((await readSave(t)).settings.mirror, true, 'the choice is saved');
+    },
+  },
+  {
+    name: 'council D S3-05: a mirrored race flips the picture, the steering and the minimap; the sim and its times are unchanged',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      const open = (mirror) => ({ ...OLD(), unlocked: { ...OLD().unlocked, cups: ['bathhouse', 'ouachita'], mirror: true, rec: 2 }, settings: { ...OLD().settings, mirror } });
+      const flip = () => t.page.evaluate(() => getComputedStyle(document.getElementById('gl')).transform);
+      const drive = async (mirror) => {
+        await fresh(t, open(mirror));
+        await t.game('newGame', { track: 'bathhouse-row', team: 'engine-six', seed: 4, paused: true });
+        await t.game('act', 'skipCountdown');
+        const k = t.page.keyboard;
+        await k.down('ArrowUp'); await k.down('ArrowRight');
+        const y0 = (await t.state()).race.karts[0].yaw;
+        await t.game('step', 90);
+        const st = await t.state();
+        await k.up('ArrowRight'); await k.up('ArrowUp');
+        return { yaw: st.race.karts[st.race.player].yaw - y0, flip: await flip(), st };
+      };
+      const plain = await drive(false);
+      t.equal(plain.flip, 'none', 'Mirror off: the picture is not flipped');
+      const mir = await drive(true);
+      t.expect(/^matrix\(-1, 0, 0, 1,/.test(mir.flip), 'Mirror on: the picture is flipped left for right: ' + mir.flip);
+      t.expect(plain.yaw * mir.yaw < 0 && Math.abs(Math.abs(plain.yaw) - Math.abs(mir.yaw)) < 0.05, `the right key turns the tub the other way in the mirror (yaw ${plain.yaw.toFixed(2)} against ${mir.yaw.toFixed(2)}): on screen it is still right`);
+      await t.waitFrames(3);
+      await shot(t, 'S3-05-mirror-race');
+      await t.game('scene', 'title'); await t.waitFrames(3);
+      t.equal(await flip(), 'none', 'the title screen is never flipped');
+      // the daily race and the hooks' own held input are not mirrored
+      await t.game('newGame', { mode: 'quick', track: 'bathhouse-row', team: 'engine-six', seed: 4, paused: true, daily: '2026-11-14' });
+      t.equal(await flip(), 'none', 'the Daily Race is never mirrored');
+      // the sim is the same: an autoplay lap finishes at the same time with and without it
+      const lap = async (mirror) => {
+        await fresh(t, open(mirror));
+        await t.game('newGame', { track: 'park-avenue', team: 'engine-six', mode: 'timetrial', classId: 'scald', count: 1, laps: 1, paused: true, autoplay: true, seed: 4 });
+        const st = await finishRace(t, 60 * 200);
+        return { t: st.race.karts[0].finishT, mirror: st.race.karts.length };
+      };
+      const a = await lap(false), b = await lap(true);
+      t.expect(Math.abs(a.t - b.t) < 1e-6, `a mirrored lap takes exactly as long: ${a.t.toFixed(3)} s and ${b.t.toFixed(3)} s`);
+      // a hand-edited save that asks for Mirror without owning it is not flipped
+      await fresh(t, { ...OLD(), settings: { ...OLD().settings, mirror: true } });
+      await t.game('newGame', { track: 'bathhouse-row', team: 'engine-six', seed: 4, paused: true });
+      t.equal(await flip(), 'none', 'Mirror asked for but locked: the picture is not flipped');
+    },
+  },
 ];

@@ -9,8 +9,9 @@ const own = (v, k) => Object.prototype.hasOwnProperty.call(v, k);
 
 export const DEFAULT_SAVE = () => ({
   v: 1,
-  settings: { sound: true, music: true, ambience: true, volume: 0.6, res: 'native', quality: 'auto', autoPush: false, steerAssist: false, reducedMotion: null, hudScale: 1, keys: null },
-  unlocked: { teams: [], cups: ['bathhouse'], classes: ['splash', 'soak'], mirror: false },
+  settings: { sound: true, music: true, ambience: true, volume: 0.6, res: 'native', quality: 'auto', autoPush: false, steerAssist: false, reducedMotion: null, hudScale: 1, keys: null, mirror: false },
+  // rec: the unlock record's version. A save that has none was written before wave 2 and keeps everything it could use (see projection)
+  unlocked: { teams: [], cups: ['bathhouse'], classes: ['splash', 'soak'], mirror: false, rec: 2 },
   best: {}, // trackId → the complete winning race record, including its lap
   trial: {}, // trackId → Time Trial best { race, lap, medal 0..3 } (S3-04): Time Trial runs are on Scald only, so these are comparable
   ghosts: {}, // trackId → last eligible recorded Time Trial
@@ -63,13 +64,20 @@ function projection(raw) {
     if (!Number.isFinite(p) || p < 1) throw new Error('Invalid cup');
   }
   const d = DEFAULT_SAVE();
+  const grand = raw !== null && !(object(s.unlocked) && s.unlocked.rec === 2);
   const out = { ...d, ...s, settings: { ...d.settings, ...s.settings }, unlocked: { ...d.unlocked, ...s.unlocked }, stats: { ...d.stats, ...s.stats } };
   // Stored setting values that would break the game (a text volume throws inside the audio setup) fall back to defaults.
   const st = out.settings;
+  // Grandfathering: a save from before wave 2 keeps both cups open. Mirror and Boil are new content and start locked.
+  out.unlocked.rec = 2;
+  if (grand) { if (!out.unlocked.cups.includes('ouachita')) out.unlocked.cups = [...out.unlocked.cups, 'ouachita']; out.unlocked.grandfathered = true; }
+  else delete out.unlocked.grandfathered;
+  out.unlocked.mirror = out.unlocked.mirror === true;
   out.trial = cleanTrial(s.trial);
   out.daily = cleanDaily(s.daily);
   out.dailyStreak = cleanStreak(s.dailyStreak);
   if (!Number.isFinite(out.stats.bestStreak) || out.stats.bestStreak < 0) out.stats.bestStreak = 0;
+  st.mirror = st.mirror === true;
   st.volume = Number.isFinite(st.volume) ? Math.min(1, Math.max(0, st.volume)) : d.settings.volume;
   if (!['authentic', 'crisp', 'native'].includes(st.res)) st.res = d.settings.res;
   if (!['auto', 'low', 'medium', 'high'].includes(st.quality)) st.quality = d.settings.quality;
@@ -90,11 +98,12 @@ export function createSaveWriter({
   let memory = null;
   let settings = {}, selection = {}, races = 0, wins = 0, runs = new Map(), cups = [], trials = [], dailies = [], spilled = 0;
   const raceSeen = new WeakMap(), cupSeen = new WeakMap();
+  let grandfathered = false; // the last read was a save from before the unlock record
   let problem = null; // why the last read failed: 'blocked' (storage unavailable) or 'damaged' (unreadable value)
   const current = () => {
     let raw;
     try { raw = read(); } catch (e) { problem = 'blocked'; return { readable: false, save: null }; }
-    try { const save = projection(raw); problem = null; return { readable: true, save }; }
+    try { const save = projection(raw); problem = null; grandfathered = !!(save.unlocked && save.unlocked.grandfathered); delete save.unlocked.grandfathered; return { readable: true, save }; }
     catch (e) { problem = 'damaged'; return { readable: false, save: null }; }
   };
   const sync = (target, value) => {
@@ -139,7 +148,7 @@ export function createSaveWriter({
       if (!info) {
         info = { unlockedTeam: null, resolved: false };
         cupSeen.set(c.token, info);
-        cups.push({ key: c.key, place: c.place, won: c.place === 1, soak: c.soak === true, scald: c.scald === true, teamOrder: [...c.teamOrder], info });
+        cups.push({ key: c.key, cup: String(c.key).split(':')[0], place: c.place, won: c.place === 1, soak: c.soak === true, scald: c.scald === true, teamOrder: [...c.teamOrder], info });
       }
     }
     return info;
@@ -186,6 +195,8 @@ export function createSaveWriter({
         c.info.unlockedTeam = c.won ? c.teamOrder.find((id) => !out.unlocked.teams.includes(id)) || null : null;
         c.info.scald = c.won && c.soak;
         c.info.boil = c.won && c.scald; // a cup won on Scald opens the new class above it
+        c.info.mirror = c.won && c.scald; // and the mirrored courses
+        c.info.ouachita = c.cup === 'bathhouse' && c.place <= 3; // a podium in the Bathhouse Cup opens the Ouachita Cup
         c.info.resolved = true;
       }
       // A blocked first read leaves the award intent unresolved, independently
@@ -194,6 +205,8 @@ export function createSaveWriter({
         if (c.info.unlockedTeam && !out.unlocked.teams.includes(c.info.unlockedTeam)) out.unlocked.teams.push(c.info.unlockedTeam);
         if (c.info.scald && !out.unlocked.classes.includes('scald')) out.unlocked.classes.push('scald');
         if (c.info.boil && !out.unlocked.classes.includes('boil')) { out.unlocked.classes.push('boil'); c.info.unlockedClass = 'boil'; }
+        if (c.info.mirror && !out.unlocked.mirror) { out.unlocked.mirror = true; c.info.unlockedMirror = true; }
+        if (c.info.ouachita && !out.unlocked.cups.includes('ouachita')) { out.unlocked.cups.push('ouachita'); c.info.unlockedCup = 'ouachita'; }
       }
     }
     return out;
@@ -229,6 +242,7 @@ export function createSaveWriter({
       return this.commit(target);
     },
     problem: () => problem,
+    grandfathered: () => grandfathered,
   };
 }
 
@@ -237,6 +251,7 @@ export const loadSave = () => writer.load();
 export const writeSave = (save, intent) => writer.commit(save, intent);
 export const resetSave = (save) => writer.reset(save);
 export const saveProblem = () => writer.problem();
+export const saveGrandfathered = () => writer.grandfathered();
 
 // A Grand Prix in progress lives under its own key, so a damaged cup can never affect the main save. It is a
 // convenience: every access is guarded and a failure just means no "Continue cup".

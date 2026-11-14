@@ -38,14 +38,21 @@ export class Hud {
     this.callT = 0;
     this.mapCache = null;
   }
+  // a mirrored race flips the minimap with the picture (the course map is drawn again from the track)
+  setMirror(on) {
+    if (!!on === !!this.mirror) return;
+    this.mirror = !!on;
+    if (this.track) this.setTrack(this.track);
+  }
   setTrack(track) {
+    this.track = track;
     // minimap: project the centreline into the canvas, north up
     const a = track.a, n = track.n;
     let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
     for (let i = 0; i < n; i++) { x0 = Math.min(x0, a.x[i]); x1 = Math.max(x1, a.x[i]); z0 = Math.min(z0, a.z[i]); z1 = Math.max(z1, a.z[i]); }
     const W = 150, pad = 12, k = Math.min((W - pad * 2) / (x1 - x0 || 1), (W - pad * 2) / (z1 - z0 || 1));
     const ox = (W - (x1 - x0) * k) / 2, oz = (W - (z1 - z0) * k) / 2;
-    this.mapT = (x, z) => [ox + (x - x0) * k, oz + (z - z0) * k];
+    this.mapT = (x, z) => [this.mirror ? W - (ox + (x - x0) * k) : ox + (x - x0) * k, oz + (z - z0) * k];
     const c = document.createElement('canvas'); c.width = W; c.height = W;
     const g = c.getContext('2d');
     g.lineJoin = 'round'; g.lineCap = 'round';
@@ -190,7 +197,7 @@ export class Hud {
       g.beginPath(); g.arc(x, z, 4, 0, Math.PI * 2); g.fill(); g.stroke();
     }
     const [x, z] = this.mapT(me.x, me.z);
-    g.save(); g.translate(x, z); g.rotate(Math.atan2(Math.cos(me.yaw), Math.sin(me.yaw)) + Math.PI / 2);
+    g.save(); g.translate(x, z); g.rotate(Math.atan2(Math.cos(me.yaw), this.mirror ? -Math.sin(me.yaw) : Math.sin(me.yaw)) + Math.PI / 2);
     g.fillStyle = '#FFF6C8'; g.strokeStyle = '#2A1A10'; g.lineWidth = 2;
     g.beginPath(); g.moveTo(0, -8); g.lineTo(6, 6); g.lineTo(-6, 6); g.closePath(); g.fill(); g.stroke();
     g.restore();
