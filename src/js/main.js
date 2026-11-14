@@ -18,6 +18,7 @@ import { loadModel, cloneModel, hasModel } from './gfx/models.js';
 import { Track } from './sim/track.js';
 import { landmarkPose } from './sim/landmarks.js';
 import { makeRace, stepRace, DT } from './sim/race.js';
+import { assistSteer } from './sim/ai.js';
 import { makeRecorder, record, packGhost, unpackGhost, unpackPar, ghostPose } from './sim/ghost.js';
 import { parOf, medalTimes, medalFor, PAR_LAPS } from './sim/medals.js';
 import { makeHeat, makeBracket, awards, BADGE_TEAMS } from './sim/rules-real.js';
@@ -26,7 +27,7 @@ import { makeRng } from './rng.js';
 import { trackData, TRACK_BY_ID, TRACKS, builtIds } from './data/tracks.js';
 import { CUP_BY_ID } from './data/cups.js';
 import { TEAMS, TEAM_BY_ID, CLASSES } from './data/teams.js';
-import { initInput, initTouch, pollGamepads, readIntent, consumeMenu, consumePause, I as INPUT } from './ui/input.js';
+import { initInput, initTouch, pollGamepads, readIntent, consumeMenu, consumePause, setBindings, getBindings, I as INPUT } from './ui/input.js';
 import { Hud } from './ui/hud.js';
 import { Screens } from './ui/screens.js';
 import { loadSave, writeSave, resetSave, saveProblem, saveGrandfathered, storeCup, loadCup, clearCup } from './save.js';
@@ -66,7 +67,8 @@ async function boot() {
   App.loading--;
   const mq = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
   App.reducedMotion = App.save.settings.reducedMotion ?? (mq ? mq.matches : false);
-  INPUT.autoPush = !!App.save.settings.autoPush;
+  applyInputSettings(App.save.settings);
+  if (mq && window.matchMedia('(pointer: coarse)').matches) INPUT.last = 'touch'; // tips name buttons, not keys
   App.loading++;
   await loadPackTextures();
   // the Blender crews: optional (a missing pack or an old browser keeps the crews built in code)
@@ -116,6 +118,25 @@ async function boot() {
   requestAnimationFrame(frame);
 }
 
+function applyInputSettings(s) {
+  INPUT.autoPush = !!s.autoPush; INPUT.steerAssist = !!s.steerAssist;
+  setBindings(s.keys);
+  document.documentElement.style.setProperty('--hud-user', s.hudScale || 1);
+}
+
+// tips and the key screen: assets/teach.js, loaded when first needed
+let teachLoad = null;
+function ensureTeach() {
+  if (!teachLoad) {
+    App.loading++;
+    teachLoad = loadScript('assets/teach.js').then(() => {
+      window.TR_TEACH.api = { get: getBindings, set: setBindings, save: (keys) => persistSave({ settings: { keys } }) };
+    }).catch((e) => { console.warn(e.message); }).finally(() => { App.loading--; });
+  }
+  return teachLoad;
+}
+const controlsScreen = (d = {}) => { App.capture = d.capture || null; App.screens.show('controls', d); };
+
 function showGlNotice(text) {
   const el = $('#boot-error');
   if (!el) return;
@@ -130,6 +151,8 @@ function saveMessage(problem) {
 }
 
 function onKey(e) {
+  if (App.capture && App.screens.cur === 'controls' && window.TR_TEACH) return window.TR_TEACH.capture(e, App.capture, controlsScreen);
+  if (App.scene === 'race' && e.code === 'KeyT' && !e.repeat && window.TR_TEACH) window.TR_TEACH.tipSkip();
   if (App.scene === 'race' && (e.code === 'Escape' || e.code === 'KeyP')) {
     if (!e.repeat) togglePause();
     return true;
@@ -244,6 +267,9 @@ export async function startRace(opts = {}) {
   setPreview(null);
   await ensureTrack(o.track);
   if (o.mode === 'timetrial') await ensurePar();
+  // S2-01: first-run tips (not Row, Water Fight or autoplay)
+  const tips = !App.save.settings.seenIntro && !o.autoplay && o.mode !== 'row' && o.mode !== 'battle';
+  if (tips) await ensureTeach();
   const track = loadCourse(o.track);
   clearKarts();
   setMirror(o.mirror);
@@ -309,6 +335,7 @@ export async function startRace(opts = {}) {
   document.body.classList.add('racing');
   App.hud.root.classList.add('on');
   App.hud.last = {};
+  if (window.TR_TEACH) { if (tips && window.TR_TEACH.api) window.TR_TEACH.tipStart(App.hud, () => persistSave({ settings: { seenIntro: true } })); else window.TR_TEACH.tipStop(); }
   return App.race;
 }
 
@@ -337,6 +364,7 @@ function gotoTitle() {
   App.paused = false;
   setScene('title');
   setMirror(false);
+  if (window.TR_TEACH) window.TR_TEACH.tipStop();
   document.body.classList.remove('racing');
   App.hud.root.classList.remove('on');
   App.screens.show('title');
@@ -385,7 +413,7 @@ function builtCourses() {
 function persistSave(intent) {
   const result = intent && intent.reset ? resetSave(App.save) : writeSave(App.save, intent), s = App.save.settings;
   if (App.renderer && App.renderer.mode !== s.res) App.renderer.setMode(s.res);
-  INPUT.autoPush = !!s.autoPush;
+  applyInputSettings(s);
   const mq = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
   App.reducedMotion = s.reducedMotion ?? !!(mq && mq.matches);
   setAudio(s);
@@ -499,7 +527,10 @@ function onMenu(act, data) {
     }
     case 'help': App.screens.show('help'); break;
     case 'credits': App.screens.show('credits'); break;
-    case 'settings': App.prevScreen = App.screens.cur; App.screens.show('settings'); break;
+    case 'controls': ensureTeach().then(() => { if (window.TR_TEACH && window.TR_TEACH.api) controlsScreen(); }); break;
+    case 'rebind': App.capture = data.a; controlsScreen({ capture: data.a }); break;
+    case 'rebindReset': persistSave({ settings: { keys: null } }); controlsScreen({ msg: 'Keys are back to their defaults.' }); break;
+    case 'settings': App.capture = null; App.prevScreen = App.screens.cur; App.screens.show('settings'); break;
     case 'back':
       if (App.scene === 'race' && App.paused) App.screens.show('pause');
       else { setPreview(null); App.screens.show('title'); }
@@ -524,7 +555,7 @@ function onMenu(act, data) {
     case 'quit': App.gp = null; gotoTitle(); break;
     case 'set': {
       let v = data.v;
-      if (v === 'true') v = true; else if (v === 'false') v = false;
+      if (v === 'true') v = true; else if (v === 'false') v = false; else if (data.k === 'hudScale' || data.k === 'volume') v = +v;
       persistSave({ settings: { [data.k]: v } });
       App.screens.show('settings');
       break;
@@ -682,7 +713,7 @@ function stepOnce() {
   if (!r) return;
   App.prev = r.karts.map(poseOf);
   const inputs = [];
-  if (r.player >= 0) inputs[r.player] = App.held ? { ...App.held } : mirrored(readIntent());
+  if (r.player >= 0) inputs[r.player] = App.held ? { ...App.held } : assistSteer(App.track, r.karts[r.player], mirrored(readIntent()), INPUT.steerAssist);
   stepRace(r, App.track, inputs, DT);
   App.steps++;
   if (App.rec && r.phase === 'race' && r.player >= 0 && !r.karts[r.player].finished) record(App.rec, r.karts[r.player], r.time);
@@ -698,6 +729,7 @@ function stepOnce() {
     if (r.phase === 'race' && r.time <= DT * 1.01) sfx('go');
   }
   if (me) playerFeedback(me);
+  if (me && window.TR_TEACH) { const i = inputs[r.player]; window.TR_TEACH.tipStep({ race: r, me, steer: i.steer, hop: i.hop, brake: i.brake, dev: INPUT.last, auto: INPUT.autoPush, binds: getBindings() }); }
   for (const e of r.events) {
     if (me && e.kart === me.id && e.type === 'lap') { if (e.lap === r.laps) setIntensity(1); if (e.lap > r.laps) sfx('finish', r.finishOrder.indexOf(me.id) + 1 || me.place); else sfx(e.lap === r.laps ? 'finalLap' : 'lap'); }
     if (me && e.kart === me.id && e.type === 'lap') App.hud.flash(e.lap === r.laps ? 'FINAL LAP!' : e.lap > r.laps ? 'FINISH!' : `LAP ${e.lap}`, 'lap', 1.4);
@@ -707,6 +739,7 @@ function stepOnce() {
   if (r.phase === 'done' && !App._resultsShown) {
     App._resultsShown = true;
     setIntensity(0);
+    if (window.TR_TEACH) window.TR_TEACH.tipFinish();
     playTheme('results');
     const me = r.player >= 0 ? r.karts[r.player] : null;
     let record = null;

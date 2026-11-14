@@ -98,6 +98,7 @@ const TEMPLATES = {
   pause: () => `
     <div class="panel pause" role="dialog" aria-label="Paused">
       <canvas data-pixel="PAUSED" data-scale="6"></canvas>
+      <p class="sub">Goal: finish first, with 10 gallons or more.</p>
       <nav class="menu">${btn('resume', 'Resume', 'autofocus data-back')}${btn('restart', 'Restart race')}${btn('settings', 'Settings')}${btn('quit', 'Quit to title')}</nav>
     </div>`,
   results: (app, { results, laps, trackName, gp, newRecord, mode, trial, daily }) => `
@@ -150,6 +151,7 @@ const TEMPLATES = {
   help: () => `
     <div class="panel help" role="dialog" aria-label="How to play">
       <canvas data-pixel="HOW TO PLAY" data-scale="5"></canvas>
+      <p class="sub">Goal: cross the line first, with 10 gallons or more. Slide through turns for steam boosts.</p>
       <div class="help-cols">
         <section><h3>Drive</h3><ul>
           <li><kbd>↑</kbd>/<kbd>W</kbd> push · <kbd>↓</kbd>/<kbd>S</kbd> brake · <kbd>←</kbd><kbd>→</kbd> steer</li>
@@ -166,6 +168,7 @@ const TEMPLATES = {
       </div>
       <nav class="menu row">${btn('back', 'Back', 'autofocus data-back')}</nav>
     </div>`,
+  controls: (app, d) => (window.TR_TEACH && window.TR_TEACH.api ? window.TR_TEACH.controlsHtml(app, d || {}) : ''),
   teams: (app, { sel }) => {
     const unlocked = (t) => t.unlocked || app.save.unlocked.teams.includes(t.id);
     const cur = TEAM_BY_ID[sel] || TEAMS[0];
@@ -292,10 +295,15 @@ const TEMPLATES = {
       <div class="set-row"><span>Picture</span>${opt('res', 'native', 'Sharp', s.res)}${opt('res', 'crisp', '480p', s.res)}${opt('res', 'authentic', 'Retro 240p', s.res)}</div>
       <div class="set-row"><span>Detail</span>${opt('quality', 'auto', 'Auto', s.quality)}${opt('quality', 'low', 'Low', s.quality)}${opt('quality', 'medium', 'Medium', s.quality)}${opt('quality', 'high', 'High', s.quality)}</div>
       <div class="set-row two"><span>Auto-push</span>${opt('autoPush', 'true', 'On', String(s.autoPush))}${opt('autoPush', 'false', 'Off', String(s.autoPush))}</div>
+      <div class="set-row two"><span>Steer assist</span>${opt('steerAssist', 'true', 'On', String(s.steerAssist))}${opt('steerAssist', 'false', 'Off', String(s.steerAssist))}</div>
+      <div class="set-row two"><span>HUD size</span>${[['0.85', 'Small'], ['1', 'Medium'], ['1.15', 'Large']].map(([v, l]) => opt('hudScale', v, l, String(s.hudScale))).join('')}</div>
       <div class="set-row two"><span>Sound</span>${opt('sound', 'true', 'On', String(s.sound))}${opt('sound', 'false', 'Off', String(s.sound))}</div>
+      <div class="set-row two"><span>Volume</span>${[['0.3', 'Quiet'], ['0.6', 'Normal'], ['1', 'Loud']].map(([v, l]) => opt('volume', v, l, s.volume < 0.45 ? '0.3' : s.volume < 0.8 ? '0.6' : '1')).join('')}</div>
       <div class="set-row two"><span>Music</span>${opt('music', 'true', 'On', String(s.music))}${opt('music', 'false', 'Off', String(s.music))}</div>
       <div class="set-row two"><span>Ambience</span>${opt('ambience', 'true', 'On', String(s.ambience))}${opt('ambience', 'false', 'Off', String(s.ambience))}</div>
       <div class="set-row two"><span>Motion</span>${opt('reducedMotion', 'false', 'Full', String(s.reducedMotion))}${opt('reducedMotion', 'true', 'Reduced', String(s.reducedMotion))}</div>
+      <div class="set-row two"><span>Race tips</span>${opt('seenIntro', 'false', 'Show', String(s.seenIntro))}${opt('seenIntro', 'true', 'Hide', String(s.seenIntro))}</div>
+      <div class="set-row two"><span>Controls</span><button type="button" class="chip" data-act="controls">Change keys</button></div>
       <nav class="menu row">${btn('back', 'Done', 'autofocus data-back')}</nav>
     </div>`;
   },

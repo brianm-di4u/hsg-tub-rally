@@ -22,6 +22,17 @@ function turnAhead(track, s, len) {
   return Math.atan2(Math.sin(yb - ya), Math.cos(yb - ya));
 }
 
+// Steer assist (S2-06): with the thumb nearly off the pad, nudge toward the road ahead; real steering wins
+export const ASSIST = { free: 0.25, gain: 1.6, max: 0.45 };
+export function assistSteer(track, k, inp, on) {
+  if (!on || Math.abs(inp.steer) > ASSIST.free || k.air || k.state !== 'run') return inp;
+  const sT = k.s + 5 + 0.42 * Math.max(0, k.vf), c = track.at(sT), p = track.point(sT, track.a.line ? track.a.line[c.i] : 0);
+  const fx = Math.sin(k.yaw), fz = Math.cos(k.yaw), ex = p.x - k.x, ez = p.z - k.z;
+  const err = Math.atan2(ex * -fz + ez * fx, Math.max(0.5, ex * fx + ez * fz));
+  inp.steer = clamp(inp.steer + clamp(err * ASSIST.gain, -ASSIST.max, ASSIST.max), -1, 1);
+  return inp;
+}
+
 export function driveAI(k, drv, track, ctx, dt) {
   drv.t += dt;
   const inp = { steer: 0, push: 1, brake: false, hop: false, item: false, back: false };

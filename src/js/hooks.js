@@ -17,6 +17,7 @@ export function installHooks(App, api) {
       ghost: App.ghost ? { team: App.ghost.team, total: App.ghost.total, n: App.ghost.n } : null, par: App.par ? { team: App.par.team, total: App.par.total, n: App.par.n } : null, trial: App.trialResult || null, daily: App.dailyResult || null, newRecord: !!App.newRecord,
       best: App.track ? App.save.best[App.track.id] || null : null,
       audio: App.audioState ? App.audioState() : null,
+      tips: window.TR_TEACH ? window.TR_TEACH.tipState() : null, bindings: App.save.settings.keys,
     };
     if (r) {
       out.race = {

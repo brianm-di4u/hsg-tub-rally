@@ -7,9 +7,13 @@ const copy = (v) => JSON.parse(JSON.stringify(v));
 const object = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 const own = (v, k) => Object.prototype.hasOwnProperty.call(v, k);
 
+// S1-03: a touch device with no save starts with auto-push on
+const touchDevice = () => { try { return !!window.matchMedia('(pointer: coarse)').matches; } catch (e) { return false; } };
+
 export const DEFAULT_SAVE = () => ({
   v: 1,
-  settings: { sound: true, music: true, ambience: true, volume: 0.6, res: 'native', quality: 'auto', autoPush: false, steerAssist: false, reducedMotion: null, hudScale: 1, keys: null, mirror: false },
+  // seenIntro: first-run tips shown (S2-01); older saves count as seen
+  settings: { sound: true, music: true, ambience: true, volume: 0.6, res: 'native', quality: 'auto', autoPush: touchDevice(), steerAssist: false, reducedMotion: null, hudScale: 1, keys: null, mirror: false, seenIntro: false },
   // rec: the unlock record's version. A save that has none was written before wave 2 and keeps everything it could use (see projection)
   unlocked: { teams: [], cups: ['bathhouse'], classes: ['splash', 'soak'], mirror: false, rec: 2 },
   best: {}, // trackId → the complete winning race record, including its lap
@@ -45,6 +49,15 @@ function cleanStreak(v) {
   return object(v) && Number.isInteger(v.n) && v.n > 0 && validKey(v.last) ? { n: v.n, last: v.last } : { n: 0, last: '' };
 }
 
+// remapped keys (S2-06): bad entries are dropped
+const KEY_ACTIONS = ['left', 'right', 'push', 'brake', 'hop', 'item', 'back', 'pause'];
+function cleanKeys(k) {
+  if (!object(k)) return null;
+  const out = {};
+  for (const a of KEY_ACTIONS) if (Array.isArray(k[a]) && k[a].length && k[a].every((c) => typeof c === 'string' && c)) out[a] = k[a].slice(0, 4);
+  return Object.keys(out).length ? out : null;
+}
+
 function projection(raw) {
   const s = raw === null ? { v: 1 } : JSON.parse(raw);
   if (!object(s) || s.v !== 1) throw new Error('Unsupported save');
@@ -64,6 +77,7 @@ function projection(raw) {
     if (!Number.isFinite(p) || p < 1) throw new Error('Invalid cup');
   }
   const d = DEFAULT_SAVE();
+  if (raw !== null) d.settings.autoPush = false; // new players only
   const grand = raw !== null && !(object(s.unlocked) && s.unlocked.rec === 2);
   const out = { ...d, ...s, settings: { ...d.settings, ...s.settings }, unlocked: { ...d.unlocked, ...s.unlocked }, stats: { ...d.stats, ...s.stats } };
   // Stored setting values that would break the game (a text volume throws inside the audio setup) fall back to defaults.
@@ -78,6 +92,10 @@ function projection(raw) {
   out.dailyStreak = cleanStreak(s.dailyStreak);
   if (!Number.isFinite(out.stats.bestStreak) || out.stats.bestStreak < 0) out.stats.bestStreak = 0;
   st.mirror = st.mirror === true;
+  st.steerAssist = st.steerAssist === true;
+  st.hudScale = Number.isFinite(st.hudScale) && st.hudScale >= 0.7 && st.hudScale <= 1.4 ? st.hudScale : 1;
+  st.keys = cleanKeys(st.keys);
+  st.seenIntro = raw !== null && !(object(s.settings) && own(s.settings, 'seenIntro')) ? true : st.seenIntro === true;
   st.volume = Number.isFinite(st.volume) ? Math.min(1, Math.max(0, st.volume)) : d.settings.volume;
   if (!['authentic', 'crisp', 'native'].includes(st.res)) st.res = d.settings.res;
   if (!['auto', 'low', 'medium', 'high'].includes(st.quality)) st.quality = d.settings.quality;

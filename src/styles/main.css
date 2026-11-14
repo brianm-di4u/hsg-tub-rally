@@ -5,6 +5,7 @@
   --font-deco: "Century Gothic", Futura, "Avenir Next", "Trebuchet MS", "Gill Sans", sans-serif;
   --font-ui: "Trebuchet MS", "Segoe UI", system-ui, -apple-system, sans-serif;
   --hud-scale: 1;
+  --hud-k: calc(var(--hud-scale) * var(--hud-user, 1));
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: #0d1a26; color: var(--dogwood); font-family: var(--font-ui); -webkit-user-select: none; user-select: none; touch-action: none; }
@@ -16,16 +17,16 @@ canvas[data-pixel], .hud canvas { image-rendering: pixelated; }
 /* ---------- HUD ---------- */
 .hud { position: fixed; inset: 0; pointer-events: none; display: none; z-index: 5; font-weight: 700; }
 .hud.on { display: block; }
-.hud-tl { position: absolute; left: max(12px, env(safe-area-inset-left)); top: 12px; transform: scale(var(--hud-scale)); transform-origin: top left; }
+.hud-tl { position: absolute; left: max(12px, env(safe-area-inset-left)); top: 12px; transform: scale(var(--hud-k)); transform-origin: top left; }
 .hud-time { font: 700 22px/1 var(--font-ui); color: #fff; text-shadow: 2px 2px 0 var(--ink), -1px -1px 0 var(--ink), 1px -1px 0 var(--ink), -1px 1px 0 var(--ink); margin: 4px 0 0 4px; font-variant-numeric: tabular-nums; }
-.hud-tr { position: absolute; right: max(12px, env(safe-area-inset-right)); top: 10px; transform: scale(var(--hud-scale)); transform-origin: top right; }
-.hud-item { position: absolute; left: 50%; top: 10px; transform: translateX(-50%) scale(var(--hud-scale)); transform-origin: top center; display: flex; align-items: center; gap: 8px; }
+.hud-tr { position: absolute; right: max(12px, env(safe-area-inset-right)); top: 10px; transform: scale(var(--hud-k)); transform-origin: top right; }
+.hud-item { position: absolute; left: 50%; top: 10px; transform: translateX(-50%) scale(var(--hud-k)); transform-origin: top center; display: flex; align-items: center; gap: 8px; }
 .hud-item .bubble { width: 62px; height: 62px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.95), rgba(190,240,255,0.55) 35%, rgba(240,170,255,0.45) 75%, rgba(255,255,255,0.25)); border: 3px solid rgba(26,20,16,0.85); box-shadow: 0 3px 0 rgba(0,0,0,0.35); }
 .hud-item.has .bubble { animation: pop 0.25s ease-out; }
 .hud-item .tickets { display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 10px; background: rgba(16,20,34,0.72); border: 2px solid var(--ink); font-size: 18px; }
 .tk-ico { width: 22px; height: 14px; background: linear-gradient(90deg, #F2C230 0 70%, #E8E0CC 70%); border: 2px solid var(--ink); border-radius: 2px; }
 @keyframes pop { from { transform: scale(0.6); } to { transform: scale(1); } }
-.hud-bl { position: absolute; left: max(10px, env(safe-area-inset-left)); bottom: 10px; transform: scale(var(--hud-scale)); transform-origin: bottom left; }
+.hud-bl { position: absolute; left: max(10px, env(safe-area-inset-left)); bottom: 10px; transform: scale(var(--hud-k)); transform-origin: bottom left; }
 .hud-pips { display: flex; gap: 4px; margin-top: 4px; }
 .pip { display: flex; flex-direction: column; align-items: center; width: 46px; font: 700 13px/1.1 var(--font-ui); color: #fff; text-shadow: 1px 1px 0 var(--ink), -1px -1px 0 var(--ink); }
 .pip em { font-style: normal; }
@@ -36,7 +37,7 @@ canvas[data-pixel], .hud canvas { image-rendering: pixelated; }
 .pip-loofah i { background: radial-gradient(circle at 30% 40%, #E9CC94 20%, #C49A55 70%); border-radius: 50%; }
 .pip.lost { opacity: 0.35; }
 .pip.lost i { background: repeating-linear-gradient(45deg, #333 0 3px, #666 3px 6px); }
-.hud-map { position: absolute; right: max(10px, env(safe-area-inset-right)); bottom: 10px; width: 150px; height: 150px; transform: scale(var(--hud-scale)); transform-origin: bottom right; opacity: 0.92; }
+.hud-map { position: absolute; right: max(10px, env(safe-area-inset-right)); bottom: 10px; width: 150px; height: 150px; transform: scale(var(--hud-k)); transform-origin: bottom right; opacity: 0.92; }
 .hud-center { position: absolute; left: 0; right: 0; top: 30%; display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .hud-count { display: none; filter: drop-shadow(0 4px 0 rgba(0,0,0,0.3)); max-width: 92vw; }
 .hud-call { opacity: 0; transform: scale(0.8); transition: opacity 0.15s, transform 0.15s; font: 900 26px/1.1 var(--font-deco); letter-spacing: 1px; color: #fff; text-align: center; padding: 6px 18px; border-radius: 12px; background: rgba(16,20,34,0.7); border: 3px solid var(--ink); max-width: 90vw; }
@@ -109,7 +110,7 @@ kbd { display: inline-block; padding: 0 5px; border: 2px solid var(--ink); borde
 @media (max-aspect-ratio: 4/5) {
   .hud-tr canvas { width: auto; height: 46px; }
   .hud-lap { height: 22px; width: auto; }
-  .hud-item { top: 64px; left: auto; right: max(10px, env(safe-area-inset-right)); transform: scale(var(--hud-scale)); transform-origin: top right; }
+  .hud-item { top: 64px; left: auto; right: max(10px, env(safe-area-inset-right)); transform: scale(var(--hud-k)); transform-origin: top right; }
   .hud-item .bubble { width: 52px; height: 52px; }
   .hud-map { top: 64px; bottom: auto; left: max(10px, env(safe-area-inset-left)); right: auto; width: 92px; height: 92px; transform-origin: top left; }
   .hud-water { width: 120px; height: auto; }
@@ -187,8 +188,8 @@ kbd { display: inline-block; padding: 0 5px; border: 2px solid var(--ink); borde
 /* review fixes: portrait phones keep the team clear of the controls; steering hint away from the gauge */
 @media (max-aspect-ratio: 4/5) {
   .hud-center { top: 25%; } /* below the gauge and item pips */
-  .hud-bl { left: max(8px, env(safe-area-inset-left)); bottom: auto; top: 64px; transform: scale(0.8); transform-origin: top left; }
-  .hud-map { top: auto; bottom: 150px; left: auto; right: max(10px, env(safe-area-inset-right)); width: 84px; height: 84px; }
+  .hud-bl { left: max(8px, env(safe-area-inset-left)); bottom: auto; top: 64px; transform: scale(calc(0.8 * var(--hud-user, 1))); transform-origin: top left; }
+  .hud-map { top: auto; bottom: 150px; left: auto; right: max(10px, env(safe-area-inset-right)); width: 84px; height: 84px; transform-origin: bottom right; }
 }
 @media (pointer: coarse) and (max-aspect-ratio: 4/5) {
   .t-btns { grid-template-columns: 70px 70px; gap: 8px; bottom: 12px; }
@@ -242,7 +243,7 @@ body[data-screen="results"] .touch, body[data-screen="standings"] .touch, body[d
   .t-steer { top: 40%; }
   .t-steer-knob { bottom: 18px; }
   .t-steer em { bottom: 46px; }
-  .hud-bl { bottom: auto; top: 58px; transform: scale(0.85); transform-origin: top left; }
+  .hud-bl { bottom: auto; top: 58px; transform: scale(calc(0.85 * var(--hud-user, 1))); transform-origin: top left; }
   .hud-map { right: auto; left: 50%; bottom: 8px; width: 84px; height: 84px; transform: translateX(-50%); }
 }
 
@@ -270,11 +271,11 @@ body[data-screen="results"] .touch, body[data-screen="standings"] .touch, body[d
   .panel.teams { max-width: min(560px, 56vw); }
   .team-grid { grid-template-columns: repeat(4, 1fr); }
   /* HUD: water gauge below the lap/time block, minimap top right under the place badge */
-  .hud-bl { bottom: auto; top: 86px; transform: scale(0.75); transform-origin: top left; }
+  .hud-bl { bottom: auto; top: 86px; transform: scale(calc(0.75 * var(--hud-user, 1))); transform-origin: top left; }
   .hud-map { top: 82px; bottom: auto; left: auto; right: max(10px, env(safe-area-inset-right)); width: 74px; height: 74px; transform: none; }
 }
 @media (pointer: coarse) and (max-height: 500px) and (min-aspect-ratio: 1/1) {
-  .hud-bl { bottom: auto; top: 86px; transform: scale(0.75); transform-origin: top left; }
+  .hud-bl { bottom: auto; top: 86px; transform: scale(calc(0.75 * var(--hud-user, 1))); transform-origin: top left; }
   .hud-map { right: max(10px, env(safe-area-inset-right)); left: auto; top: 82px; bottom: auto; width: 74px; height: 74px; transform: none; }
 }
 
