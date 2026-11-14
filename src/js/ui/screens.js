@@ -103,7 +103,7 @@ const TEMPLATES = {
     </div>`,
   results: (app, { results, laps, trackName, gp, newRecord, mode, trial, daily }) => `
     <div class="panel results" role="dialog" aria-label="Race results">
-      <canvas data-pixel="RESULTS" data-scale="6"></canvas>
+      <canvas data-pixel="${app.banner || 'RESULTS'}" data-scale="6"></canvas>
       <p class="sub">${mode === 'battle' ? `${trackName} · Water Fight: last tub with water wins` : `${trackName || ''} · ${laps} ${laps === 1 ? 'lap' : 'laps'}`}${newRecord ? ' · <b class="clean">NEW RECORD</b>' : ''}</p>
       <table class="rtable"><thead><tr><th>#</th><th>Team</th><th>Time</th><th>Water</th><th>Pts</th></tr></thead><tbody>
       ${(results || []).map((r) => `<tr class="${r.human ? 'me' : ''}"><td>${r.place}</td><td><span class="sw" style="background:${TEAM_BY_ID[r.team].colors.tub}"></span>${TEAM_BY_ID[r.team].name}${r.human ? ' (you)' : ''}</td><td>${r.estimated ? '~' : ''}${fmtTime(r.time)}</td><td>${r.gal.toFixed(0)} gal${r.clean ? ' <b class="clean" title="Clean Finish: 10+ gallons and all four items">CLEAN</b>' : ''}</td><td>${r.points}</td></tr>`).join('')}

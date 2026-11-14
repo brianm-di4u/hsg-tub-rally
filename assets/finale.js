@@ -1,0 +1,192 @@
+// Spa City Tub Rally: the finish ceremony (S4-01).
+// Hand-written classic script (not a generated pack): it loads once at boot, after the game's own code, so the
+// first-race download stays inside its budget. main.js hands it the game in window.TR_APP = { App, KartView }.
+//  - Ceremony: when the player crosses the line the camera swings round the tub through a confetti burst; the
+//    results then open over a podium of the top three tubs (the game's own KartView) with a banner for the place.
+// Nothing here touches the simulation. Reduced motion switches the camera move off.
+(function (G) {
+  'use strict';
+  const A = G.TR_APP, App = A.App, T = G.THREE;
+  const S = { clock: 0, last: 0, cere: null, pod: null, dead: false };
+  const ease = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+  const motionOn = () => !App.reducedMotion && App.tier !== 'low';
+
+  // ------------------------------------------------------------------ the finish ceremony
+  const CONFETTI = [[1, 0.84, 0.28], [0.95, 0.35, 0.3], [0.35, 0.7, 1], [1, 1, 1], [1, 0.55, 0.8], [0.45, 0.9, 0.5]];
+  const CERE = 3.4; // seconds of camera orbit
+  function confetti(x, y, z, n, spread, up) {
+    const r = Math.random, f = App.tier === 'low' ? 0.4 : 1, m = Math.max(1, Math.round(n * f));
+    if (S.cere) S.cere.beads += m;
+    for (let i = 0; i < m; i++) App.fx.burst(x, y, z, 1, CONFETTI[(r() * CONFETTI.length) | 0], { speed: 3.2, up: up || 4.5, size: 0.12, life: 1.9, grav: 4.2, spread: spread || 2.2 });
+  }
+  function stepCeremony(dt) {
+    const r = App.race, me = r && r.player >= 0 ? r.karts[r.player] : null;
+    if (S.cere && S.cere.race !== r) S.cere = null;
+    if (!S.cere && me && me.finished && App.scene === 'race' && r.mode !== 'row') {
+      const place = r.finishOrder.indexOf(me.id) + 1 || me.place, cam = App.renderer.camera.position;
+      const start = Math.atan2(cam.x - me.x, cam.z - me.z);
+      S.cere = { race: r, t: 0, place, start, rad0: Math.min(9, Math.hypot(cam.x - me.x, cam.z - me.z)), acc: 0, beads: 0 };
+      if (motionOn()) confetti(me.x, me.y + 2.6, me.z, place <= 3 ? 28 : 8, 1.6);
+      else if (!App.reducedMotion) confetti(me.x, me.y + 2.6, me.z, 6, 1.4);
+      else confetti(me.x, me.y + 2.6, me.z, 4, 1.2);
+    }
+    const C = S.cere; if (!C || !me) return;
+    C.t += dt;
+    if (C.t < 2.4 && C.place <= 3 && motionOn()) { C.acc += dt; while (C.acc > 0.12) { C.acc -= 0.12; confetti(me.x, me.y + 3.2, me.z, 6, 3.4, 2.5); } }
+    if (App.camOverride || App.reducedMotion || C.t > CERE) return;
+    const cam = App.renderer.camera, w = ease(0, 0.5, C.t) * (1 - ease(CERE - 0.9, CERE, C.t));
+    const chaseP = cam.position.clone(), chaseQ = cam.quaternion.clone();
+    const a = C.start + C.t * 0.85, rad = C.rad0 + (7.5 - C.rad0) * ease(0, 0.8, C.t);
+    const px = me.x + Math.sin(a) * rad, pz = me.z + Math.cos(a) * rad;
+    let py = me.y + 2.5 + 0.7 * Math.sin(C.t * 1.1);
+    const g = App.track.surface(px, pz, me.s).h; if (py < g + 1.4) py = g + 1.4;
+    cam.position.set(px, py, pz); cam.lookAt(me.x, me.y + 1.2, me.z);
+    const orbitP = cam.position.clone(), orbitQ = cam.quaternion.clone();
+    cam.position.lerpVectors(chaseP, orbitP, w); cam.quaternion.copy(chaseQ).slerp(orbitQ, w);
+  }
+
+  // ------------------------------------------------------------------ the podium
+  const STEP = [{ h: 1.5, top: 0xF2C230, side: 0xC99A1C }, { h: 1.0, top: 0xCFD8DE, side: 0x9AA6AE }, { h: 0.62, top: 0xC98A4B, side: 0x9A6532 }];
+  function numberTexture(n) {
+    const c = document.createElement('canvas'); c.width = c.height = 64;
+    const x = c.getContext('2d'); x.font = '900 52px Georgia, serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.lineWidth = 8; x.strokeStyle = '#1E1B18'; x.strokeText(String(n), 32, 36); x.fillStyle = '#FFF6C8'; x.fillText(String(n), 32, 36);
+    const t = new T.CanvasTexture(c); t.colorSpace = T.NoColorSpace; return t;
+  }
+  function blockGeo(w, d, h, base, topC, sideC) {
+    const g = new T.BoxGeometry(w, h, d), col = new Float32Array(g.attributes.position.count * 3), C = new T.Color();
+    for (let i = 0; i < col.length / 3; i++) {
+      const ny = g.attributes.normal.getY(i), nz = Math.abs(g.attributes.normal.getZ(i));
+      C.set(ny > 0.5 ? topC : sideC).multiplyScalar(ny > 0.5 ? 1 : nz > 0.5 ? 0.92 : 0.78);
+      col.set([C.r, C.g, C.b], i * 3);
+    }
+    g.setAttribute('color', new T.BufferAttribute(col, 3));
+    g.translate(0, base + h / 2, 0);
+    return g;
+  }
+  function buildPodium(data) {
+    const r = App.race, tr = App.track;
+    if (!r || !tr || r.phase !== 'done' || data.mode === 'timetrial' || !data.results || data.results.length < 3) return;
+    const top = data.results.slice(0, 3), s0 = Math.min(tr.length - 40, 16), c = tr.at(s0);
+    const road = c.wl + c.wr, W = Math.max(3, Math.min(3.8, road / 3.3)), D = 3.6;
+    const group = new T.Group(); group.name = 'podium';
+    const fwd = Math.atan2(c.tx, c.tz), views = [], mats = [], geos = [], tex = [];
+    const slots = [{ place: 0, u: 0 }, { place: 1, u: -1 }, { place: 2, u: 1 }];
+    const bm = new T.MeshBasicMaterial({ vertexColors: true, fog: false }); mats.push(bm);
+    const ctr = tr.point(s0, 0), gy = tr.heightAt(c, 0);
+    for (const sl of slots) {
+      const d = sl.u * (W + 0.25), p = tr.point(s0, d), base = tr.heightAt(c, d), st = STEP[sl.place];
+      const geo = blockGeo(W, D, st.h, Math.min(0, gy - base) - 0.4, st.top, st.side); geos.push(geo);
+      const m = new T.Mesh(geo, bm); m.position.set(p.x, base, p.z); m.rotation.y = fwd; m.frustumCulled = false; group.add(m);
+      const nt = numberTexture(sl.place + 1); tex.push(nt);
+      const nm = new T.MeshBasicMaterial({ map: nt, transparent: true, fog: false }); mats.push(nm);
+      const np = new T.Mesh(new T.PlaneGeometry(0.9, 0.9), nm); geos.push(np.geometry);
+      np.position.set(p.x + Math.sin(fwd) * (D / 2 + 0.02), base + st.h * 0.5, p.z + Math.cos(fwd) * (D / 2 + 0.02)); np.rotation.y = fwd; group.add(np);
+      const t = top[sl.place], view = new A.KartView(T, t.team, { hero: true });
+      group.add(view.mesh); group.add(view.shadow);
+      views.push({ view, x: p.x, z: p.z, y: base + st.h, place: sl.place, team: t.team, human: !!t.human, k: { id: 0, vf: 0, yawRate: 0, drift: 0, steer: 0, boostT: 0, air: false, state: 'run', items: { towel: true, mat: true, soap: true, loofah: true }, runPhase: 0, water: { gal: 38, cap: 38, tf: 0, tr: 0 } } });
+    }
+    App.renderer.scene.add(group);
+    document.body.dataset.podium = '1';
+    S.pod = { race: r, group, views, mats, geos, tex, t: 0, ctr, gy, fwd, c, W, acc: 0, rectT: 0, rect: null, places: top.map((x) => x.place), done: false };
+    for (const v of views) v.view.shadow.visible = true;
+    const first = views[0];
+    if (motionOn() || !App.reducedMotion) confetti(first.x, first.y + 3.4, first.z, App.reducedMotion ? 5 : 30, 3.6, 3);
+  }
+  function endPodium() {
+    const P = S.pod; if (!P) return;
+    App.renderer.scene.remove(P.group);
+    for (const v of P.views) v.view.geo.dispose();
+    P.geos.forEach((g) => g.dispose()); P.mats.forEach((m) => m.dispose()); P.tex.forEach((t) => t.dispose());
+    for (const v of App.views) { v.mesh.visible = true; v.shadow.visible = true; }
+    delete document.body.dataset.podium;
+    S.pod = null;
+  }
+  function stepPodium(dt) {
+    const P = S.pod; if (!P) return;
+    if (App.scene !== 'race' || App.race !== P.race || App.screens.cur !== 'results') { endPodium(); return; }
+    P.t += dt;
+    const reduced = App.reducedMotion;
+    // the race's own tubs step out of the picture; the podium's tubs take the contact blobs
+    for (const v of App.views) { v.mesh.visible = false; v.shadow.visible = false; }
+    for (const g of [App.ghostView, App.parView]) if (g) g.mesh.visible = false;
+    for (const v of P.views) {
+      const hop = reduced ? 0 : v.place === 0 ? Math.abs(Math.sin(P.t * 4.2)) * 0.14 : Math.sin(P.t * 2.4 + v.place) * 0.03 + 0.03;
+      v.view.update(v.k, { x: v.x, y: v.y + hop, z: v.z, yaw: P.fwd + Math.PI + (reduced ? 0 : Math.sin(P.t * 0.6 + v.place) * 0.12), groundY: v.y }, dt, App.time);
+    }
+    App.footBlobs.set(P.views.map((v) => v.view));
+    if (!reduced && P.t < 3.5 && motionOn()) { P.acc += dt; while (P.acc > 0.2) { P.acc -= 0.2; const f = P.views[0]; confetti(f.x, f.y + 3.4, f.z, 4, 3.6, 2.5); } }
+    if (App.camOverride) return;
+    // camera: in front of the podium, a slow sway, the podium pushed toward the side the panel leaves free
+    const cam = App.renderer.camera, W = innerWidth, H = innerHeight, ar = W / H, wide = ar > 1.3, tall = ar < 0.8;
+    const chaseP = cam.position.clone(), chaseQ = cam.quaternion.clone();
+    // the free part of the picture is what the panel leaves: right of it on a wide screen, above it on a tall one
+    P.rectT -= dt; if (P.rectT <= 0 || !P.rect) { P.rectT = 0.5; const el = document.querySelector('.panel.results'), b = el && el.getBoundingClientRect(); P.rect = b ? { r: b.right, t: b.top } : { r: 0, t: H }; }
+    const vt = Math.tan(App.renderer.baseFov * Math.PI / 360), ht = vt * ar;
+    const freeW = wide ? Math.max(0.3, (W - P.rect.r) / W - 0.07) : 1, freeH = tall ? Math.max(0.25, P.rect.t / H - 0.03) : 1;
+    const podHalf = (3 * P.W + 0.5) / 2 + 2.6, rad = Math.max(10, podHalf / (ht * freeW), 4.2 / (vt * freeH));
+    const sway = reduced ? 0 : Math.sin(P.t * 0.35) * 0.32;
+    const f = [Math.sin(P.fwd), Math.cos(P.fwd)], n = [-f[1], f[0]];
+    const ca = Math.cos(sway) * rad, cb = Math.sin(sway) * rad;
+    const cx = P.ctr.x + f[0] * ca + n[0] * cb, cz = P.ctr.z + f[1] * ca + n[1] * cb;
+    let cy = P.gy + (tall ? 4.4 : 3.4);
+    const gh = App.track.surface(cx, cz, P.c.s).h; if (cy < gh + 1.5) cy = gh + 1.5;
+    cam.position.set(cx, cy, cz);
+    // right-hand side of the view = the camera's right: with the camera ahead of the podium looking back, that is -n
+    const shift = wide ? rad * ht * (P.rect.r / W) : 0, drop = tall ? rad * vt * (1 - P.rect.t / H) : 0;
+    cam.lookAt(P.ctr.x + n[0] * shift, P.gy + 2.2 - drop, P.ctr.z + n[1] * shift);
+    const podP = cam.position.clone(), podQ = cam.quaternion.clone(), w = reduced ? 1 : ease(0, 1.3, P.t);
+    cam.position.lerpVectors(chaseP, podP, w); cam.quaternion.copy(chaseQ).slerp(podQ, w);
+    if (Math.abs(cam.fov - App.renderer.baseFov) > 0.05) { cam.fov = App.renderer.baseFov; cam.updateProjectionMatrix(); }
+  }
+
+  // ------------------------------------------------------------------ results banner
+  const BANNERS = ['WINNER!', 'PODIUM FINISH', 'GOOD EFFORT'], PHRASE = ['You won', 'You finished on the podium', 'You finished, good effort'];
+  function placeOf(data) { const h = (data.results || []).find((x) => x.human); return h ? h.place : 0; }
+  function bannerIndex(data) { const p = placeOf(data); return !p || data.mode === 'timetrial' ? -1 : p === 1 ? 0 : p <= 3 ? 1 : 2; }
+
+  // ------------------------------------------------------------------ the frame hook
+  function tick() {
+    if (S.dead) return;
+    const now = App.time, frozen = App.paused || (App.testPaused && App.clock == null);
+    const dt = frozen ? 0 : Math.min(0.25, Math.max(0, now - S.last)); S.last = now; S.clock += dt;
+    stepCeremony(dt);
+    stepPodium(dt);
+  }
+
+  function install() {
+    const R = App.renderer, orig = R.render.bind(R);
+    R.render = function (t) {
+      try { tick(); } catch (e) { S.dead = true; console.warn('finale off: ' + e.message); }
+      return orig(t);
+    };
+    const sc = App.screens, show = sc.show.bind(sc);
+    sc.show = function (name, data) {
+      const ix = name === 'results' ? bannerIndex(data || {}) : -1;
+      if (name === 'results') sc.app.banner = ix >= 0 ? BANNERS[ix] : null;
+      const out = show(name, data);
+      if (name === 'results') {
+        const dlg = sc.root.querySelector('[role="dialog"]');
+        if (dlg && ix >= 0) dlg.setAttribute('aria-label', 'Race results. ' + PHRASE[ix] + '.');
+        if (!S.dead) { try { endPodium(); buildPodium(data || {}); } catch (e) { S.dead = true; console.warn('finale off: ' + e.message); } }
+      }
+      return out;
+    };
+    const st = document.createElement('style');
+    st.textContent = 'body[data-podium] .scr-results{justify-content:flex-start;background:linear-gradient(90deg,rgba(10,16,26,.8) 0,rgba(10,16,26,.4) 50%,rgba(10,16,26,0) 100%)}'
+      + '@media (max-aspect-ratio:4/5){body[data-podium] .scr-results .panel{margin-block:auto 0}body[data-podium] .scr-results{justify-content:center;align-items:flex-end;padding-bottom:max(10px,env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(10,16,26,0) 0,rgba(10,16,26,0) 34%,rgba(10,16,26,.78) 48%)}body[data-podium] .scr-results .panel{max-height:62dvh;overflow:auto}}';
+    document.head.appendChild(st);
+  }
+
+  G.TR_FINALE = {
+    state() {
+      return {
+        dead: S.dead,
+        ceremony: S.cere ? { t: S.cere.t, place: S.cere.place, beads: S.cere.beads } : null,
+        podium: S.pod ? { places: S.pod.places, teams: S.pod.views.map((v) => v.team), t: S.pod.t } : null,
+      };
+    },
+    banners: BANNERS,
+  };
+  install();
+})(window);
