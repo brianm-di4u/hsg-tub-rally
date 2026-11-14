@@ -55,4 +55,43 @@ export const tests = [
       t.expect(tail.every((v) => v > 6), `after 8 s of rubbing the tub is at ${tail[0].toFixed(1)} m/s, not pinned`);
     },
   },
+  {
+    name: 'council C S1-01: a hard, near-square hit costs the grip fumble but the tub is moving again within a second and a half',
+    node: true,
+    async run(t) {
+      for (const deg of [60, 90]) {
+        const r = wallRun(17, deg);
+        t.expect(r.longestUnder3 <= 1.3, `a ${deg} degree hit at 17 m/s leaves the tub under 3 m/s for ${r.longestUnder3.toFixed(2)} s (needs 1.3 or less)`);
+      }
+      const rub = wallRun(17, 60, 8);
+      t.expect(rub.speeds.slice(-60).every((v) => v > 8), 'six seconds later it is back to speed');
+    },
+  },
+  {
+    name: 'council C S1-04: a stopped tub reaches 90 percent of top speed in 3.5 to 4.5 seconds',
+    node: true,
+    async run(t) {
+      const tr = track('bathhouse-row');
+      const t90 = (team, cls) => {
+        const c = tr.at(100), p = tr.point(100, 0);
+        const k = makeKart(0, team, cls, { x: p.x, z: p.z, y: p.y, yaw: Math.atan2(c.tx, c.tz), s: 100 }, { human: true });
+        for (let i = 0; i < 60 * 10; i++) { stepKart(k, { steer: 0, push: 1 }, tr, DT); if (k.vf >= 0.9 * k.stats.vTop) return i * DT; }
+        return Infinity;
+      };
+      for (const [team, cls] of [['engine-six', 'soak'], ['steam-rangers', 'soak'], ['steam-rangers', 'splash'], ['steam-rangers', 'scald'], ['lather-linen', 'soak']]) {
+        const v = t90(team, cls);
+        // Soak is the reference class; Splash's lower top speed is reached sooner, Scald's later
+        const lo = cls === 'soak' ? 3.5 : 3.0, hi = 4.5;
+        t.expect(v >= lo && v <= hi, `${team} on ${cls} takes ${v.toFixed(2)} s to 90 percent of top speed (${lo} to ${hi})`);
+      }
+      // the lightest tub is quicker but still not instant, and the thrust still ends at the class cap
+      const light = t90('bubble-patrol', 'soak');
+      t.expect(light >= 2.5 && light <= 4.5, `the light Modified tub takes ${light.toFixed(2)} s`);
+      const c = tr.at(100), p = tr.point(100, 0);
+      const k = makeKart(0, 'steam-rangers', 'soak', { x: p.x, z: p.z, y: p.y, yaw: Math.atan2(c.tx, c.tz), s: 100 }, { human: true });
+      let peak = 0;
+      for (let i = 0; i < 60 * 8; i++) { stepKart(k, { steer: 0, push: 1 }, tr, DT); peak = Math.max(peak, k.vf); }
+      t.expect(peak <= k.stats.vTop * 1.001, `thrust never pushes a tub past its class cap (${peak.toFixed(2)} of ${k.stats.vTop.toFixed(2)})`);
+    },
+  },
 ];

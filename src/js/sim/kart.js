@@ -6,8 +6,9 @@ import { makeWater, stepWater, jolt, addWater } from './water.js';
 import { LIMIT } from './track.js';
 
 export const G = 22; // arcade gravity for airtime (m/s²)
-const A0 = 8.6; // push acceleration at rest for the reference mass (m/s²)
-const THRUST_EXP = 1.6;
+// Push thrust (S1-04): front-loaded so a stopped tub is back at 90% of top speed in about 4 s (was 5.9 s).
+const A0 = 9.4; // push acceleration at rest for the reference mass (m/s²); was 8.6
+const THRUST_EXP = 2; // how steeply thrust falls away as speed nears the cap; was 1.6
 const M0 = 85 + 80 + 38 * GAL_KG; // a full Stock tub with captain
 const HOP_V = 3.4;
 const HIT_IMMUNE_T = 1.0; // protected window after the fumble circle ends (s)

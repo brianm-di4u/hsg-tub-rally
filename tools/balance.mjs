@@ -58,6 +58,7 @@ for (const id of ids) {
   const lapW = spec.lapTarget || [42, 62];
   const rows = [
     ['lap time mean (s)', mean(laps), lapW, `sd ${sd(laps).toFixed(1)}, min ${Math.min(...laps).toFixed(1)}, max ${Math.max(...laps).toFixed(1)}`],
+    ...(cls === 'soak' && T.lapMeanSoak?.[id] != null ? [['lap time vs baseline (s)', mean(laps), [T.lapMeanSoak[id] - T.lapMeanSoak.tolerance, T.lapMeanSoak[id] + T.lapMeanSoak.tolerance]]] : []),
     ['1st→8th spread (s)', mean(spreads), T.spreadSec],
     ['water at finish (frac)', mean(waterFrac), T.waterFinishFrac],
     ['finishers under 10 gal', under10 / Math.max(1, finishers), T.under10Share],

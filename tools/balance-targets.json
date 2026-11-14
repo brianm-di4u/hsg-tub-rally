@@ -28,5 +28,17 @@
  "cleanShare": [
   0.5,
   0.95
- ]
+ ],
+ "lapMeanSoak": {
+  "note": "Mean lap time (s) of the Soak field with items on, after the S1-04 thrust and the S1-01 wall retune (12 races per course). A run more than the tolerance away from these misses. Before the retune (6 races): bathhouse-row 54.87, bridge-street 54.06, goat-rock-gulpha 56.14, hs-mountain 53.38, park-avenue 54.66, sunset-ridge 54.50, west-mountain 56.60, whittington-valley 54.16.",
+  "tolerance": 2.5,
+  "bathhouse-row": 53.93,
+  "bridge-street": 53.39,
+  "goat-rock-gulpha": 55.54,
+  "hs-mountain": 53.07,
+  "park-avenue": 53.41,
+  "sunset-ridge": 53.38,
+  "west-mountain": 55.23,
+  "whittington-valley": 53.61
+ }
 }
