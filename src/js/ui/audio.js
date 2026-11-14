@@ -19,7 +19,7 @@ const COMP = { threshold: -14, ratio: 4, knee: 8, attack: 0.004, release: 0.25 }
 const REVERB_WET = 0.7;
 const DUCK_DB = 6, DUCK_MS = 300; // music dips this much under the big cues
 // Per-cue output trim, found with audioRender so every gameplay cue peaks 0.25 to 0.45 at the shipped volume.
-const CUE_TRIM = { quack: 3.48, splash: 13.2, steam: 7.8, snap: 4.727, whistle: 2.303, cheer: 7.3, bump: 6.03, pickup: 3.096, ticket: 4.856, boost: 6.7, hit: 4.586, ready: 6.581, go: 4.4, menu: 16.265, lap: 2.55, finish: 2.527, finalLap: 3.66, charge: 8.188, land: 6.03, swish: 10.293 };
+const CUE_TRIM = { quack: 3.48, splash: 13.2, steam: 7.8, snap: 4.727, whistle: 2.303, cheer: 7.3, bump: 6.03, pickup: 3.096, ticket: 4.856, boost: 6.7, hit: 4.2, ready: 6.581, go: 4.4, menu: 16.265, lap: 2.55, finish: 2.2, finalLap: 3.66, charge: 8.188, land: 6.03, swish: 10.293 };
 const DUCKS = { boost: 1, hit: 1, finish: 1.9 };
 const state = { cues: [], ducks: 0, on: true, music: true, vol: 0.6, started: false, theme: null, muffle: false, step: 0, nextT: 0, timer: null };
 
