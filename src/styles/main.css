@@ -101,6 +101,7 @@ kbd { display: inline-block; padding: 0 5px; border: 2px solid var(--ink); borde
   .hud-map { width: 104px; height: 104px; }
   .hud-time { font-size: 18px; }
   .set-row > span { width: 100%; }
+  .set-row.two > span { width: 6.5em; } /* two choices fit beside their label: keeps Settings on one phone screen */
 }
 @media (prefers-reduced-motion: reduce) { .hud-call { transition: none; } .hud-item.has .bubble { animation: none; } }
 

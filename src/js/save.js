@@ -7,7 +7,7 @@ const own = (v, k) => Object.prototype.hasOwnProperty.call(v, k);
 
 export const DEFAULT_SAVE = () => ({
   v: 1,
-  settings: { sound: true, music: true, volume: 0.6, res: 'native', quality: 'auto', autoPush: false, steerAssist: false, reducedMotion: null, hudScale: 1, keys: null },
+  settings: { sound: true, music: true, ambience: true, volume: 0.6, res: 'native', quality: 'auto', autoPush: false, steerAssist: false, reducedMotion: null, hudScale: 1, keys: null },
   unlocked: { teams: [], cups: ['bathhouse'], classes: ['splash', 'soak'], mirror: false },
   best: {}, // trackId → the complete winning race record, including its lap
   ghosts: {}, // trackId → last eligible recorded Time Trial

@@ -11,7 +11,7 @@ export const tests = [
       await t.waitFrames(5);
       s = await t.state();
       t.equal(s.audio.started, true, 'audio context created on the first key');
-      t.equal(s.audio.theme, 'rag', 'title theme playing');
+      t.equal(s.audio.theme, 'title', 'title theme playing');
       await t.game('setState', { settings: { sound: false } });
     },
   },

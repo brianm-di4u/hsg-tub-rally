@@ -29,7 +29,7 @@ import { initInput, initTouch, pollGamepads, readIntent, consumeMenu, consumePau
 import { Hud } from './ui/hud.js';
 import { Screens } from './ui/screens.js';
 import { loadSave, writeSave, resetSave, saveProblem, storeCup, loadCup, clearCup } from './save.js';
-import { initAudio, setAudio, sfx, tubLoop, rivalLoop, rivalEvent, setListener, USE_CUE, playTheme, audioState, setMuffle, suspendAudio, resumeAudio } from './ui/audio.js';
+import { initAudio, setAudio, sfx, tubLoop, rivalLoop, rivalEvent, setListener, USE_CUE, playTheme, playScene, setIntensity, audioState, setMuffle, suspendAudio, resumeAudio } from './ui/audio.js';
 import { installHooks } from './hooks.js';
 
 export const App = {
@@ -262,6 +262,8 @@ export async function startRace(opts = {}) {
   App.testPaused = !!o.paused;
   setScene('race');
   App.screens.hide();
+  setIntensity(0);
+  playScene(sceneFor(o));
   playTheme(o.mode === 'row' || o.mode === 'battle' ? 'march' : (trackData(o.track) || {}).env?.music || ((TRACK_BY_ID[o.track] || {}).cup === 'ouachita' ? 'grass' : 'rag'));
   document.body.classList.add('racing');
   App.hud.root.classList.add('on');
@@ -296,7 +298,15 @@ function gotoTitle() {
   document.body.classList.remove('racing');
   App.hud.root.classList.remove('on');
   App.screens.show('title');
-  playTheme('rag');
+  setIntensity(0);
+  playScene('town');
+  playTheme('title');
+}
+
+// The place a race is heard in: the plaza for the Water Fight, the mountain for the Ouachita cup, downtown otherwise.
+function sceneFor(o) {
+  const tr = TRACK_BY_ID[o.track] || {};
+  return o.mode === 'battle' || tr.arena ? 'plaza' : tr.cup === 'ouachita' ? 'mountain' : 'town';
 }
 
 // Per-frame sound for a race: the player's tub, then the rivals placed by where the camera points.
@@ -618,13 +628,15 @@ function stepOnce() {
   }
   if (me) playerFeedback(me);
   for (const e of r.events) {
-    if (me && e.kart === me.id && e.type === 'lap') { if (e.lap > r.laps) sfx('finish', r.finishOrder.indexOf(me.id) + 1 || me.place); else sfx(e.lap === r.laps ? 'finalLap' : 'lap'); }
+    if (me && e.kart === me.id && e.type === 'lap') { if (e.lap === r.laps) setIntensity(1); if (e.lap > r.laps) sfx('finish', r.finishOrder.indexOf(me.id) + 1 || me.place); else sfx(e.lap === r.laps ? 'finalLap' : 'lap'); }
     if (me && e.kart === me.id && e.type === 'lap') App.hud.flash(e.lap === r.laps ? 'FINAL LAP!' : e.lap > r.laps ? 'FINISH!' : `LAP ${e.lap}`, 'lap', 1.4);
   }
   if (me && me.water.gal <= 0.01 && !App._dryShown) { App.hud.flash('BONE DRY!', 'bad', 1.4); App._dryShown = true; }
   if (me && me.water.gal > 1) App._dryShown = false;
   if (r.phase === 'done' && !App._resultsShown) {
     App._resultsShown = true;
+    setIntensity(0);
+    playTheme('results');
     const me = r.player >= 0 ? r.karts[r.player] : null;
     let record = null;
     if (me && me.finished && r.mode !== 'row' && r.mode !== 'battle') {

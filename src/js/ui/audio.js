@@ -1,41 +1,45 @@
 // Sound: WebAudio synthesis only (no audio files). Starts on the first key or touch (browser autoplay rules),
 // quiet by default and mutable. Primitives after hsg-fishing/src/js/audio.js (tone, noise; Hot Springs Games,
 // MIT). No motor: a pushed tub sounds like four sets of running feet, a wheel rumble and water slosh.
-// Music: original short loops on a tiny step sequencer (ragtime downtown, bluegrass in the mountains, a march for
-// Rules of the Row and the Water Fight).
+// Music (wave 2, S5-02): original pieces of about a minute with a form (AABA), written as scores in scores.js and
+// played by the audio kit (audiokit.js): ragtime downtown, bluegrass in the mountains, a night swing, a march for
+// Rules of the Row and the Water Fight, and a title and a results piece. Ambience (S5-04): one bed per place.
 
 import { HOT_T } from '../sim/kart.js';
+import { makeAudioKit } from './audiokit.js';
+import { SCORES, SCENES } from './scores.js';
 
-let ctx = null, rev = null, comp = null, master = null, sfxBus = null, musicBus = null, musicLP = null, noiseBuf = null;
+let ctx = null, rev = null, comp = null, master = null, sfxBus = null, ambBus = null, musicLP = null, noiseBuf = null, kit = null;
 // bus levels (the mix the game ships; audioRender measures them at SHIP_VOL, the default volume setting)
 const SHIP_VOL = 0.6;
 // Each line keeps the pre-wave value beside it (wave 2, S5-01): edit one line to reverse a step.
 const MASTER_K = 0.8;     // was 0.5
 const SFX_BUS = 1.0;      // was 0.9
-const MUSIC_BUS = 1.0;    // was 0.32 (the old tunes peaked at 0.02 on the output); see MUSIC_TRIM
-const MUSIC_TRIM = { rag: 0.771, grass: 0.71, swing: 0.794, march: 0.787 }; // per tune, so each peaks about 0.13 at the shipped volume
-const KICK_VOL = 0.07;    // was 0.12: a softer kick lowers the peak-to-average gap so the tune can be heard at a quiet peak
+const MUSIC_BUS = 1.0;    // was 0.32 (the old tunes peaked at 0.02 on the output); each piece's own loudness is its trim in scores.js
+const AMBIENCE_BUS = 1.0; // the ambience beds are levelled by each scene's trim in scores.js
+const KIT_SEED = 0x7B1;   // seeds the kit's ambience one-shots; every tune has its own seed in scores.js
 const COMP = { threshold: -14, ratio: 4, knee: 8, attack: 0.004, release: 0.25 }; // limiter between master and speakers (none before)
 const REVERB_WET = 0.7;
 const DUCK_DB = 6, DUCK_MS = 300; // music dips this much under the big cues
 // Per-cue output trim, found with audioRender so every gameplay cue peaks 0.25 to 0.45 at the shipped volume.
 const CUE_TRIM = { quack: 3.48, splash: 13.2, steam: 7.8, snap: 4.727, whistle: 2.303, cheer: 7.3, bump: 6.03, pickup: 3.096, ticket: 4.856, boost: 6.7, hit: 4.2, ready: 6.581, go: 4.4, menu: 16.265, lap: 2.55, finish: 2.2, finalLap: 3.66, charge: 8.188, land: 6.03, swish: 10.293 };
 const DUCKS = { boost: 1, hit: 1, finish: 1.9 };
-const state = { cues: [], ducks: 0, on: true, music: true, vol: 0.6, started: false, theme: null, muffle: false, step: 0, nextT: 0, timer: null };
+const SWELLS = { lap: 0.5, finalLap: 0.8, finish: 1 }; // the crowd roars on a lap, the last lap and the finish
+const state = { cues: [], ducks: 0, on: true, music: true, ambience: true, vol: 0.6, started: false, theme: null, scene: null, intensity: 0, muffle: false, hidden: false, swell: 0, swells: 0, crowd: 0, wind: 0 };
 
-const MUFFLE_HZ = 900, OPEN_HZ = 5200; // OPEN_HZ was 22000: a gentle low-pass keeps the tune under the cues
-const musicLevel = () => (state.music ? MUSIC_BUS * (state.muffle ? 0.4 : 1) : 0);
+const OPEN_HZ = 5200; // was 22000: a gentle low-pass keeps the tune under the cues
+const FADE_MUSIC = 1.6, FADE_AMB = 2.5; // seconds to crossfade between pieces and between places
 
 // The bus tree is built by one function so a test can build the same tree on an OfflineAudioContext.
-function makeBuses(c, vol, muffled) {
+function makeBuses(c, vol) {
   const b = {};
   b.comp = c.createDynamicsCompressor();
   for (const k of Object.keys(COMP)) b.comp[k].value = COMP[k];
   b.comp.connect(c.destination);
   b.master = c.createGain(); b.master.gain.value = vol * MASTER_K; b.master.connect(b.comp);
   b.sfx = c.createGain(); b.sfx.gain.value = SFX_BUS; b.sfx.connect(b.master);
-  b.lp = c.createBiquadFilter(); b.lp.type = 'lowpass'; b.lp.frequency.value = muffled ? MUFFLE_HZ : OPEN_HZ; b.lp.connect(b.master);
-  b.music = c.createGain(); b.music.gain.value = MUSIC_BUS * (muffled ? 0.4 : 1); b.music.connect(b.lp);
+  b.lp = c.createBiquadFilter(); b.lp.type = 'lowpass'; b.lp.frequency.value = OPEN_HZ; b.lp.connect(b.master);
+  b.amb = c.createGain(); b.amb.gain.value = 1; b.amb.connect(b.master); // the kit's music goes into b.lp, its ambience here
   // a short room for splashes, cheers and whistles: 0.4 s of decaying noise, sent to the sfx bus at a low level
   b.rev = c.createConvolver(); b.rev.buffer = c.createBuffer(2, Math.floor(c.sampleRate * 0.4), c.sampleRate);
   for (let ch = 0; ch < 2; ch++) { const d = b.rev.buffer.getChannelData(ch); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length) ** 2.5; }
@@ -44,17 +48,19 @@ function makeBuses(c, vol, muffled) {
   const d = b.noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
   return b;
 }
-function bindBuses(b) { rev = b.rev; comp = b.comp; master = b.master; sfxBus = b.sfx; musicLP = b.lp; musicBus = b.music; noiseBuf = b.noise; }
+function bindBuses(b) { rev = b.rev; comp = b.comp; master = b.master; sfxBus = b.sfx; musicLP = b.lp; ambBus = b.amb; noiseBuf = b.noise; }
+// o: the levels the two buses start at (the live kit starts at what the settings say; a test render at full level)
+const newKit = (c, o = {}) => makeAudioKit(c, musicLP, { seed: KIT_SEED, ambOut: ambBus, music: o.music ?? MUSIC_BUS, ambience: o.ambience ?? AMBIENCE_BUS });
 // Run fn with the module's audio graph pointed at another context (an offline one), then restore the live one.
 // Everything inside fn is synchronous, so the live timers cannot interleave.
 function withContext(c, vol, fn) {
-  const saved = { rivalVoices, slide, rumble, ctx, rev, comp, master, sfxBus, musicBus, musicLP, noiseBuf };
-  ctx = c; slide = null; rumble = null; rivalVoices = null; bindBuses(makeBuses(c, vol, false));
-  try { return fn(); } finally { ({ rivalVoices, slide, rumble, ctx, rev, comp, master, sfxBus, musicBus, musicLP, noiseBuf } = saved); }
+  const saved = { rivalVoices, slide, rumble, ctx, rev, comp, master, sfxBus, ambBus, musicLP, noiseBuf };
+  ctx = c; slide = null; rumble = null; rivalVoices = null; bindBuses(makeBuses(c, vol));
+  try { return fn(); } finally { ({ rivalVoices, slide, rumble, ctx, rev, comp, master, sfxBus, ambBus, musicLP, noiseBuf } = saved); }
 }
 
 export function initAudio(settings) {
-  state.on = settings.sound !== false; state.music = settings.music !== false; state.vol = settings.volume ?? 0.6;
+  state.on = settings.sound !== false; state.music = settings.music !== false; state.ambience = settings.ambience !== false; state.vol = settings.volume ?? 0.6;
   const start = () => {
     if (!state.started) unlock();
     // iPad Safari can suspend an existing context while backgrounded. Resume it
@@ -74,38 +80,42 @@ function unlock() {
     if (!AC) return;
     state.started = true; // one attempt only: a failed build must not leave every later gesture making another context
     ctx = new AC();
-    bindBuses(makeBuses(ctx, state.vol, state.muffle));
-    master.gain.value = state.on ? state.vol * MASTER_K : 0; musicBus.gain.value = musicLevel();
+    bindBuses(makeBuses(ctx, state.vol));
+    master.gain.value = state.on ? state.vol * MASTER_K : 0;
+    kit = newKit(ctx, { music: state.music ? MUSIC_BUS : 0, ambience: state.ambience ? AMBIENCE_BUS : 0 }); applyHold(); kit.music.intensity(state.intensity);
     // a silent one-frame buffer on the gesture finishes the iOS unlock
     const silent = ctx.createBufferSource(); silent.buffer = ctx.createBuffer(1, 1, 22050); silent.connect(ctx.destination); silent.start(0);
-    buildLoops();
-    if (state.theme) playTheme(state.theme, true);
-  } catch (e) { if (ctx) ctx.close().catch(() => {}); ctx = null; }
+    kit.start();
+    if (state.theme) kit.music.play(SCORES[state.theme] || null, { fade: FADE_MUSIC });
+    if (state.scene) kit.amb.play(SCENES[state.scene] || null, { fade: FADE_AMB });
+  } catch (e) { if (kit) kit.stop(); kit = null; if (ctx) ctx.close().catch(() => {}); ctx = null; }
 }
 
+// Music and ambience each have their own switch; the Sound switch (the master) silences everything.
+function applyLevels() { if (!kit) return; kit.music.level(state.music ? MUSIC_BUS : 0); kit.amb.level(state.ambience ? AMBIENCE_BUS : 0); }
+// Under the pause card and while the page is hidden both buses fade out and nothing new is scheduled.
+function applyHold() { if (!kit) return; if (state.muffle || state.hidden) kit.hold(); else if (kit.held) kit.release(); }
 export function setAudio(settings) {
-  state.on = settings.sound !== false; state.music = settings.music !== false; state.vol = settings.volume ?? state.vol;
+  state.on = settings.sound !== false; state.music = settings.music !== false; state.ambience = settings.ambience !== false; state.vol = settings.volume ?? state.vol;
   if (!ctx) return;
   master.gain.setTargetAtTime(state.on ? state.vol * MASTER_K : 0, ctx.currentTime, 0.05);
-  musicBus.gain.setTargetAtTime(musicLevel(), ctx.currentTime, 0.05);
+  applyLevels();
 }
-// Under the pause menu the tune drops to 40% and is low-passed, so it sits behind the menu instead of competing with it.
 export function setMuffle(on) {
   if (state.muffle === on) return;
   state.muffle = on;
-  if (!ctx) return;
-  musicBus.gain.setTargetAtTime(musicLevel(), ctx.currentTime, 0.08);
-  musicLP.frequency.setTargetAtTime(on ? MUFFLE_HZ : OPEN_HZ, ctx.currentTime, 0.08);
+  applyHold();
 }
 // Page hidden: stop the clock so the rumble drone and the music scheduler do not run on in the background.
-export function suspendAudio() { if (ctx && ctx.state === 'running') ctx.suspend().catch(() => {}); }
+export function suspendAudio() { state.hidden = true; applyHold(); if (ctx && ctx.state === 'running') ctx.suspend().catch(() => {}); }
 export function resumeAudio() {
+  state.hidden = false; applyHold();
   if (!ctx) return;
-  if (state.nextT < ctx.currentTime) state.nextT = ctx.currentTime + 0.1;
   if (ctx.state !== 'running') ctx.resume().catch(() => {});
 }
 export function audioState() {
-  return { started: state.started, on: state.on, music: state.music, muffled: state.muffle, theme: state.theme, ctx: ctx ? ctx.state : 'none', ducks: state.ducks, rivals: { ...rivalInfo, voices: rivalInfo.voices.slice() }, slide: { ...slideInfo }, cues: state.cues.slice(),
+  return { started: state.started, on: state.on, music: state.music, ambience: state.ambience, muffled: state.muffle, theme: state.theme, scene: state.scene, intensity: state.intensity, ctx: ctx ? ctx.state : 'none', ducks: state.ducks, rivals: { ...rivalInfo, voices: rivalInfo.voices.slice() }, slide: { ...slideInfo }, cues: state.cues.slice(),
+    amb: { crowd: +state.crowd.toFixed(3), wind: +state.wind.toFixed(3), swells: state.swells }, kit: kit ? { ...kit.levels(), info: kit.music.info() } : null,
     mix: ctx ? { master: +master.gain.value.toFixed(3), sfx: sfxBus.gain.value, musicLP: Math.round(musicLP.frequency.value), limiter: { threshold: comp.threshold.value, ratio: comp.ratio.value } } : null };
 }
 
@@ -215,16 +225,12 @@ export const SFX = {
 function playCue(name, pos, ...a) { cueG = (CUE_TRIM[name] ?? 1) * (pos ? pos.gain : 1); cuePan = pos ? pos.pan : 0; try { SFX[name](...a); } finally { cueG = 1; cuePan = 0; } }
 function logCue(name, pos, a) { state.cues.push(name + (a.length && a[0] !== undefined ? ':' + a.map(String).join(',') : '') + (pos ? '@' + pos.pan.toFixed(2) + '*' + pos.gain.toFixed(2) : '')); if (state.cues.length > 24) state.cues.shift(); }
 // Dip the music under a big cue: DUCK_DB for about DUCK_MS, then back to its own level.
-function duckMusic() {
-  const t = ctx.currentTime, lvl = musicLevel();
-  musicBus.gain.cancelScheduledValues(t);
-  musicBus.gain.setTargetAtTime(lvl * 10 ** (-DUCK_DB / 20), t, 0.02);
-  musicBus.gain.setTargetAtTime(lvl, t + DUCK_MS / 1000, 0.25);
-}
+function duckMusic() { if (kit) kit.music.duck(DUCK_DB, DUCK_MS); }
 export function sfx(name, ...a) {
   if (!ctx || !state.on || !SFX[name]) return;
   playCue(name, null, ...a); logCue(name, null, a);
   if (DUCKS[name] && state.music) { duckMusic(); state.ducks++; }
+  if (SWELLS[name]) crowdSwell(SWELLS[name]);
 }
 
 // Continuous tub sounds, driven every frame by the player's tub: footsteps tick faster with speed, a rumble
@@ -248,8 +254,29 @@ function slideUpdate(k, active, when, record) {
   if (on) { slide.o.frequency.setTargetAtTime(hz, when, 0.04); slide.nf.frequency.setTargetAtTime(900 + 2200 * c, when, 0.06); }
   if (record) { slideInfo.on = on; slideInfo.charge = +c.toFixed(3); slideInfo.hz = Math.round(on ? hz : 0); }
 }
+// ---- ambience: one bed per place (scores.js SCENES). The crowd bed rises with speed, a swell on a lap or a pass and
+// the last lap; the wind bed rises with speed. amb.set() moves each bed's level.
+const AMB_TOP = 20;           // m/s at which the crowd and wind beds reach their full level from speed
+const CROWD_BASE = 0.2, CROWD_SPEED = 0.5, CROWD_FINAL = 0.2, SWELL_S = 3; // the crowd: standing level, speed share, last-lap lift, seconds a swell takes to die away
+const WIND_BASE = 0.15;
+export function crowdSwell(x) { state.swell = Math.max(state.swell, x); state.swells++; }
+function ambUpdate(k, dt, active) {
+  if (!kit) return;
+  const v = active && k ? clamp01(Math.abs(k.vf) / AMB_TOP) : 0;
+  state.swell = Math.max(0, state.swell - dt / SWELL_S);
+  const crowd = clamp01(CROWD_BASE * (active ? 1 : 0.5) + CROWD_SPEED * v + 0.4 * state.swell + (state.intensity > 0.5 ? CROWD_FINAL : 0));
+  const wind = clamp01(WIND_BASE + (1 - WIND_BASE) * v);
+  if (Math.abs(crowd - state.crowd) > 0.02) { state.crowd = crowd; kit.amb.set('crowd', crowd, 0.4); }
+  if (Math.abs(wind - state.wind) > 0.02) { state.wind = wind; kit.amb.set('wind', wind, 0.6); }
+}
+export function playScene(name) {
+  if (state.scene === name) return;
+  state.scene = name;
+  if (kit) kit.amb.play(SCENES[name] || null, { fade: FADE_AMB });
+}
 export function tubLoop(k, dt, active) {
   if (!ctx || !state.on) return;
+  ambUpdate(k, dt, active);
   if (!rumble) {
     const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
     s.buffer = noiseBuf; s.loop = true; f.type = 'lowpass'; f.frequency.value = 220; g.gain.value = 0;
@@ -322,6 +349,7 @@ export function rivalLoop(me, karts, active, dt) {
       if (prev !== undefined && sp.dist < 4 && Math.sign(prev) !== Math.sign(rel) && Math.abs(rel - prev) / Math.max(dt, 1e-3) >= 1.5 && (rivalPassT - (lastPass.get(k.id) ?? -9)) > 1.2) {
         lastPass.set(k.id, rivalPassT); rivalInfo.passes++;
         const pos = { pan: sp.pan, gain: prev < rel ? 1 : 0.7 }; // 1: it overtook the player; 0.7: the player overtook it
+        if (prev > rel) crowdSwell(0.5);
         playCue('swish', pos); logCue('swish', pos, []);
       }
     }
@@ -349,54 +377,16 @@ export function rivalEvent(me, k, e, time) {
 }
 let lastRivalBump = null;
 
-// ---- music: tiny step sequencer (16th notes), original loops ----
-const N = (s) => s.split(' ').map((t) => (t === '.' ? 0 : t === '-' ? -1 : noteHz(t)));
-function noteHz(n) { const m = n.match(/^([A-G])(#?)(\d)$/); if (!m) return 0; const k = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[m[1]] + (m[2] ? 1 : 0); return 440 * Math.pow(2, (k - 9) / 12 + (+m[3] - 4)); }
-let LOOPS = {};
-function buildLoops() {
-  LOOPS = {
-    // "Central Avenue Rag": oom-pah bass, syncopated lead (original)
-    rag: { bpm: 118, lead: N('E5 . G5 . A5 G5 . E5 D5 . C5 . D5 E5 . . C5 . E5 . G5 . A5 . C6 . A5 G5 E5 . . . F5 . A5 . C6 A5 . F5 E5 . G5 . E5 D5 . . D5 . E5 F5 G5 . E5 . D5 . C5 . D5 . . .'),
-      bass: N('C3 . G3 . C3 . G3 . F2 . C3 . F2 . C3 . A2 . E3 . A2 . E3 . D3 . A3 . G2 . D3 . F2 . C3 . F2 . C3 . C3 . G3 . E3 . G3 . G2 . D3 . G2 . B2 . C3 . G3 . C3 . . .'), leadType: 'square', bassType: 'triangle', drums: 'x...h...x.x.h...' },
-    // "Switchback Breakdown": banjo-ish rolls over a bouncing bass (original)
-    grass: { bpm: 132, lead: N('G4 B4 D5 G5 D5 B4 G4 B4 C5 E5 G5 E5 C5 E5 G5 E5 D5 F#5 A5 F#5 D5 F#5 A5 F#5 G4 B4 D5 G5 D5 B4 G4 . G4 B4 D5 G5 D5 B4 G4 B4 C5 E5 G5 E5 C5 E5 G5 E5 D5 F#5 A5 D6 A5 F#5 D5 F#5 G5 D5 B4 G4 G4 . . .'),
-      bass: N('G2 . D3 . G2 . D3 . C3 . G3 . C3 . G3 . D3 . A3 . D3 . A3 . G2 . D3 . G2 . D3 . G2 . D3 . G2 . D3 . C3 . G3 . C3 . G3 . D3 . A3 . D3 . A3 . G2 . D3 . G2 . . .'), leadType: 'sawtooth', bassType: 'triangle', drums: 'x.h.x.h.x.h.x.hh', pluck: true },
-    // "Park Avenue After Dark": a slow swing with walking bass (original)
-    swing: { bpm: 104, lead: N('G4 . . A#4 . C5 . D5 . . . F5 . D5 . . C5 . . A#4 . G4 . . F4 . G4 . . . . . G4 . . A#4 . C5 . D5 . . . G5 . F5 . D5 C5 . . A#4 . C5 . D5 . . . . . . .'),
-      bass: N('G2 . A2 . A#2 . B2 . C3 . D3 . D#3 . E3 . F2 . G2 . A2 . A#2 . C3 . A#2 . A2 . F2 . G2 . A2 . A#2 . B2 . C3 . D3 . D#3 . E3 . F2 . A2 . C3 . D3 . G2 . . .'), leadType: 'triangle', bassType: 'triangle', drums: 'x..h.hx..h.hx..h' },
-    // "Judges' March" (original)
-    march: { bpm: 112, lead: N('C5 . . C5 E5 . G5 . E5 . C5 . G4 . . . A4 . . A4 C5 . F5 . E5 . D5 . C5 . . . C5 . . C5 E5 . G5 . C6 . A5 . G5 . . . F5 . E5 . D5 . G4 . C5 . . . . . . .'),
-      bass: N('C3 . G2 . C3 . G2 . C3 . G2 . C3 . G2 . F2 . C3 . F2 . C3 . G2 . D3 . G2 . D3 . C3 . G2 . C3 . G2 . A2 . E3 . A2 . E3 . F2 . C3 . G2 . D3 . C3 . G2 . C3 . . .'), leadType: 'square', bassType: 'square', drums: 'x...x...x...xhxh' },
-  };
-  nameLoops();
-}
-function nameLoops() { for (const k of Object.keys(LOOPS)) LOOPS[k].name = k; }
+// ---- music: scores in scores.js, played by the kit ----
 export function playTheme(name, force = false) {
-  if (state.theme === name && !force && state.timer) return;
+  if (state.theme === name && !force) return;
   state.theme = name;
-  if (!ctx) return;
-  if (state.timer) clearInterval(state.timer);
-  const L = LOOPS[name];
-  if (!L) return;
-  state.step = 0; state.nextT = ctx.currentTime + 0.1;
-  state.timer = setInterval(() => { if (ctx) pumpMusic(L, state, ctx.currentTime + 0.15); }, 50);
+  if (kit) kit.music.play(SCORES[name] || null, { fade: FADE_MUSIC });
 }
-// Schedule every 16th note of loop L that starts before time `until` (audio-clock seconds); st = { step, nextT }.
-function pumpMusic(L, st, until) {
-  const sixteenth = 60 / L.bpm / 4;
-  while (st.nextT < until) {
-    const i = st.step % L.lead.length, at = st.nextT - ctx.currentTime;
-    const ln = L.lead[i], bn = L.bass[i % L.bass.length], dr = L.drums[i % L.drums.length];
-    const m = MUSIC_TRIM[L.name] ?? 1;
-    if (ln > 0) tone(ln, L.pluck ? sixteenth * 1.6 : sixteenth * 1.8, { type: L.leadType, vol: (L.pluck ? 0.07 : 0.05) * m, at, filter: L.pluck ? 2600 : 2200, bus: musicBus, attack: 0.004 });
-    if (bn > 0) tone(bn, sixteenth * 1.9, { type: L.bassType, vol: 0.09 * m, at, filter: 900, bus: musicBus });
-    if (dr === 'x') { tone(70, 0.12, { type: 'sine', vol: KICK_VOL * m, slide: 0.5, at, bus: musicBus }); }
-    if (dr === 'h') noise(0.03, { vol: 0.03 * m, type: 'highpass', freq: 7000, at, bus: musicBus });
-    st.step++; st.nextT += sixteenth;
-  }
-}
-export const musicNames = () => { if (!LOOPS.rag) buildLoops(); return Object.keys(LOOPS); };
-export function stopTheme() { if (state.timer) clearInterval(state.timer); state.timer = null; state.theme = null; }
+// 0 to 1: the last lap runs the tune 8% faster, lifts the lead an octave where the score allows it and adds its second percussion line.
+export function setIntensity(x) { state.intensity = clamp01(x); if (kit) kit.music.intensity(state.intensity); }
+export const musicNames = () => Object.keys(SCORES);
+export function stopTheme() { state.theme = null; if (kit) kit.music.stop(); }
 
 // ---- test hooks: render a piece or a cue by itself, faster than real time, and measure it ----
 // Never touches the live context or the settings: it builds the same bus tree on an OfflineAudioContext.
@@ -423,9 +413,11 @@ async function measureAudio(build, seconds, o = {}) {
   }
   return res;
 }
-export function audioList() { return { music: musicNames(), ambience: [], cues: Object.keys(SFX) }; }
-// name: a music piece ('rag'), or 'cue:<name>' (args for the cue in `args`).
+export function audioList() { return { music: musicNames(), ambience: Object.keys(SCENES), cues: Object.keys(SFX) }; }
+// name: a music piece ('rag'), an ambience scene ('town'), 'mix:<piece>' or 'cue:<name>' (args for the cue in `args`).
+// For a piece args[0] is the intensity (0 to 1, default 0); for a scene args[0] is the crowd and wind level (default 0.5).
 export function audioRender(name, seconds = 10, wantWav = false, args = []) {
+  const T0 = 0.05, LOUD = [['finish', 2], ['hit', 2.3], ['go', 2.4], ['boost', 2.5], ['bump', 2.6], ['pickup', 2.7]];
   const build = (oc) => withContext(oc, SHIP_VOL, () => {
     if (name.startsWith('cue:')) { const [c, pan] = name.slice(4).split('@'); playCue(c, pan ? { pan: +pan, gain: 1 } : null, ...args); return null; } // 'cue:swish@-0.7' is panned left
     if (name === 'loop:slide') { // a slide held for the whole render: the charge climbs from 0 to just past Hot
@@ -437,15 +429,23 @@ export function audioRender(name, seconds = 10, wantWav = false, args = []) {
       const [, , pan, dist] = name.split(':'); rivalUpdate([{ id: 1, dist: +dist, pan: +pan, speed: 18 }], 0, false);
       return null;
     }
-    if (name.startsWith('mix:')) { // the busiest moment: a tune with the loudest cues stacked on it
-      const L = LOOPS[name.slice(4)]; pumpMusic(L, { step: 0, nextT: 0.1 }, seconds + 0.2);
-      for (const [c, t] of [['finish', 2], ['hit', 2.3], ['go', 2.4], ['boost', 2.5], ['bump', 2.6], ['pickup', 2.7]]) { cueAt = t; try { playCue(c, null); } finally { cueAt = 0; } }
+    const k = newKit(ctx), level = args[0];
+    if (name.startsWith('mix:')) { // the busiest moment: a tune and the town crowd at full level, with the loudest cues stacked on them
+      const piece = name.slice(4); if (!SCORES[piece]) throw new Error('no such piece: ' + piece);
+      k.music.intensity(level ?? 1); k.music.play(SCORES[piece], { at: T0, fade: 0.02 }); k.amb.play(SCENES.town, { at: T0, fade: 0.02 }); k.amb.set('crowd', 1, 0.01);
+      k.scheduleUntil(seconds + 0.2);
+      for (const [c, t] of LOUD) { cueAt = t; try { playCue(c, null); } finally { cueAt = 0; } }
+      return () => k.music.info();
+    }
+    if (SCORES[name]) { // a piece by itself
+      k.music.intensity(level ?? 0); k.music.play(SCORES[name], { at: T0, fade: 0.02 }); k.scheduleUntil(seconds + 0.2);
+      return () => { const i = k.music.info(); return { ...i, formSeconds: +((i.formBars * 240) / (SCORES[name].bpm * (1 + 0.08 * (level ?? 0)))).toFixed(1) }; };
+    }
+    if (SCENES[name]) { // an ambience scene by itself, with the crowd and wind beds held at one level
+      k.amb.set('crowd', level ?? 0.5, 0.01); k.amb.set('wind', level ?? 0.5, 0.01); k.amb.play(SCENES[name], { at: T0, fade: 0.02 }); k.scheduleUntil(seconds + 0.2);
       return null;
     }
-    const L = LOOPS[name]; if (!L) throw new Error('no such piece: ' + name);
-    pumpMusic(L, { step: 0, nextT: 0.1 }, seconds + 0.2);
-    return null;
+    throw new Error('no such piece or scene: ' + name);
   });
-  if (!LOOPS.rag) buildLoops();
   return measureAudio(build, seconds, { wav: wantWav });
 }
