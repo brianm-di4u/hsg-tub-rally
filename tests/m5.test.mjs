@@ -21,7 +21,7 @@ export const tests = [
         if (f.startsWith('pack-') || f.startsWith('models-') || f.startsWith('crew')) t.expect(s <= 400, `${f} ${s.toFixed(0)} KB ≤ 400`);
       }
       t.expect(total <= 5 * 1024, `whole game ${(total / 1024).toFixed(2)} MB ≤ 5`);
-      const first = idx + vendor + ['pack-core.js', 'tracks.js', 'track-bathhouse-row.js', 'pack-row.js', 'pack-mtn.js', 'models-row.js', 'models-downtown.js', 'crew.js', 'crew-prints.js'].reduce((s, f) => s + kb('assets/' + f), 0);
+      const first = idx + vendor + ['pack-core.js', 'tracks.js', 'track-bathhouse-row.js', 'pack-row.js', 'pack-mtn.js', 'models-row.js', 'models-downtown.js', 'crew.js', 'crew-prints.js', 'finale.js', 'teach.js'].reduce((s, f) => s + kb('assets/' + f), 0);
       t.expect(first <= 2.1 * 1024, `first race download ${(first / 1024).toFixed(2)} MB ≤ 2.1`);
       t.log(`index ${idx.toFixed(0)} KB, vendor ${vendor.toFixed(0)} KB, total ${(total / 1024).toFixed(2)} MB, first race ${(first / 1024).toFixed(2)} MB`);
     },
