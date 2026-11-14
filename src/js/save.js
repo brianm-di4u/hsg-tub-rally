@@ -10,11 +10,23 @@ export const DEFAULT_SAVE = () => ({
   settings: { sound: true, music: true, ambience: true, volume: 0.6, res: 'native', quality: 'auto', autoPush: false, steerAssist: false, reducedMotion: null, hudScale: 1, keys: null },
   unlocked: { teams: [], cups: ['bathhouse'], classes: ['splash', 'soak'], mirror: false },
   best: {}, // trackId → the complete winning race record, including its lap
+  trial: {}, // trackId → Time Trial best { race, lap, medal 0..3 } (S3-04): Time Trial runs are on Scald only, so these are comparable
   ghosts: {}, // trackId → last eligible recorded Time Trial
   cups: {},
   stats: { races: 0, wins: 0, gallonsSpilled: 0 },
   lastTeam: 'engine-six', lastClass: 'soak',
 });
+
+// Time Trial bests: an entry that is not a real time is dropped, never an error (it is derived data).
+function cleanTrial(t) {
+  const out = {};
+  if (!object(t)) return out;
+  for (const [id, v] of Object.entries(t)) {
+    if (!object(v) || !Number.isFinite(v.race) || v.race <= 0) continue;
+    out[id] = { race: v.race, lap: Number.isFinite(v.lap) && v.lap > 0 ? v.lap : null, medal: Number.isInteger(v.medal) && v.medal >= 0 && v.medal <= 3 ? v.medal : 0 };
+  }
+  return out;
+}
 
 function projection(raw) {
   const s = raw === null ? { v: 1 } : JSON.parse(raw);
@@ -38,6 +50,7 @@ function projection(raw) {
   const out = { ...d, ...s, settings: { ...d.settings, ...s.settings }, unlocked: { ...d.unlocked, ...s.unlocked }, stats: { ...d.stats, ...s.stats } };
   // Stored setting values that would break the game (a text volume throws inside the audio setup) fall back to defaults.
   const st = out.settings;
+  out.trial = cleanTrial(s.trial);
   st.volume = Number.isFinite(st.volume) ? Math.min(1, Math.max(0, st.volume)) : d.settings.volume;
   if (!['authentic', 'crisp', 'native'].includes(st.res)) st.res = d.settings.res;
   if (!['auto', 'low', 'medium', 'high'].includes(st.quality)) st.quality = d.settings.quality;
@@ -56,7 +69,7 @@ export function createSaveWriter({
   backup = (raw) => window.localStorage.setItem(KEY + '-corrupt', raw),
 } = {}) {
   let memory = null;
-  let settings = {}, selection = {}, races = 0, wins = 0, runs = new Map(), cups = [];
+  let settings = {}, selection = {}, races = 0, wins = 0, runs = new Map(), cups = [], trials = [];
   const raceSeen = new WeakMap(), cupSeen = new WeakMap();
   let problem = null; // why the last read failed: 'blocked' (storage unavailable) or 'damaged' (unreadable value)
   const current = () => {
@@ -83,6 +96,7 @@ export function createSaveWriter({
         info = { recordAccepted: false, hadBest: false };
         raceSeen.set(r.token, info);
         races++; if (r.won) wins++;
+        if (object(r.trial) && Number.isFinite(r.trial.race) && r.trial.race > 0) trials.push({ ...copy(r.trial), info });
         if (r.record) {
           const c = { ...copy(r.record), info };
           if (!Number.isFinite(c.finishT) || c.finishT <= 0 || !object(c.value) || c.value.race !== +c.finishT.toFixed(3)) throw new Error('Invalid earned record');
@@ -126,6 +140,13 @@ export function createSaveWriter({
         }
       }
     }
+    for (const c of trials) {
+      const old = out.trial[c.track];
+      const medal = Number.isInteger(c.medal) ? Math.min(3, Math.max(0, c.medal)) : 0;
+      c.info.trialBest = !old || c.race < old.race; c.info.lapBest = Number.isFinite(c.lap) && (!old || !old.lap || c.lap < old.lap);
+      c.info.medal = medal; c.info.medalNew = !!old ? medal > old.medal : medal > 0;
+      out.trial[c.track] = { race: old ? Math.min(old.race, c.race) : c.race, lap: Number.isFinite(c.lap) ? (old && old.lap ? Math.min(old.lap, c.lap) : c.lap) : (old ? old.lap : null), medal: old ? Math.max(old.medal, medal) : medal };
+    }
     for (const c of cups) {
       if (!out.cups[c.key] || c.place < out.cups[c.key]) out.cups[c.key] = c.place;
       if (resolveAwards && !c.info.resolved) {
@@ -162,7 +183,7 @@ export function createSaveWriter({
         try { write(JSON.stringify(value)); stored = true; } catch (e) { /* keep pending changes */ }
       }
       const result = { stored, readable: fresh.readable, problem: fresh.readable ? (stored ? null : 'blocked') : problem, ...(info || {}) };
-      if (stored) { memory = copy(value); settings = {}; selection = {}; races = 0; wins = 0; runs = new Map(); cups = []; }
+      if (stored) { memory = copy(value); settings = {}; selection = {}; races = 0; wins = 0; runs = new Map(); cups = []; trials = []; }
       return result;
     },
     // Player-chosen recovery: keep a copy of the unreadable value under KEY-corrupt, store a fresh save, then

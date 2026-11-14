@@ -14,7 +14,7 @@ export function installHooks(App, api) {
       render: { w: App.renderer.size.w, h: App.renderer.size.h, mode: App.renderer.mode, draws: App.renderer.info.draws, tris: App.renderer.info.tris, tier: App.tier, builtTier: App.builtTier || App.tier },
       world: App.world ? App.world.userData : null,
       settings: App.save.settings, steps: App.steps,
-      ghost: App.ghost ? { team: App.ghost.team, total: App.ghost.total, n: App.ghost.n } : null, newRecord: !!App.newRecord,
+      ghost: App.ghost ? { team: App.ghost.team, total: App.ghost.total, n: App.ghost.n } : null, par: App.par ? { team: App.par.team, total: App.par.total, n: App.par.n } : null, trial: App.trialResult || null, newRecord: !!App.newRecord,
       best: App.track ? App.save.best[App.track.id] || null : null,
       audio: App.audioState ? App.audioState() : null,
     };

@@ -24,7 +24,7 @@ export class Hud {
     this.root = root;
     root.innerHTML = `
       <div class="hud-tl"><canvas class="hud-lap" aria-hidden="true"></canvas><div class="hud-time" aria-hidden="true"><canvas class="hud-timec"></canvas></div></div>
-      <div class="hud-tr empty"><canvas class="hud-place" aria-hidden="true"></canvas></div>
+      <div class="hud-tr empty"><small class="hud-par" aria-hidden="true" hidden>GOLD</small><canvas class="hud-place" aria-hidden="true"></canvas></div>
       <div class="hud-item" aria-hidden="true"><div class="bubble"><canvas class="item-icon" width="48" height="48"></canvas></div><div class="tickets"><span class="tk-ico"></span><b class="tk-n">0</b><small class="tk-l">tickets</small></div></div>
       <div class="hud-bl"><canvas class="hud-water" width="150" height="96" aria-hidden="true"></canvas><div class="hud-pips" aria-hidden="true"></div></div>
       <canvas class="hud-map" width="150" height="150" aria-hidden="true"></canvas>
@@ -32,7 +32,7 @@ export class Hud {
       <div class="hud-task" role="status" aria-live="assertive"><b class="t-name"></b><span class="t-how"></span><canvas class="t-meter" width="220" height="26" aria-hidden="true"></canvas></div>
       <div class="sr-only" aria-live="polite" id="hud-sr"></div>`;
     const q = (s) => root.querySelector(s);
-    this.el = { lap: q('.hud-lap'), time: q('.hud-time'), timeC: q('.hud-timec'), place: q('.hud-place'), water: q('.hud-water'), pips: q('.hud-pips'), map: q('.hud-map'), count: q('.hud-count'), call: q('.hud-call'), icon: q('.item-icon'), tk: q('.tk-n'), tkL: q('.tk-l'), sr: q('#hud-sr'), item: q('.hud-item'), task: q('.hud-task'), tname: q('.t-name'), thow: q('.t-how'), tmeter: q('.t-meter') };
+    this.el = { lap: q('.hud-lap'), time: q('.hud-time'), timeC: q('.hud-timec'), place: q('.hud-place'), water: q('.hud-water'), pips: q('.hud-pips'), map: q('.hud-map'), count: q('.hud-count'), call: q('.hud-call'), icon: q('.item-icon'), tk: q('.tk-n'), tkL: q('.tk-l'), parL: q('.hud-par'), sr: q('#hud-sr'), item: q('.hud-item'), task: q('.hud-task'), tname: q('.t-name'), thow: q('.t-how'), tmeter: q('.t-meter') };
     this.el.pips.innerHTML = Object.keys(ITEM_ICONS).map((k) => `<span class="pip pip-${k}" title="${ITEM_NAMES[k]}"><i></i><em>${ITEM_LABELS[k]}</em></span>`).join('');
     this.last = {};
     this.callT = 0;
@@ -55,6 +55,14 @@ export class Hud {
     const [sx, sz] = this.mapT(a.x[0], a.z[0]);
     g.fillStyle = '#C8322A'; g.fillRect(sx - 4, sz - 4, 8, 8);
     this.mapCache = c;
+  }
+  // Time Trial: the gold-medal time (the staff ghost's) under the clock, or nothing in other modes
+  // (the top-right tile shows it in place of the position, which is always 1st when racing alone)
+  setPar(secs) {
+    this.par = secs;
+    this.el.parL.hidden = secs == null;
+    this.el.parL.parentNode.classList.toggle('par', secs != null);
+    this.last.place = undefined;
   }
   flash(text, kind = '', secs = 1.4) {
     this.el.call.textContent = text;
@@ -81,10 +89,12 @@ export class Hud {
     const tt = fmtTime(t);
     if (tt !== L.tt) { L.tt = tt; pixelText(tt, { scale: 3, canvas: el.timeC, fill: ['#FFFFFF', '#BFD7EA'] }); el.time.setAttribute('aria-label', tt); }
     // place
-    if (me.place !== L.place) {
-      L.place = me.place;
-      pixelText(ORD[me.place] || '', { scale: 7, canvas: el.place, fill: PLACE_FILL[me.place] || ['#FFFFFF', '#9FB3C8'] });
-      el.place.parentNode.classList.toggle('empty', !ORD[me.place]); // no empty tile before places are known
+    const placeKey = this.par != null ? 'par' : me.place;
+    if (placeKey !== L.place) {
+      L.place = placeKey;
+      if (this.par != null) pixelText(fmtTime(this.par), { scale: 4, canvas: el.place, fill: ['#FFF6C8', '#F2C230'] });
+      else pixelText(ORD[me.place] || '', { scale: 7, canvas: el.place, fill: PLACE_FILL[me.place] || ['#FFFFFF', '#9FB3C8'] });
+      el.place.parentNode.classList.toggle('empty', this.par == null && !ORD[me.place]); // no empty tile before places are known
     }
     // water gauge
     const gal = Math.round(me.water.gal * 2) / 2;

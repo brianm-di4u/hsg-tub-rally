@@ -40,3 +40,37 @@ export function ghostPose(G, t) {
   let dyaw = dy / 1000; dyaw = Math.atan2(Math.sin(dyaw), Math.cos(dyaw));
   return { x: (G.X[lo] + (G.X[hi] - G.X[lo]) * f) / 20, z: (G.Z[lo] + (G.Z[hi] - G.Z[lo]) * f) / 20, y: (G.Y[lo] + (G.Y[hi] - G.Y[lo]) * f) / 20, yaw: y0 + dyaw * f };
 }
+
+// Par ghosts (S3-04): the staff run for a course, stored compactly because there is one per course in the page.
+// Uniform samples every PAR_STEP_MS (the last one at the finish time), x and z in decimetres from a whole-metre
+// origin, yaw in milliradians, all Int16. unpackPar gives the same shape as unpackGhost, so ghostPose reads either.
+export const PAR_STEP_MS = 200;
+const toB64s = (arr) => {
+  const u = new Uint8Array(Int16Array.from(arr).buffer);
+  let s = ''; for (let i = 0; i < u.length; i++) s += String.fromCharCode(u[i]);
+  return typeof btoa === 'function' ? btoa(s) : Buffer.from(u).toString('base64');
+};
+const fromB64s = (b) => {
+  const s = typeof atob === 'function' ? atob(b) : Buffer.from(b, 'base64').toString('binary');
+  const u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i);
+  return new Int16Array(u.buffer);
+};
+export function packPar(samples, meta) {
+  const ox = Math.round(samples.reduce((a, p) => a + p.x, 0) / samples.length), oz = Math.round(samples.reduce((a, p) => a + p.z, 0) / samples.length);
+  const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+  return { ...meta, ox, oz, n: samples.length, x: toB64s(samples.map((p) => Math.round((p.x - ox) * 10))), z: toB64s(samples.map((p) => Math.round((p.z - oz) * 10))), yaw: toB64s(samples.map((p) => Math.round(wrap(p.yaw) * 1000))) };
+}
+// `heightAt(x, z, hint)` gives the road height under a pose (the par ghost carries no height of its own).
+export function unpackPar(p, heightAt) {
+  const x = fromB64s(p.x), z = fromB64s(p.z), yaw = fromB64s(p.yaw), n = Math.min(p.n, x.length, z.length, yaw.length);
+  const T = new Int32Array(n), X = new Int32Array(n), Z = new Int32Array(n), Y = new Int32Array(n), YAW = new Int32Array(n);
+  let hint = 0;
+  for (let i = 0; i < n; i++) {
+    const wx = p.ox + x[i] / 10, wz = p.oz + z[i] / 10;
+    T[i] = i === n - 1 ? Math.round(p.total * 1000) : i * PAR_STEP_MS;
+    X[i] = Math.round(wx * 20); Z[i] = Math.round(wz * 20); YAW[i] = yaw[i];
+    const h = heightAt(wx, wz, hint);
+    hint = h.s; Y[i] = Math.round(h.h * 20);
+  }
+  return { v: 1, team: p.team, total: p.total, n, T, X, Z, Y, YAW };
+}

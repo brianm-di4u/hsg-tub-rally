@@ -18,7 +18,8 @@ import { loadModel, cloneModel, hasModel } from './gfx/models.js';
 import { Track } from './sim/track.js';
 import { landmarkPose } from './sim/landmarks.js';
 import { makeRace, stepRace, DT } from './sim/race.js';
-import { makeRecorder, record, packGhost, unpackGhost, ghostPose } from './sim/ghost.js';
+import { makeRecorder, record, packGhost, unpackGhost, unpackPar, ghostPose } from './sim/ghost.js';
+import { parOf, medalTimes, medalFor, PAR_LAPS } from './sim/medals.js';
 import { makeHeat, makeBracket, awards, BADGE_TEAMS } from './sim/rules-real.js';
 import { makeBattle } from './sim/battle.js';
 import { makeRng } from './rng.js';
@@ -250,12 +251,25 @@ export async function startRace(opts = {}) {
   if (App.world) clearAround(App.world, App.fx.booths);
   // Time Trial: record this run; race the saved best as a see-through ghost
   if (App.ghostView) { App.renderer.scene.remove(App.ghostView.mesh); App.ghostView.geo.dispose(); App.ghostView = null; }
-  App.rec = null; App.ghost = null; App.newRecord = false;
+  if (App.parView) { App.renderer.scene.remove(App.parView.mesh); App.parView.geo.dispose(); App.parView = null; }
+  App.rec = null; App.ghost = null; App.par = null; App.newRecord = false; App.trialResult = null;
+  App.hud.setPar(o.mode === 'timetrial' && medalTimes(o.track) ? medalTimes(o.track).gold : null);
   if (o.mode === 'timetrial') {
     App.rec = makeRecorder();
     const g = App.save.ghosts[o.track];
     if (g) {
       try { App.ghost = unpackGhost(g); App.ghostView = new KartView(window.THREE, g.team, { ghost: true }); App.renderer.scene.add(App.ghostView.mesh); } catch (e) { App.ghost = null; }
+    }
+    // the staff ghost (par): the first target, with a gold marker over it so it reads apart from the player's own ghost
+    const par = parOf(o.track);
+    if (par) {
+      try {
+        App.par = unpackPar(par, (x, z, h) => track.surface(x, z, h));
+        App.parView = new KartView(window.THREE, par.team, { ghost: true });
+        const THREE = window.THREE, gem = new THREE.Mesh(new THREE.ConeGeometry(0.17, 0.28, 4).rotateX(Math.PI), new THREE.MeshBasicMaterial({ color: 0xF2C230, fog: false }));
+        gem.position.set(0, 2.2, 0); App.parView.mesh.add(gem);
+        App.renderer.scene.add(App.parView.mesh);
+      } catch (e) { App.par = null; App.parView = null; }
     }
   }
   App.cam.snap();
@@ -412,13 +426,13 @@ function onMenu(act, data) {
         ensureTrack('bathhouse-row').then(() => { loadCourse('bathhouse-row'); App.screens.show('rowIntro', { team: F.team, bracket: App.row.bracket }); });
         break;
       }
-      if (F.mode === 'timetrial') App.screens.show('courses', { list: builtCourses() });
+      if (F.mode === 'timetrial') App.screens.show('courses', { list: builtCourses(), trial: F.mode === 'timetrial' });
       else App.screens.show('classes');
       break;
     case 'cls':
       F.classId = data.id; persistSave({ lastClass: data.id });
       if (F.mode === 'gp') App.screens.show('cups', { built: builtCourses().map((c) => c.id) });
-      else App.screens.show('courses', { list: builtCourses() });
+      else App.screens.show('courses', { list: builtCourses(), trial: F.mode === 'timetrial' });
       break;
     case 'cup': {
       const cup = CUP_BY_ID[data.id];
@@ -647,11 +661,16 @@ function stepOnce() {
         value: { race: +me.finishT.toFixed(3), lap: lap ? +lap.toFixed(3) : null, team: me.team, cls: r.classId },
         ghost: App.rec && App.rec.t.length > 10 ? packGhost(App.rec, { team: me.team, total: +me.finishT.toFixed(3) }) : null };
     }
-    const saved = persistSave({ race: { token: r, won: !!(r.results[0] && r.results[0].human), record } });
+    // Time Trial runs of the par length are scored against the par ghost's medal times
+    const trial = record && r.mode === 'timetrial' && r.classId === 'scald' && r.laps === PAR_LAPS && parOf(record.track)
+      ? { track: record.track, race: record.value.race, lap: record.value.lap, medal: medalFor(record.track, record.finishT) } : null;
+    const saved = persistSave({ race: { token: r, won: !!(r.results[0] && r.results[0].human), record, trial } });
     App.newRecord = !!saved.recordAccepted && (saved.hadBest || r.mode === 'timetrial');
+    App.trialResult = trial ? { ...trial, medalNew: !!saved.medalNew, trialBest: !!saved.trialBest, lapBest: !!saved.lapBest, times: medalTimes(trial.track), parLap: parOf(trial.track).lap } : null;
+    if (App.trialResult && App.trialResult.medalNew) sfx('cheer');
     if (r.mode === 'gp') recordGp(r);
     if (r.mode === 'row') { setTimeout(() => { if (App.race === r) onHeatDone(r); }, window.__TEST__ ? 0 : 1200); return; }
-    setTimeout(() => { if (App.race === r) App.screens.show('results', { results: r.results, laps: r.laps, trackName: App.track.name, gp: r.mode === 'gp', newRecord: App.newRecord, mode: r.mode }); }, window.__TEST__ ? 0 : 1500);
+    setTimeout(() => { if (App.race === r) App.screens.show('results', { results: r.results, laps: r.laps, trackName: App.track.name, gp: r.mode === 'gp', newRecord: App.newRecord, mode: r.mode, trial: App.trialResult }); }, window.__TEST__ ? 0 : 1500);
   }
   if (r.phase !== 'done') App._resultsShown = false;
 }
@@ -737,17 +756,8 @@ function drawRace(r, alpha, dt) {
   // the player's marker waits out the countdown (READY sits where it floats)
   const pv = App.views[r.player];
   if (pv && pv.marker) pv.marker.visible = r.phase !== 'countdown';
-  if (App.ghost && App.ghostView) {
-    const gp = ghostPose(App.ghost, r.time);
-    App.ghostView.mesh.visible = !!gp;
-    if (gp) {
-      gp.groundY = gp.y;
-      const gk = App._ghostK || (App._ghostK = { id: 99, vf: 16, yawRate: 0, drift: 0, steer: 0, boostT: 0, air: false, state: 'run', items: { towel: true, mat: true, soap: true, loofah: true }, runPhase: 0, water: { gal: 30, cap: 38, tf: 0, tr: 0 } });
-      gk.runPhase = r.time * 9;
-      App.ghostView.update(gk, gp, dt, App.time);
-      App.ghostView.shadow.visible = false;
-    }
-  }
+  drawGhost(App.ghost, App.ghostView, r, dt);
+  drawGhost(App.par, App.parView, r, dt);
   const lookBack = INPUT.back || (INPUT.pad && INPUT.pad.back);
   if (App.camPose) {
     App.cam.update(App.camPose.k, App.camPose.pose, dt || 1 / 60, {
@@ -777,6 +787,19 @@ function drawRace(r, alpha, dt) {
   App.frameEvents.length = 0;
   if (App.sky) App.sky.position.copy(App.renderer.camera.position).setY(0);
   App.hud.update(r, tr, r.player >= 0 ? r.karts[r.player] : null, dt);
+}
+
+// A see-through Time Trial ghost (the player's own, or the staff par) at the race clock's pose.
+function drawGhost(G, view, r, dt) {
+  if (!G || !view) return;
+  const gp = ghostPose(G, r.time);
+  view.mesh.visible = !!gp;
+  if (!gp) return;
+  gp.groundY = gp.y;
+  const gk = App._ghostK || (App._ghostK = { id: 99, vf: 16, yawRate: 0, drift: 0, steer: 0, boostT: 0, air: false, state: 'run', items: { towel: true, mat: true, soap: true, loofah: true }, runPhase: 0, water: { gal: 30, cap: 38, tf: 0, tr: 0 } });
+  gk.runPhase = r.time * 9;
+  view.update(gk, gp, dt, App.time);
+  view.shadow.visible = false;
 }
 
 // Title/attract: a slow camera glide along the course

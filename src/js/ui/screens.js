@@ -5,6 +5,7 @@ import { fmtTime } from './hud.js';
 import { TEAM_BY_ID, TEAMS, DIVISIONS, CLASSES, kartStats } from '../data/teams.js';
 import { CUPS, TROPHY } from '../data/cups.js';
 import { factFor } from '../data/facts.js';
+import { MEDAL_NAMES, medalTimes } from '../sim/medals.js';
 
 export class Screens {
   constructor(root, app) {
@@ -42,7 +43,18 @@ export class Screens {
   }
 }
 
+// a medal as a coloured disc with its name, so it reads without colour
+const medalChip = (m) => (m > 0 ? `<b class="medal m${m}">${MEDAL_NAMES[m]}</b>` : '');
 const btn = (act, label, extra = '') => `<button type="button" class="mbtn" data-act="${act}" ${extra}>${label}</button>`;
+
+// Time Trial results: the medal, the best lap and the staff ghost's time to beat
+function trialLines(t) {
+  const m = t.times;
+  const next = t.medal >= 3 ? 'You beat the staff ghost.' : `Next medal: ${MEDAL_NAMES[t.medal + 1]} at ${fmtTime(t.medal === 2 ? m.gold : t.medal === 1 ? m.silver : m.bronze)}.`;
+  return `<div class="trial-lines" role="status">
+        <p>${t.medal ? `${medalChip(t.medal)} medal${t.medalNew ? ' <b class="clean">NEW</b>' : ''}` : 'No medal this run.'} ${next}</p>
+        <p>Fastest lap ${fmtTime(t.lap)}${t.lapBest ? ' <b class="clean">NEW</b>' : ''} · staff ghost ${fmtTime(m.gold)}, best lap ${fmtTime(t.parLap)}</p></div>`;
+}
 
 const TEMPLATES = {
   title: (app) => `
@@ -67,13 +79,14 @@ const TEMPLATES = {
       <canvas data-pixel="PAUSED" data-scale="6"></canvas>
       <nav class="menu">${btn('resume', 'Resume', 'autofocus data-back')}${btn('restart', 'Restart race')}${btn('settings', 'Settings')}${btn('quit', 'Quit to title')}</nav>
     </div>`,
-  results: (app, { results, laps, trackName, gp, newRecord, mode }) => `
+  results: (app, { results, laps, trackName, gp, newRecord, mode, trial }) => `
     <div class="panel results" role="dialog" aria-label="Race results">
       <canvas data-pixel="RESULTS" data-scale="6"></canvas>
       <p class="sub">${mode === 'battle' ? `${trackName} · Water Fight: last tub with water wins` : `${trackName || ''} · ${laps} ${laps === 1 ? 'lap' : 'laps'}`}${newRecord ? ' · <b class="clean">NEW RECORD</b>' : ''}</p>
       <table class="rtable"><thead><tr><th>#</th><th>Team</th><th>Time</th><th>Water</th><th>Pts</th></tr></thead><tbody>
       ${(results || []).map((r) => `<tr class="${r.human ? 'me' : ''}"><td>${r.place}</td><td><span class="sw" style="background:${TEAM_BY_ID[r.team].colors.tub}"></span>${TEAM_BY_ID[r.team].name}${r.human ? ' (you)' : ''}</td><td>${r.estimated ? '~' : ''}${fmtTime(r.time)}</td><td>${r.gal.toFixed(0)} gal${r.clean ? ' <b class="clean" title="Clean Finish: 10+ gallons and all four items">CLEAN</b>' : ''}</td><td>${r.points}</td></tr>`).join('')}
       </tbody></table>
+      ${trial ? trialLines(trial) : ''}
       <nav class="menu row">${gp ? btn('standingsGo', 'Standings', 'autofocus') : btn('restart', mode === 'timetrial' ? 'Try again' : 'Race again', 'autofocus')}${gp ? btn('quitCup', 'Quit cup') : btn('quit', 'Title', 'data-back')}</nav>
     </div>`,
   help: () => `
@@ -129,10 +142,10 @@ const TEMPLATES = {
       <div class="card-row">${CUPS.map((c, i) => { const n = c.tracks.filter((id) => built.includes(id)).length; return `<button type="button" class="ccard" data-act="${n ? 'cup' : 'locked'}" data-id="${c.id}" ${i === 0 ? 'autofocus' : ''}><b>${c.name}</b><small>${c.blurb}</small><em>${n ? `${n} of 4 courses ready` : 'courses coming soon'}</em></button>`; }).join('')}</div>
       <nav class="menu row">${btn('back', 'Back', 'data-back')}</nav>
     </div>`,
-  courses: (app, { list }) => `
+  courses: (app, { list, trial }) => `
     <div class="panel courses" role="dialog" aria-label="Choose a course">
       <canvas data-pixel="CHOOSE A COURSE" data-scale="4"></canvas>
-      <div class="card-row">${list.map((t, i) => { const best = app.save.best[t.id]; return `<button type="button" class="ccard postcard" data-act="course" data-id="${t.id}" ${i === 0 ? 'autofocus' : ''}><b>${t.name}</b><small>${t.blurb || ''}</small><i class="fact">${factFor(t.id).t}</i><em>${Math.round(t.length || 0)} m lap${(window.TR_INFO || {})[t.id] && window.TR_INFO[t.id].real ? ` · real streets ${(window.TR_INFO[t.id].real / 1000).toFixed(1)} km, compressed` : ''}${best ? ` · best ${fmtTime(best.race)}` : ''}</em></button>`; }).join('')}</div>
+      <div class="card-row">${list.map((t, i) => { const best = app.save.best[t.id], tt = (app.save.trial || {})[t.id], mt = medalTimes(t.id); return `<button type="button" class="ccard postcard" data-act="course" data-id="${t.id}" ${i === 0 ? 'autofocus' : ''}><b>${t.name}</b><small>${t.blurb || ''}</small><i class="fact">${factFor(t.id).t}</i><em>${Math.round(t.length || 0)} m lap${(window.TR_INFO || {})[t.id] && window.TR_INFO[t.id].real ? ` · real streets ${(window.TR_INFO[t.id].real / 1000).toFixed(1)} km, compressed` : ''}${trial ? '' : best ? ` · best ${fmtTime(best.race)}${best.lap ? ` · lap ${fmtTime(best.lap)}` : ''}` : ''}</em>${trial ? `<span class="tt">${tt ? `${medalChip(tt.medal)} <span>Best ${fmtTime(tt.race)}${tt.lap ? ` · lap ${fmtTime(tt.lap)}` : ''}</span>` : '<span>No time set yet</span>'}${mt ? `<span class="tgt">Gold ${fmtTime(mt.gold)} · Silver ${fmtTime(mt.silver)} · Bronze ${fmtTime(mt.bronze)}</span>` : ''}</span>` : ''}</button>`; }).join('')}</div>
       <nav class="menu row">${btn('back', 'Back', 'data-back')}</nav>
     </div>`,
   standings: (app, { rows, round, rounds, cupName, final }) => `
