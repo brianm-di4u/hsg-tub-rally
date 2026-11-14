@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Par ghosts (S3-04): one staff run per course, driven by the game's own autoplay driver, written to
-// src/js/data/par.js as data. Re-run after any change to the physics or the Scald class, then rebuild:
+// assets/par-ghosts.js as data (a classic script the game loads when Time Trial opens, so the first race does not
+// carry it). Re-run after any change to the physics or the Scald class, then rebuild:
 //
 //   node tools/par-ghosts.mjs [--seeds 8] [--skill 1.04] [--check]
 //
@@ -40,7 +41,7 @@ function drive(tr, seed) {
 }
 
 const out = {};
-const oldPath = path.join(ROOT, 'src', 'js', 'data', 'par.js');
+const outPath = path.join(ROOT, 'assets', 'par-ghosts.js');
 for (const t of TRACKS) {
   const f = path.join(ROOT, 'data', 'tracks', t.id + '.json');
   if (t.arena || !fs.existsSync(f)) continue;
@@ -55,17 +56,18 @@ for (const t of TRACKS) {
   console.log(`${t.id.padEnd(20)} ${best.total.toFixed(2)} s  best lap ${best.lap.toFixed(2)}  laps ${best.laps.map((v) => v.toFixed(1)).join(' / ')}  ${best.samples.length} samples`);
 }
 if (CHECK) {
-  const { PAR } = await import(new URL('file:///' + oldPath.replace(/\\/g, '/')));
+  await import(new URL('file:///' + outPath.replace(/\\/g, '/')));
+  const PAR = globalThis.TR_PAR;
   let worst = 0;
   for (const [id, p] of Object.entries(out)) { const d = Math.abs(p.total - PAR[id].total); worst = Math.max(worst, d); console.log(`${id.padEnd(20)} stored ${PAR[id].total.toFixed(2)} now ${p.total.toFixed(2)} drift ${d.toFixed(2)} s`); }
   console.log('worst drift ' + worst.toFixed(2) + ' s');
 } else {
   const body = Object.entries(out).map(([id, p]) => `  '${id}': ${JSON.stringify(p)},`).join('\n');
-  fs.writeFileSync(oldPath, `// Par ghosts: one staff run per course from the game's own autoplay driver (tools/par-ghosts.mjs wrote this file).
-// The medal times are derived from the par time at run time, see src/js/sim/medals.js.
-export const PAR = {
+  fs.writeFileSync(outPath, `// Par ghosts: one staff run per course from the game's own autoplay driver (tools/par-ghosts.mjs wrote this file).
+// A classic script (also importable in Node): the game loads it when Time Trial opens. Medal times derive from it, see src/js/sim/medals.js.
+globalThis.TR_PAR = {
 ${body}
 };
 `);
-  console.log('wrote ' + oldPath);
+  console.log('wrote ' + outPath);
 }

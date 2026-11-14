@@ -6,6 +6,8 @@ import { TEAM_BY_ID, TEAMS, DIVISIONS, CLASSES, kartStats } from '../data/teams.
 import { CUPS, TROPHY } from '../data/cups.js';
 import { factFor } from '../data/facts.js';
 import { MEDAL_NAMES, medalTimes } from '../sim/medals.js';
+import { addDays } from '../daily.js';
+import { TRACK_BY_ID } from '../data/tracks.js';
 
 export class Screens {
   constructor(root, app) {
@@ -47,6 +49,17 @@ export class Screens {
 const medalChip = (m) => (m > 0 ? `<b class="medal m${m}">${MEDAL_NAMES[m]}</b>` : '');
 const btn = (act, label, extra = '') => `<button type="button" class="mbtn" data-act="${act}" ${extra}>${label}</button>`;
 
+const ord = (n) => n + (['th', 'st', 'nd', 'rd'][n % 100 >= 11 && n % 100 <= 13 ? 0 : n % 10] || 'th');
+const days = (n) => `${n} ${n === 1 ? 'day' : 'days'}`;
+const dateLabel = (key) => { const [y, m, d] = key.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }); };
+
+// Daily Race results: the day's board and the streak
+function dailyLines(d) {
+  return `<div class="trial-lines" role="status">
+        <p>Daily Race, ${dateLabel(d.date)}: ${ord(d.place)}${d.better ? ' <b class="clean">NEW BEST</b>' : ''}</p>
+        <p>${d.first ? `Streak: ${days(d.streak)}${d.streakBest && d.streak > 1 ? ' <b class="clean">LONGEST</b>' : ''}` : 'Raced already today: your best of the day is kept.'}</p></div>`;
+}
+
 // Time Trial results: the medal, the best lap and the staff ghost's time to beat
 function trialLines(t) {
   const m = t.times;
@@ -66,8 +79,10 @@ const TEMPLATES = {
         ${btn('gp', 'Grand Prix', 'autofocus')}
         ${btn('quick', 'Quick Race')}
         ${btn('timetrial', 'Time Trial')}
+        ${btn('daily', 'Daily Race')}
         ${btn('row', 'Rules of the Row')}
         ${btn('battle', 'Water Fight')}
+        ${btn('records', 'Records')}
         ${btn('help', 'How to Play')}
         ${btn('settings', 'Settings')}
         ${btn('credits', 'Credits')}
@@ -79,16 +94,53 @@ const TEMPLATES = {
       <canvas data-pixel="PAUSED" data-scale="6"></canvas>
       <nav class="menu">${btn('resume', 'Resume', 'autofocus data-back')}${btn('restart', 'Restart race')}${btn('settings', 'Settings')}${btn('quit', 'Quit to title')}</nav>
     </div>`,
-  results: (app, { results, laps, trackName, gp, newRecord, mode, trial }) => `
+  results: (app, { results, laps, trackName, gp, newRecord, mode, trial, daily }) => `
     <div class="panel results" role="dialog" aria-label="Race results">
       <canvas data-pixel="RESULTS" data-scale="6"></canvas>
       <p class="sub">${mode === 'battle' ? `${trackName} · Water Fight: last tub with water wins` : `${trackName || ''} · ${laps} ${laps === 1 ? 'lap' : 'laps'}`}${newRecord ? ' · <b class="clean">NEW RECORD</b>' : ''}</p>
       <table class="rtable"><thead><tr><th>#</th><th>Team</th><th>Time</th><th>Water</th><th>Pts</th></tr></thead><tbody>
       ${(results || []).map((r) => `<tr class="${r.human ? 'me' : ''}"><td>${r.place}</td><td><span class="sw" style="background:${TEAM_BY_ID[r.team].colors.tub}"></span>${TEAM_BY_ID[r.team].name}${r.human ? ' (you)' : ''}</td><td>${r.estimated ? '~' : ''}${fmtTime(r.time)}</td><td>${r.gal.toFixed(0)} gal${r.clean ? ' <b class="clean" title="Clean Finish: 10+ gallons and all four items">CLEAN</b>' : ''}</td><td>${r.points}</td></tr>`).join('')}
       </tbody></table>
-      ${trial ? trialLines(trial) : ''}
+      ${trial ? trialLines(trial) : ''}${daily ? dailyLines(daily) : ''}
       <nav class="menu row">${gp ? btn('standingsGo', 'Standings', 'autofocus') : btn('restart', mode === 'timetrial' ? 'Try again' : 'Race again', 'autofocus')}${gp ? btn('quitCup', 'Quit cup') : btn('quit', 'Title', 'data-back')}</nav>
     </div>`,
+  daily: (app, { plan, done, streak, best }) => `
+    <div class="panel daily" role="dialog" aria-label="Daily race">
+      <canvas data-pixel="DAILY RACE" data-scale="5"></canvas>
+      <p class="sub">${dateLabel(plan.date)}</p>
+      <ul class="daily-card">
+        <li><b>Course</b>${TRACK_BY_ID[plan.track].name}</li>
+        <li><b>Tub</b>${TEAM_BY_ID[plan.team].name}</li>
+        <li><b>Class</b>${CLASSES[plan.classId].name} · ${plan.laps} laps</li>
+        <li><b>Rivals</b>the same seven for everyone today</li>
+        <li><b>Today</b>${done ? `best ${ord(done.place)}, ${fmtTime(done.time)}` : 'not raced yet'}</li>
+        <li><b>Streak</b>${days(streak)}${best > streak ? ` · longest ${days(best)}` : ''}</li>
+      </ul>
+      <nav class="menu row">${btn('dailyGo', done ? 'Race again' : 'Race', 'autofocus')}${btn('back', 'Back', 'data-back')}</nav>
+    </div>`,
+  records: (app, { courses, today, streak }) => {
+    const sv = app.save, st = sv.stats, rate = st.races ? Math.round((st.wins / st.races) * 100) : 0;
+    const tile = (label, v) => `<div class="rtile"><b>${v}</b><span>${label}</span></div>`;
+    const cupCell = (place) => (place ? (place <= 3 ? `<b class="medal m${4 - place}" title="${TROPHY[place - 1]}">${ord(place)}</b>` : ord(place)) : '–');
+    const cal = Array.from({ length: 14 }, (_, i) => addDays(today, i - 13));
+    const timeCell = (r) => (r ? fmtTime(r.race) + (r.lap ? `<small> lap ${fmtTime(r.lap)}</small>` : '') : '–');
+    return `
+    <div class="panel records" role="dialog" aria-label="Records">
+      <canvas data-pixel="RECORDS" data-scale="5"></canvas>
+      <div class="rtiles">${tile('races', st.races)}${tile('wins', st.wins)}${tile('win rate', rate + '%')}${tile('gallons spilled', Math.round(st.gallonsSpilled))}${tile('daily streak', days(streak))}${tile('longest streak', days(st.bestStreak))}</div>
+      <h3>Cups</h3>
+      <table class="rtable" aria-label="Best cup finish by class"><thead><tr><th>Cup</th>${Object.values(CLASSES).map((c) => `<th>${c.name}</th>`).join('')}</tr></thead><tbody>
+      ${CUPS.map((cp) => `<tr><td>${cp.name}</td>${Object.values(CLASSES).map((c) => `<td>${sv.unlocked.classes.includes(c.id) || sv.cups[cp.id + ':' + c.id] ? cupCell(sv.cups[cp.id + ':' + c.id]) : '<i class="lk">locked</i>'}</td>`).join('')}</tr>`).join('')}
+      </tbody></table>
+      <h3>Courses</h3>
+      <table class="rtable" aria-label="Best times by course"><thead><tr><th>Course</th><th>Race best</th><th>Time Trial</th><th>Medal</th></tr></thead><tbody>
+      ${courses.map((c) => { const t = (sv.trial || {})[c.id]; return `<tr><td>${c.name}</td><td>${timeCell(sv.best[c.id])}</td><td>${timeCell(t)}</td><td>${t && t.medal ? medalChip(t.medal) : '–'}</td></tr>`; }).join('')}
+      </tbody></table>
+      <h3>Daily Races, last 14 days</h3>
+      <ol class="cal" aria-label="Daily Races played in the last 14 days">${cal.map((k) => { const d = sv.daily[k]; return `<li class="${d ? 'done' : ''} ${k === today ? 'today' : ''}" title="${dateLabel(k)}${d ? ': ' + ord(d.place) : ''}"><b>${+k.slice(8)}</b><i>${d ? ord(d.place) : ''}</i></li>`; }).join('')}</ol>
+      <nav class="menu row">${btn('back', 'Back', 'autofocus data-back')}</nav>
+    </div>`;
+  },
   help: () => `
     <div class="panel help" role="dialog" aria-label="How to play">
       <canvas data-pixel="HOW TO PLAY" data-scale="5"></canvas>

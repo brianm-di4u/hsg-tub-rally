@@ -14,7 +14,7 @@ export function installHooks(App, api) {
       render: { w: App.renderer.size.w, h: App.renderer.size.h, mode: App.renderer.mode, draws: App.renderer.info.draws, tris: App.renderer.info.tris, tier: App.tier, builtTier: App.builtTier || App.tier },
       world: App.world ? App.world.userData : null,
       settings: App.save.settings, steps: App.steps,
-      ghost: App.ghost ? { team: App.ghost.team, total: App.ghost.total, n: App.ghost.n } : null, par: App.par ? { team: App.par.team, total: App.par.total, n: App.par.n } : null, trial: App.trialResult || null, newRecord: !!App.newRecord,
+      ghost: App.ghost ? { team: App.ghost.team, total: App.ghost.total, n: App.ghost.n } : null, par: App.par ? { team: App.par.team, total: App.par.total, n: App.par.n } : null, trial: App.trialResult || null, daily: App.dailyResult || null, newRecord: !!App.newRecord,
       best: App.track ? App.save.best[App.track.id] || null : null,
       audio: App.audioState ? App.audioState() : null,
     };
@@ -98,6 +98,7 @@ export function installHooks(App, api) {
           App._hintDrv = App._hintDrv && App._hintDrv.k === k ? App._hintDrv : { k, d: makeDriver(k, r.classId, makeRng(5), 1) };
           return driveAI(k, App._hintDrv.d, App.track, { capMul: 1, race: r }, 1 / 60);
         }
+        case 'date': App.dateOverride = args[0] || null; return true; // the Daily Race's idea of today (YYYY-MM-DD), for tests
         case 'clearSave': App.save.best = {}; App.save.ghosts = {}; return true;
         // review captures (tools/shots-gpu.mjs): freeze the render clock at ms, or release it with null
         // (CSS transitions and animations run on wall-clock time, so they hold still too while the clock is frozen)

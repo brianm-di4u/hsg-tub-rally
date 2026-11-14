@@ -31,6 +31,7 @@ import { Hud } from './ui/hud.js';
 import { Screens } from './ui/screens.js';
 import { loadSave, writeSave, resetSave, saveProblem, storeCup, loadCup, clearCup } from './save.js';
 import { initAudio, setAudio, sfx, tubLoop, rivalLoop, rivalEvent, setListener, USE_CUE, playTheme, playScene, setIntensity, audioState, setMuffle, suspendAudio, resumeAudio } from './ui/audio.js';
+import { dateKey, dailyPlan, liveStreak } from './daily.js';
 import { installHooks } from './hooks.js';
 
 export const App = {
@@ -141,6 +142,12 @@ async function ensurePack(name) {
   await loadScript(`assets/${name}.js`);
   loadedPacks.add(name);
 }
+// The par ghosts (Time Trial targets) load the first time Time Trial needs them; without them there are no medals.
+let parLoad = null;
+export function ensurePar() {
+  if (!parLoad) { App.loading++; parLoad = loadScript('assets/par-ghosts.js').catch((e) => { console.warn(e.message); }).finally(() => { App.loading--; }); }
+  return parLoad;
+}
 export async function ensureTrack(id) {
   App.loading++;
   try {
@@ -211,6 +218,10 @@ function clearKarts() {
   App.views = [];
 }
 
+// Today's date key (local), or the one a test set; and the Daily Race for it
+const today = () => App.dateOverride || dateKey();
+const dailyToday = () => dailyPlan(today(), builtCourses().map((c) => c.id));
+
 // The class the player last chose, or Soak when that class is not open to them (a hand-edited save, say).
 const lastClass = () => (CLASSES[App.save.lastClass] && App.save.unlocked.classes.includes(App.save.lastClass) ? App.save.lastClass : 'soak');
 // opts: { track, team, classId, laps, seed, mode, noItems, paused, autoplay }
@@ -220,6 +231,7 @@ export async function startRace(opts = {}) {
   App.raceOpts = o;
   setPreview(null);
   await ensureTrack(o.track);
+  if (o.mode === 'timetrial') await ensurePar();
   const track = loadCourse(o.track);
   clearKarts();
   // the crews (and anything else built from here) follow the current tier, so a governor step-down mid-race
@@ -252,7 +264,7 @@ export async function startRace(opts = {}) {
   // Time Trial: record this run; race the saved best as a see-through ghost
   if (App.ghostView) { App.renderer.scene.remove(App.ghostView.mesh); App.ghostView.geo.dispose(); App.ghostView = null; }
   if (App.parView) { App.renderer.scene.remove(App.parView.mesh); App.parView.geo.dispose(); App.parView = null; }
-  App.rec = null; App.ghost = null; App.par = null; App.newRecord = false; App.trialResult = null;
+  App.rec = null; App.ghost = null; App.par = null; App.newRecord = false; App.trialResult = null; App.dailyResult = null;
   App.hud.setPar(o.mode === 'timetrial' && medalTimes(o.track) ? medalTimes(o.track).gold : null);
   if (o.mode === 'timetrial') {
     App.rec = makeRecorder();
@@ -417,6 +429,14 @@ function onMenu(act, data) {
       App.flow = { mode: act, team: s.lastTeam, classId: lastClass() };
       showTeams(s.lastTeam);
       break;
+    case 'daily': App.screens.show('daily', dailyView()); break;
+    case 'dailyGo': {
+      const p = dailyToday();
+      setPreview(null);
+      startRace({ mode: 'quick', count: 8, track: p.track, team: p.team, classId: p.classId, laps: p.laps, seed: p.seed, daily: p.date });
+      break;
+    }
+    case 'records': App.screens.show('records', recordsView()); break;
     case 'team': showTeams(data.id); break;
     case 'teamOk':
       persistSave({ lastTeam: F.team });
@@ -426,7 +446,7 @@ function onMenu(act, data) {
         ensureTrack('bathhouse-row').then(() => { loadCourse('bathhouse-row'); App.screens.show('rowIntro', { team: F.team, bracket: App.row.bracket }); });
         break;
       }
-      if (F.mode === 'timetrial') App.screens.show('courses', { list: builtCourses(), trial: F.mode === 'timetrial' });
+      if (F.mode === 'timetrial') ensurePar().then(() => { if (App.screens.cur === 'teams') App.screens.show('courses', { list: builtCourses(), trial: true }); });
       else App.screens.show('classes');
       break;
     case 'cls':
@@ -473,7 +493,7 @@ function onMenu(act, data) {
     }
     case 'resume': togglePause(false); break;
     case 'resetSave': persistSave({ reset: true }); break;
-    case 'restart': startRace({ ...App.raceOpts, seed: App.raceOpts.seed + 1 }); break;
+    case 'restart': startRace({ ...App.raceOpts, seed: App.raceOpts.daily ? App.raceOpts.seed : App.raceOpts.seed + 1 }); break; // the day's race keeps its seed
     case 'quitCup': { // abandoning a cup needs a second, deliberate press; Back and Esc never reach this button
       const b = App.screens.root.querySelector('[data-act="quitCup"]');
       if (b && !b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'Quit cup? Press again'; break; }
@@ -530,6 +550,16 @@ function showRowAwards() {
     else if (R.bracket.final && R.bracket.final.length === 1) R.bracket.champion = R.bracket.final[0];
   }
   App.screens.show('awards', { a: awards(R.heats, makeRng((Math.random() * 1e9) | 0)), champion: R.bracket.champion, division: R.bracket.division });
+}
+
+// What the Daily Race and Records screens show: the saved results against today's date
+function dailyView() {
+  const p = dailyToday(), s = App.save;
+  return { plan: p, today: p.date, done: s.daily[p.date] || null, streak: liveStreak(s.dailyStreak, p.date), best: s.stats.bestStreak };
+}
+function recordsView() {
+  const courses = builtCourses();
+  return { courses, today: today(), streak: liveStreak(App.save.dailyStreak, today()) };
 }
 
 function showTeams(id) {
@@ -664,13 +694,17 @@ function stepOnce() {
     // Time Trial runs of the par length are scored against the par ghost's medal times
     const trial = record && r.mode === 'timetrial' && r.classId === 'scald' && r.laps === PAR_LAPS && parOf(record.track)
       ? { track: record.track, race: record.value.race, lap: record.value.lap, medal: medalFor(record.track, record.finishT) } : null;
-    const saved = persistSave({ race: { token: r, won: !!(r.results[0] && r.results[0].human), record, trial } });
+    // the Daily Race is its own board: its fixed field and short length never touch a course's best time
+    const daily = App.raceOpts && App.raceOpts.daily && me && me.finished ? (() => { const h = r.results.find((x) => x.human); return h ? { date: App.raceOpts.daily, track: App.track.id, team: me.team, place: h.place, time: +h.time.toFixed(3) } : null; })() : null;
+    if (daily) record = null;
+    const saved = persistSave({ race: { token: r, won: !!(r.results[0] && r.results[0].human), record, trial, daily, spilled: me ? me.water.spilled : 0 } });
     App.newRecord = !!saved.recordAccepted && (saved.hadBest || r.mode === 'timetrial');
     App.trialResult = trial ? { ...trial, medalNew: !!saved.medalNew, trialBest: !!saved.trialBest, lapBest: !!saved.lapBest, times: medalTimes(trial.track), parLap: parOf(trial.track).lap } : null;
+    App.dailyResult = daily ? { ...daily, streak: saved.streak, streakBest: !!saved.streakBest, first: !!saved.dailyFirst, better: !!saved.dailyBest } : null;
     if (App.trialResult && App.trialResult.medalNew) sfx('cheer');
     if (r.mode === 'gp') recordGp(r);
     if (r.mode === 'row') { setTimeout(() => { if (App.race === r) onHeatDone(r); }, window.__TEST__ ? 0 : 1200); return; }
-    setTimeout(() => { if (App.race === r) App.screens.show('results', { results: r.results, laps: r.laps, trackName: App.track.name, gp: r.mode === 'gp', newRecord: App.newRecord, mode: r.mode, trial: App.trialResult }); }, window.__TEST__ ? 0 : 1500);
+    setTimeout(() => { if (App.race === r) App.screens.show('results', { results: r.results, laps: r.laps, trackName: App.track.name, gp: r.mode === 'gp', newRecord: App.newRecord, mode: r.mode, trial: App.trialResult, daily: App.dailyResult }); }, window.__TEST__ ? 0 : 1500);
   }
   if (r.phase !== 'done') App._resultsShown = false;
 }

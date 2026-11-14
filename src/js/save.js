@@ -1,5 +1,7 @@
 // v1 saves. Only explicit local actions are merged into a fresh storage read.
 // Pending earned changes survive failed reads/writes; a cached save is never write authority.
+import { validKey, nextStreak, betterDaily, DAILY_KEEP } from './daily.js';
+
 const KEY = 'hsg-tub-rally-v1';
 const copy = (v) => JSON.parse(JSON.stringify(v));
 const object = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
@@ -13,7 +15,9 @@ export const DEFAULT_SAVE = () => ({
   trial: {}, // trackId → Time Trial best { race, lap, medal 0..3 } (S3-04): Time Trial runs are on Scald only, so these are comparable
   ghosts: {}, // trackId → last eligible recorded Time Trial
   cups: {},
-  stats: { races: 0, wins: 0, gallonsSpilled: 0 },
+  daily: {}, // 'yyyy-mm-dd' → the best Daily Race of that day { track, team, place, time } (the latest DAILY_KEEP days)
+  dailyStreak: { n: 0, last: '' }, // consecutive days with a Daily Race, and the last day played
+  stats: { races: 0, wins: 0, gallonsSpilled: 0, bestStreak: 0 },
   lastTeam: 'engine-six', lastClass: 'soak',
 });
 
@@ -26,6 +30,18 @@ function cleanTrial(t) {
     out[id] = { race: v.race, lap: Number.isFinite(v.lap) && v.lap > 0 ? v.lap : null, medal: Number.isInteger(v.medal) && v.medal >= 0 && v.medal <= 3 ? v.medal : 0 };
   }
   return out;
+}
+
+// Daily results and the streak are derived data too: bad entries are dropped, never an error.
+function cleanDaily(t) {
+  const out = {};
+  if (!object(t)) return out;
+  const keys = Object.keys(t).filter((k) => validKey(k) && object(t[k]) && Number.isInteger(t[k].place) && t[k].place >= 1 && Number.isFinite(t[k].time) && t[k].time > 0).sort().slice(-DAILY_KEEP);
+  for (const k of keys) out[k] = { track: String(t[k].track || ''), team: String(t[k].team || ''), place: t[k].place, time: t[k].time };
+  return out;
+}
+function cleanStreak(v) {
+  return object(v) && Number.isInteger(v.n) && v.n > 0 && validKey(v.last) ? { n: v.n, last: v.last } : { n: 0, last: '' };
 }
 
 function projection(raw) {
@@ -51,6 +67,9 @@ function projection(raw) {
   // Stored setting values that would break the game (a text volume throws inside the audio setup) fall back to defaults.
   const st = out.settings;
   out.trial = cleanTrial(s.trial);
+  out.daily = cleanDaily(s.daily);
+  out.dailyStreak = cleanStreak(s.dailyStreak);
+  if (!Number.isFinite(out.stats.bestStreak) || out.stats.bestStreak < 0) out.stats.bestStreak = 0;
   st.volume = Number.isFinite(st.volume) ? Math.min(1, Math.max(0, st.volume)) : d.settings.volume;
   if (!['authentic', 'crisp', 'native'].includes(st.res)) st.res = d.settings.res;
   if (!['auto', 'low', 'medium', 'high'].includes(st.quality)) st.quality = d.settings.quality;
@@ -69,7 +88,7 @@ export function createSaveWriter({
   backup = (raw) => window.localStorage.setItem(KEY + '-corrupt', raw),
 } = {}) {
   let memory = null;
-  let settings = {}, selection = {}, races = 0, wins = 0, runs = new Map(), cups = [], trials = [];
+  let settings = {}, selection = {}, races = 0, wins = 0, runs = new Map(), cups = [], trials = [], dailies = [], spilled = 0;
   const raceSeen = new WeakMap(), cupSeen = new WeakMap();
   let problem = null; // why the last read failed: 'blocked' (storage unavailable) or 'damaged' (unreadable value)
   const current = () => {
@@ -97,6 +116,8 @@ export function createSaveWriter({
         raceSeen.set(r.token, info);
         races++; if (r.won) wins++;
         if (object(r.trial) && Number.isFinite(r.trial.race) && r.trial.race > 0) trials.push({ ...copy(r.trial), info });
+        if (Number.isFinite(r.spilled) && r.spilled > 0) spilled += r.spilled;
+        if (object(r.daily) && validKey(r.daily.date) && Number.isInteger(r.daily.place) && r.daily.place >= 1 && Number.isFinite(r.daily.time) && r.daily.time > 0) dailies.push({ ...copy(r.daily), info });
         if (r.record) {
           const c = { ...copy(r.record), info };
           if (!Number.isFinite(c.finishT) || c.finishT <= 0 || !object(c.value) || c.value.race !== +c.finishT.toFixed(3)) throw new Error('Invalid earned record');
@@ -140,6 +161,18 @@ export function createSaveWriter({
         }
       }
     }
+    out.stats.gallonsSpilled = Math.round((out.stats.gallonsSpilled + spilled) * 10) / 10;
+    // Daily Races apply in date order, so a late retry cannot undo a streak
+    for (const c of dailies.slice().sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))) {
+      const old = out.daily[c.date], entry = { track: c.track, team: c.team, place: c.place, time: c.time };
+      const best = betterDaily(old, entry);
+      c.info.dailyBest = best === entry && !!old; c.info.dailyFirst = !old;
+      out.daily[c.date] = best;
+      out.dailyStreak = nextStreak(out.dailyStreak, c.date);
+      c.info.streak = out.dailyStreak.n; c.info.streakBest = out.dailyStreak.n > out.stats.bestStreak;
+      out.stats.bestStreak = Math.max(out.stats.bestStreak, out.dailyStreak.n);
+    }
+    for (const k of Object.keys(out.daily).sort().slice(0, -DAILY_KEEP)) delete out.daily[k];
     for (const c of trials) {
       const old = out.trial[c.track];
       const medal = Number.isInteger(c.medal) ? Math.min(3, Math.max(0, c.medal)) : 0;
@@ -183,7 +216,7 @@ export function createSaveWriter({
         try { write(JSON.stringify(value)); stored = true; } catch (e) { /* keep pending changes */ }
       }
       const result = { stored, readable: fresh.readable, problem: fresh.readable ? (stored ? null : 'blocked') : problem, ...(info || {}) };
-      if (stored) { memory = copy(value); settings = {}; selection = {}; races = 0; wins = 0; runs = new Map(); cups = []; trials = []; }
+      if (stored) { memory = copy(value); settings = {}; selection = {}; races = 0; wins = 0; runs = new Map(); cups = []; trials = []; dailies = []; spilled = 0; }
       return result;
     },
     // Player-chosen recovery: keep a copy of the unreadable value under KEY-corrupt, store a fresh save, then
