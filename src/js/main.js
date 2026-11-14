@@ -108,7 +108,7 @@ async function boot() {
   window.addEventListener('blur', pauseRace);
   installHooks(App, { startRace, gotoTitle, setScene, stepOnce, kartEvents, audioFrame, onMenu, perfLab, labStats: () => labStats(window.THREE) });
   window.TR_APP = { App, KartView };
-  await loadScript('assets/finale.js').catch((e) => console.warn(e.message)); // the finish ceremony
+  await loadScript('assets/finale.js').catch((e) => console.warn(e.message)); // the finish ceremony and ambient motion
   // the title screen sits over a slow flyover of the first course
   // a save from before the unlock record keeps everything it had: write that record down now, once
   if (saveGrandfathered()) persistSave({});

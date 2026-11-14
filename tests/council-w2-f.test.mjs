@@ -1,4 +1,4 @@
-// Wave 2, batch F: S4-01 (finish ceremony, podium, banner by place).
+// Wave 2, batch F: S4-01 (finish ceremony, podium, banner by place) and S4-02 (steam, clouds, birds, crowd reaction).
 // assets/finale.js does both; main.js hands it the game in window.TR_APP. The simulation is untouched, so these
 // tests drive the browser: a paused autoplay race, stepped to the line, with the review clock moved by hand.
 import fs from 'node:fs';
@@ -144,6 +144,124 @@ export const tests = [
       await t.game('act', 'menu', 'settings'); await t.waitFrames(3);
       t.equal((await t.state()).screen, 'settings', 'Settings opens from the results');
       t.equal((await fin(t)).podium, null, 'the podium is gone once another screen is up');
+    },
+  },
+  // ---------------------------------------------------------------- S4-02
+  {
+    name: 'council F S4-02: steam rises from the bathhouse roofs and the verge, over the title flyover too',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.page.waitForTimeout(2500);
+      let f = await fin(t);
+      t.expect(f.emitters.filter((k) => k === 'vent').length >= 5, `thermal vents along the verge (${f.emitters.filter((k) => k === 'vent').length})`);
+      t.expect(f.emitters.filter((k) => k === 'roof').length >= 3, `steam on the bathhouse roofs (${f.emitters.filter((k) => k === 'roof').length})`);
+      t.expect(f.emitters.length <= 24, 'few enough emitters to stay cheap');
+      const low = (await tierOf(t)) === 'low';
+      t.log('tier', low ? 'low' : 'medium or high');
+      t.expect(f.cloudsOn && f.steamOn === !low && f.birdsOn === !low, 'cloud layer on; steam and birds on except on the Low tier');
+      await t.page.waitForTimeout(3500);
+      f = await fin(t);
+      if (!low) t.expect(f.live >= 12 && f.live <= 320, `puffs are rising on the title screen (${f.live} of 320)`);
+      await shot(t, 'S4-02-title-steam');
+      await t.game('act', 'menu', 'quick'); await t.waitFrames(2);
+      await t.game('newGame', { track: 'bathhouse-row', team: 'engine-six', seed: 4, paused: false });
+      await t.page.waitForTimeout(7000);
+      f = await fin(t);
+      if (!low) t.expect(f.live >= 12, `and in the race (${f.live})`);
+      await shot(t, 'S4-02-race-steam', { wait: false });
+    },
+  },
+  {
+    name: 'council F S4-02: a course with a fountain has mist over it; the mountain roads get vents and no roofs',
+    viewports: ['desktop'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.game('newGame', { track: 'hill-wheatley', mode: 'battle', team: 'engine-six', seed: 4, paused: true });
+      await t.waitFrames(3);
+      let f = await fin(t);
+      t.expect(f.emitters.includes('mist') && !f.emitters.includes('vent'), 'the arena: mist over the jug fountain (' + f.emitters.join(',') + ')');
+      await t.game('newGame', { track: 'hs-mountain', team: 'engine-six', seed: 4, paused: true });
+      await t.waitFrames(3);
+      f = await fin(t);
+      t.expect(f.emitters.filter((k) => k === 'vent').length >= 5 && !f.emitters.includes('roof'), 'Hot Springs Mountain: vents beside the road, no bathhouse roofs');
+    },
+  },
+  {
+    name: 'council F S4-02: reduced motion and the Low tier stop the steam and the birds; the clouds hold still',
+    reducedMotion: true,
+    viewports: ['desktop'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.page.waitForTimeout(3000);
+      let f = await fin(t);
+      t.expect(!f.steamOn && !f.birdsOn && f.live === 0, 'reduced motion: no steam, no birds');
+      t.expect(f.cloudsOn && f.cloudSpin === 0, 'the clouds are there but do not drift');
+      await shot(t, 'S4-02-title-reduced');
+    },
+  },
+  {
+    name: 'council F S4-02: the Low tier has no steam or birds either',
+    viewports: ['desktop'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.game('setState', { settings: { quality: 'low' } });
+      await t.page.evaluate(() => { TR_APP.App.tier = 'low'; });
+      await t.page.waitForTimeout(1500);
+      const f = await fin(t);
+      t.expect(!f.steamOn && !f.birdsOn, 'steam and birds are off on Low');
+    },
+  },
+  {
+    name: 'council F S4-02: the clouds drift slowly and the spectators raise their arms as the tub goes by',
+    viewports: ['desktop'],
+    async run(t) {
+      await start(t);
+      await advance(t, 1000);
+      let f = await fin(t);
+      const spin0 = f.cloudSpin;
+      await advance(t, 4000);
+      f = await fin(t);
+      t.expect(f.cloudSpin > spin0 + 0.03 && f.cloudSpin < spin0 + 0.12, `the cloud layer turns slowly (${(f.cloudSpin - spin0).toFixed(3)} rad in 4 s)`);
+      t.expect(f.crowd && f.crowd.n > 100, `the spectators are bound (${f.crowd && f.crowd.n})`);
+      // a spot beside a crowd board, and a spot far from every board
+      const pos = await t.page.evaluate(() => {
+        const A = TR_APP.App, b = A.track.json.props.filter((p) => p.type === 'crowd');
+        const far = (() => { let best = null; for (let s = 0; s < A.track.length; s += 20) { const c = A.track.at(s); const d = Math.min(...b.map((p) => Math.hypot(p.x - c.x, p.z - c.z))); if (!best || d > best.d) best = { s, d }; } return best; })();
+        const near = b[3], L = A.track.locate(near.x, near.z);
+        return { near: L.s, far: far.s, farD: far.d };
+      });
+      const cheering = async (s) => { await t.game('act', 'teleport', s, 0); await advance(t, 2500); return (await fin(t)).crowd.up; };
+      const away = await cheering(pos.far);
+      const by = await cheering(pos.near);
+      t.expect(by > away + 3, `fans near the tub are up (${by}) and far fans are not (${away})`);
+      const after = await cheering(pos.far);
+      t.expect(after < by, `and they lower again once it has gone (${after})`);
+      // the same fans, seen from the verge: the tub far off, then beside them
+      const look = await t.page.evaluate((s) => { const A = TR_APP.App, b = A.track.json.props.filter((p) => p.type === 'crowd')[3], L = A.track.locate(b.x, b.z); return 'at:' + s + ',' + L.d + ',1'; }, pos.near);
+      await t.game('act', 'teleport', pos.far, 0); await advance(t, 2500);
+      await t.game('act', 'camLook', look, 16, 0.12, 2.9); await t.waitFrames(2);
+      await shot(t, 'S4-02-crowd-idle');
+      await t.game('act', 'teleport', pos.near, 0); await advance(t, 2500);
+      await t.game('act', 'camLook', look, 16, 0.12, 2.9); await t.waitFrames(2);
+      await shot(t, 'S4-02-crowd-cheer');
+    },
+  },
+  {
+    name: 'council F S4-02: the finale code touches no saved data and keeps the draw-call and frame budgets',
+    viewports: ['desktop'],
+    async run(t) {
+      await t.waitIdle(8000);
+      const before = await t.page.evaluate((k) => localStorage.getItem(k), KEY);
+      await t.game('newGame', { track: 'bathhouse-row', team: 'engine-six', seed: 4, autoplay: true, paused: false });
+      await t.page.waitForTimeout(5000);
+      const fc = await t.frameCost(2500);
+      t.expect(fc.taskMs < 6, `frame task time ${fc.taskMs.toFixed(2)} ms < 6`);
+      const s = await t.state();
+      const B = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools', 'perf-budgets.json'), 'utf8')).tiers[s.render.builtTier || s.render.tier];
+      t.expect(s.render.draws <= B.draws, `draw calls ${s.render.draws} within ${B.draws}`);
+      const after = await t.page.evaluate((k) => localStorage.getItem(k), KEY);
+      t.equal(after, before, 'nothing about the ambient motion or the ceremony is written to the save');
     },
   },
 ];

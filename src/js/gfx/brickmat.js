@@ -402,14 +402,14 @@ const INST_V = `
     attribute vec3 iSkin;
   #endif
   #ifdef CHEER
-    attribute float aPart; attribute float iPhase;
+    attribute float aPart; attribute float iPhase; attribute float iBoost;
   #endif`;
 const INST_MAIN = `
     vec3 pos = position, nrm = normal;
     #ifdef CHEER
       if (aPart > 0.5) {
         float side = aPart > 1.5 ? -1.0 : 1.0;
-        float up = iPhase > 0.5 ? 2.5 * (0.55 + 0.45 * sin(uTime * 7.0 + iPhase * 6.2831)) : 0.25 * sin(uTime * 2.0 + iPhase * 9.0);
+        float up = mix(0.25 * sin(uTime * 2.0 + iPhase * 9.0), 2.5 * (0.55 + 0.45 * sin(uTime * 7.0 + iPhase * 6.2831)), iPhase > 0.5 ? 1.0 : iBoost);
         vec3 piv = vec3(0.24 * side, 1.02, 0.0);
         float c = cos(up), s = sin(up);
         vec3 q = pos - piv;
