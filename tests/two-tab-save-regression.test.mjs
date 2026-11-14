@@ -85,7 +85,7 @@ export const tests = [
     await t.waitIdle(15000);
     const before = await runtime(t), fresh = await parsed(t);
     fresh.best[TRACK] = { race: 190.45, lap: 61.383, team: 'engine-six', cls: 'splash' };
-    fresh.stats = { races: 8, wins: 3, gallonsSpilled: 17 }; fresh.cups['bathhouse:soak'] = 1;
+    fresh.stats = { races: 8, wins: 3, gallonsSpilled: 17, bestStreak: 0 }; fresh.cups['bathhouse:soak'] = 1;
     fresh.unlocked.teams.push('gator-gang'); fresh.lastClass = 'splash';
     Object.assign(fresh.settings, { sound: false, music: false, volume: .2, res: 'crisp', quality: 'low', autoPush: true, reducedMotion: true });
     await replace(t, fresh);

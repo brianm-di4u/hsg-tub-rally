@@ -21,7 +21,7 @@ export const tests = [
     const f = fixture(), fresh = DEFAULT_SAVE();
     fresh.best['bathhouse-row'] = record(190.45); fresh.ghosts.x = ghost('remote');
     fresh.cups['bathhouse:soak'] = 1; fresh.unlocked.teams.push('gator-gang');
-    fresh.stats = { races: 8, wins: 2, gallonsSpilled: 19 }; fresh.lastClass = 'splash';
+    fresh.stats = { races: 8, wins: 2, gallonsSpilled: 19, bestStreak: 0 }; fresh.lastClass = 'splash';
     fresh.settings.music = false; fresh.extra = { legacy: 7 };
     f.box.raw = JSON.stringify(fresh);
     f.commit({ settings: { sound: false } }); f.commit({ lastTeam: 'lather-linen' });
