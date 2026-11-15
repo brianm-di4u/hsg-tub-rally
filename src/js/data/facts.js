@@ -37,6 +37,7 @@ export const FACTS = {
   ],
   'west-mountain': [
     { t: 'West Mountain\'s picnic overlook shelter was built in 1924, one of the oldest still in use in the park.', src: 'nps-overlooks' },
+    { t: 'West Mountain\'s summit view looks south to the Trap Mountains and Lake Hamilton.', src: 'nps-overlooks' },
   ],
   'sunset-ridge': [
     { t: 'The original wooden tower on Hot Springs Mountain went up in 1877; the steel tower with an elevator dates from 1982.', src: 'nps-overlooks' },
@@ -44,6 +45,7 @@ export const FACTS = {
   ],
   'hill-wheatley': [
     { t: 'Real tubs are judged the night before the race at Hill Wheatley Plaza.', src: 'rules-2026', rule: 20 },
+    { t: 'Hill Wheatley Plaza has a thermal-water jug fountain.', src: 'hotspringsguides' },
   ],
 };
 

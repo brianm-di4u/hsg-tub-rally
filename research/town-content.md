@@ -154,6 +154,7 @@ and side of the street; generic buildings are stand-ins.
 | `sr-2016` | Sentinel-Record, 2016-06-05, "Battle of the Badges and more entertains at tub races" (hotsr.com) |
 | `katv-2026` | KATV, 2026-05-15 preview of the 20th running |
 | `nps-overlooks` | NPS Hot Springs National Park, "Scenic Drives & Overlooks" (home.nps.gov/hosp/planyourvisit/scenic-overlooks.htm) |
+| `hotspringsguides` | hotspringsguides.com listing of the thermal-water jug fountain at Hill Wheatley Plaza (see the battle arena entry above) |
 | `nps-sunset` | NPS, "Sunset Trail" (nps.gov/hosp/planyourvisit/sunset-trail.htm) |
 | `nps-display-spring` | NPS, Maurice Historic Display Spring (via research/geography-lakes-mountains.md) |
 | `corpus-row` | research/bathhouse-row-layout.md (HABS AR-28, NHL nomination, OSM) |
