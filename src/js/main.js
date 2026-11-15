@@ -44,6 +44,9 @@ export const App = {
 
 const $ = (s) => document.querySelector(s);
 
+// S1-08: after Resume the race waits this long, frozen but in view, with a 3-2-1, so held keys cannot throw the tub into a corner
+const RESUME_HOLD = 1.05;
+
 // Classic-script loader: three.js and the asset packs are plain scripts so they also load from file://
 // (ES-module imports and fetch() of local files do not). Paths are relative to the built index.html.
 export function loadScript(src) {
@@ -327,7 +330,7 @@ export async function startRace(opts = {}) {
   }
   App.cam.snap();
   App.acc = 0;
-  App.paused = false;
+  App.paused = false; App.resumeT = 0;
   App.testPaused = !!o.paused;
   setScene('race');
   App.screens.hide();
@@ -398,10 +401,18 @@ function pauseRace() {
 function onAway() { pauseRace(); suspendAudio(); }
 function onBack() { App.last = 0; resumeAudio(); }
 
+// The Resume hold: the sim stands still, the camera and HUD live on, a 3-2-1 shows, and any key pressed meanwhile is forgotten.
+function resumeCountdown(dt) {
+  App.resumeT = Math.max(0, App.resumeT - dt);
+  INPUT.itemP = false;
+  const n = Math.ceil(App.resumeT / (RESUME_HOLD / 3) - 1e-6);
+  if (n > 0 && n !== App.resumeN) { App.resumeN = n; App.hud.flash('RESUMING ' + n, 'lap', RESUME_HOLD / 3 + 0.05); }
+}
+
 function togglePause(force) {
   if (App.scene !== 'race' || !App.race || App.race.phase === 'done') return;
   App.paused = force ?? !App.paused;
-  if (App.paused) App.screens.show('pause'); else App.screens.hide();
+  if (App.paused) { App.resumeT = 0; App.screens.show('pause'); } else { App.resumeT = RESUME_HOLD; App.resumeN = 0; App.screens.hide(); }
 }
 
 // courses that are built (data present) in registry order, with card info
@@ -796,7 +807,8 @@ function frameStep(t) {
   showSaveStatus();
   const r = App.race;
   if (App.scene === 'race' && r) {
-    if (!App.paused && !App.testPaused) {
+    if (!App.paused && !App.testPaused && App.resumeT > 0) resumeCountdown(dt);
+    else if (!App.paused && !App.testPaused) {
       App.acc += dt;
       let n = 0;
       while (App.acc >= DT && n < 15) { stepOnce(); App.acc -= DT; n++; }
@@ -804,7 +816,7 @@ function frameStep(t) {
     }
     const alpha = App.paused || App.testPaused ? 1 : App.acc / DT;
     drawRace(r, alpha, dt);
-    audioFrame(r, dt, !App.paused && !App.testPaused);
+    audioFrame(r, dt, !App.paused && !App.testPaused && !(App.resumeT > 0));
     const down = App.governor.frame(dt, !App.paused && !App.testPaused);
     if (down) { App.tier = down; if (App.renderer.ssao) { App.renderer.ssao.dispose(); App.renderer.ssao = null; } if (down === 'low' && App.shadow) App.shadow.setEnabled(false); const env = App.track.json.env || {}; App.renderer.setEnv({ ...env, fog: env.fog ? [Math.min(env.fog[0], TIERS[down].fogFar * 0.4), Math.min(env.fog[1], TIERS[down].fogFar)] : undefined }); }
   } else {
