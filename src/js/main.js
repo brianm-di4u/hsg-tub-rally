@@ -1036,4 +1036,15 @@ function drawAttract(dt) {
   if (App.sky) App.sky.position.copy(cam.position).setY(0);
 }
 
-boot().catch((e) => { console.error(e); const el = document.querySelector('#boot-error'); if (el) { el.textContent = 'Could not start: ' + e.message; el.hidden = false; } });
+// S6-20: a start that fails (a pack that would not load) shows a card with a Reload button, not a bare line over a blank page
+function bootFailed(e) {
+  console.error(e);
+  const card = document.querySelector('#boot-fail');
+  if (!card) return;
+  const why = card.querySelector('#boot-fail-why'), again = card.querySelector('#boot-reload');
+  if (why) why.textContent = 'Could not start: ' + (e && e.message ? e.message : e);
+  if (again) again.addEventListener('click', () => location.reload());
+  card.hidden = false;
+  if (again) again.focus();
+}
+boot().catch(bootFailed);

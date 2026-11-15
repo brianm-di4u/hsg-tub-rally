@@ -79,4 +79,31 @@ export const tests = [
       t.equal(await t.page.evaluate(() => document.querySelectorAll('.panel.results .clean-note').length), 1, 'when you are clean the one line already says the rule');
     },
   },
+  // ---------------------------------------------------------------- S6-20
+  {
+    name: 'council D S6-20: a start that fails shows a card with plain words and a Reload that works',
+    viewports: ['desktop', 'mobile'],
+    allowConsoleErrors: true, // a start that fails reports its error to the console, on purpose
+    async run(t) {
+      await t.waitIdle(8000);
+      let blocked = true;
+      await t.page.route('**/assets/tracks.js', (r) => (blocked ? r.abort() : r.continue()));
+      await t.page.reload();
+      await t.page.waitForFunction(() => { const c = document.querySelector('#boot-fail'); return c && !c.hidden; }, null, { timeout: 15000 });
+      const card = await t.page.evaluate(() => { const c = document.querySelector('#boot-fail'); const b = c.querySelector('#boot-reload').getBoundingClientRect(); return { text: c.innerText.split(/\s+/).join(' '), role: c.getAttribute('role'), btn: [b.width, b.height], focus: document.activeElement && document.activeElement.id, bare: document.querySelector('#boot-error').hidden }; });
+      t.expect(/The tubs could not leave the garage/.test(card.text) && /Reload the page to try again/.test(card.text), 'plain words: ' + card.text);
+      t.expect(/Could not start/.test(card.text), 'the technical line is kept, small, for anyone who needs it: ' + card.text);
+      t.equal(card.role, 'alert', 'announced to screen readers');
+      t.equal(card.bare, true, 'the bare error line is not shown');
+      t.expect(card.btn[0] >= 44 && card.btn[1] >= 44, 'the Reload button is a touch target: ' + card.btn);
+      t.equal(card.focus, 'boot-reload', 'the button has focus, so Enter reloads');
+      await shot(t, 'S6-20', 'boot-failure');
+      await t.checkLayout();
+      blocked = false;
+      await t.page.click('#boot-reload');
+      await t.page.waitForFunction(() => window.__game, null, { timeout: 20000 });
+      await t.waitIdle(8000);
+      t.equal(await t.page.evaluate(() => document.querySelector('#boot-fail').hidden), true, 'after Reload the game starts and the card is gone');
+    },
+  },
 ];

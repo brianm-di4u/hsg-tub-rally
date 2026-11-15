@@ -23,6 +23,15 @@
   <button type="button" id="t-pause" class="t-pause" aria-label="Pause race">Pause</button>
   <div id="screens" class="screens"></div>
   <p id="boot-error" class="boot-error" role="alert" hidden></p>
+  <div id="boot-fail" class="boot-fail" role="alert" hidden>
+    <div class="bf-card">
+      <p class="bf-logo" aria-hidden="true"><span>SPA CITY</span><b>TUB RALLY</b></p>
+      <h1>The tubs could not leave the garage</h1>
+      <p>Something the game needs did not load. Reload the page to try again.</p>
+      <p id="boot-fail-why" class="bf-why"></p>
+      <button type="button" id="boot-reload" class="mbtn">Reload</button>
+    </div>
+  </div>
   <noscript><p class="boot-error">Spa City Tub Rally needs JavaScript and WebGL.</p></noscript>
   <script type="module" src="js/main.js"></script>
 </body>
