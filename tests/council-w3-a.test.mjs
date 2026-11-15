@@ -215,3 +215,37 @@ tests.push(
     },
   },
 );
+
+// ---------------------------------------------------------------- S3-06
+import { createSaveWriter, DEFAULT_SAVE } from '../src/js/save.js';
+tests.push(
+  {
+    name: 'council A S3-06: the first cup won on Soak announces Scald once, and only once',
+    node: true,
+    async run(t) {
+      const box = { raw: JSON.stringify(DEFAULT_SAVE()) };
+      const writer = createSaveWriter({ read: () => box.raw, write: (r) => { box.raw = r; } });
+      const save = writer.load();
+      const teamOrder = ['gator-gang', 'silks-stirrups', 'flamingo-flock', 'tub-ninjas'];
+      const third = writer.commit(save, { cup: { token: {}, key: 'bathhouse:soak', place: 3, soak: true, scald: false, teamOrder } });
+      t.expect(!third.unlockedClass && !JSON.parse(box.raw).unlocked.classes.includes('scald'), 'third place opens nothing and announces nothing');
+      const won = writer.commit(save, { cup: { token: {}, key: 'bathhouse:soak', place: 1, soak: true, scald: false, teamOrder } });
+      t.equal(won.unlockedClass, 'scald', 'winning the cup on Soak announces Scald');
+      t.expect(JSON.parse(box.raw).unlocked.classes.includes('scald'), 'and Scald is saved as open');
+      const again = writer.commit(save, { cup: { token: {}, key: 'ouachita:soak', place: 1, soak: true, scald: false, teamOrder } });
+      t.expect(!again.unlockedClass, 'a second win on Soak does not announce Scald again');
+    },
+  },
+  {
+    name: 'council A S3-06: the trophy screen prints the Scald unlock under the team line',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.page.evaluate(() => { const a = window.TR_APP.App; a.screens.show('trophy', { place: 1, cupName: 'Bathhouse Cup', unlockedTeam: 'gator-gang', unlockedClass: 'scald', unlockedCup: null, unlockedMirror: false }); });
+      await t.waitFrames(3);
+      const lines = await t.page.evaluate(() => [...document.querySelectorAll('.panel.trophy .unlock')].map((p) => p.textContent));
+      t.equal(lines.join(' | '), 'New team unlocked: Gator Gang | New speed class unlocked: Scald', 'team line, then the Scald line');
+      await shot(t, 'S3-06', 'trophy-scald');
+    },
+  },
+);

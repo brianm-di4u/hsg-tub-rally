@@ -169,7 +169,7 @@ export const tests = [
       t.equal(fresh.save.unlocked.classes.join(','), 'splash,soak', 'a fresh profile starts with two classes');
       const a = fresh.commit({ cup: { token: {}, key: 'bathhouse:soak', place: 1, soak: true, scald: false, teamOrder } });
       t.expect(fresh.stored().unlocked.classes.includes('scald') && !fresh.stored().unlocked.classes.includes('boil'), 'a cup won on Soak opens Scald only');
-      t.expect(!a.unlockedClass, 'no new class is announced for Boil yet');
+      t.equal(a.unlockedClass, 'scald', 'the new class announced is Scald (S3-06), not Boil');
       fresh.commit({ cup: { token: {}, key: 'bathhouse:scald', place: 2, soak: false, scald: true, teamOrder } });
       t.expect(!fresh.stored().unlocked.classes.includes('boil'), 'second place on Scald does not open Boil');
       const w = fresh.commit({ cup: { token: {}, key: 'bathhouse:scald', place: 1, soak: false, scald: true, teamOrder } });

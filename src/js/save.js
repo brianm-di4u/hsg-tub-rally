@@ -221,7 +221,7 @@ export function createSaveWriter({
       // of App.gp. A failed write retains these exact IDs, never "unlock next".
       if (c.info.resolved) {
         if (c.info.unlockedTeam && !out.unlocked.teams.includes(c.info.unlockedTeam)) out.unlocked.teams.push(c.info.unlockedTeam);
-        if (c.info.scald && !out.unlocked.classes.includes('scald')) out.unlocked.classes.push('scald');
+        if (c.info.scald && !out.unlocked.classes.includes('scald')) { out.unlocked.classes.push('scald'); c.info.unlockedClass = 'scald'; } // the trophy screen announces it
         if (c.info.boil && !out.unlocked.classes.includes('boil')) { out.unlocked.classes.push('boil'); c.info.unlockedClass = 'boil'; }
         if (c.info.mirror && !out.unlocked.mirror) { out.unlocked.mirror = true; c.info.unlockedMirror = true; }
         if (c.info.ouachita && !out.unlocked.cups.includes('ouachita')) { out.unlocked.cups.push('ouachita'); c.info.unlockedCup = 'ouachita'; }
