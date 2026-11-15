@@ -11,7 +11,7 @@ export function installHooks(App, api) {
     const out = {
       scene: App.scene, screen: App.screens.cur, paused: App.paused || App.testPaused, ready: App.ready,
       track: App.track ? { id: App.track.id, name: App.track.name, length: +App.track.length.toFixed(1), n: App.track.n } : null,
-      render: { w: App.renderer.size.w, h: App.renderer.size.h, mode: App.renderer.mode, draws: App.renderer.info.draws, tris: App.renderer.info.tris, tier: App.tier, builtTier: App.builtTier || App.tier, shadowSoft: App.renderer.shadowSoft },
+      render: { drawn: App.drawn, w: App.renderer.size.w, h: App.renderer.size.h, mode: App.renderer.mode, draws: App.renderer.info.draws, tris: App.renderer.info.tris, tier: App.tier, builtTier: App.builtTier || App.tier, shadowSoft: App.renderer.shadowSoft },
       world: App.world ? App.world.userData : null,
       settings: App.save.settings, steps: App.steps, resumeHold: +(App.resumeT > 0 ? App.resumeT : 0).toFixed(2),
       ghost: App.ghost ? { team: App.ghost.team, total: App.ghost.total, n: App.ghost.n } : null, par: App.par ? { team: App.par.team, total: App.par.total, n: App.par.n } : null, trial: App.trialResult || null, daily: App.dailyResult || null, newRecord: !!App.newRecord,
