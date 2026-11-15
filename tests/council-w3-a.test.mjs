@@ -294,3 +294,42 @@ tests.push(
     },
   },
 );
+
+// ---------------------------------------------------------------- S1-05
+import { pollGamepads, readIntent, stickCurve, PAD_DEAD } from '../src/js/ui/input.js';
+const withPad = (axes, buttonValues) => {
+  const buttons = Array.from({ length: 17 }, (_, i) => ({ pressed: (buttonValues[i] || 0) > 0.5, value: buttonValues[i] || 0 }));
+  Object.defineProperty(globalThis, 'navigator', { value: { getGamepads: () => [{ index: 0, connected: true, mapping: 'standard', axes, buttons }] }, configurable: true });
+  pollGamepads();
+  return readIntent();
+};
+tests.push(
+  {
+    name: 'council A S1-05: the stick starts from zero at its dead zone, grows smoothly and reaches full deflection',
+    node: true,
+    async run(t) {
+      t.equal(withPad([0.17, 0, 0, 0], {}).steer, 0, 'inside the dead zone nothing turns');
+      const first = withPad([PAD_DEAD + 0.02, 0, 0, 0], {}).steer;
+      t.expect(first > 0 && first < 0.05, 'the first nudge past it is a tiny turn, not a jump to 0.18 (' + first.toFixed(3) + ')');
+      const mid = withPad([0.59, 0, 0, 0], {}).steer, high = withPad([0.8, 0, 0, 0], {}).steer;
+      t.expect(mid > first && high > mid, 'and it grows with the stick: ' + [first, mid, high].map((v) => v.toFixed(2)).join(', '));
+      t.expect(mid < 0.41, 'a mild curve: half-way along the stick is less than half the turn (' + mid.toFixed(2) + ')');
+      t.equal(withPad([1, 0, 0, 0], {}).steer, 1, 'full deflection is full steer');
+      t.equal(withPad([-1, 0, 0, 0], {}).steer, -1, 'and to the left');
+      t.expect(stickCurve(-0.5) === -stickCurve(0.5), 'the same both ways');
+      t.equal(withPad([0, 0, 0, 0], { 15: 1 }).steer, 1, 'the d-pad still steers fully');
+    },
+  },
+  {
+    name: 'council A S1-05: the right trigger is analog thrust; A is full thrust; a light touch is dead',
+    node: true,
+    async run(t) {
+      t.equal(withPad([0, 0, 0, 0], { 7: 0.05 }).push, 0, 'a resting trigger pushes nothing');
+      const half = withPad([0, 0, 0, 0], { 7: 0.4 }).push;
+      t.expect(Math.abs(half - 0.4) < 1e-9, 'a 40% pull is 40% thrust (' + half + ')');
+      t.equal(withPad([0, 0, 0, 0], { 7: 1 }).push, 1, 'a full pull is full thrust');
+      t.equal(withPad([0, 0, 0, 0], { 0: 1 }).push, 1, 'A is full thrust');
+      t.equal(withPad([0, 0, 0, 0], { 0: 1, 7: 0.3 }).push, 1, 'A and a light pull together are still full thrust');
+    },
+  },
+);

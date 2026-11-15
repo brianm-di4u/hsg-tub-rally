@@ -58,21 +58,26 @@ export function initInput(onKey) {
   window.addEventListener('blur', () => { keys.clear(); recompute(); });
 }
 
-// Gamepads: standard mapping. A push, B brake, R/RT hop, Z/LB/LT item, Y look back, Start pause.
+// Gamepads: standard mapping. A or RT push (RT is analog: a half pull is half the thrust), B brake, RB hop, LB/LT/X item, Y look back,
+// Start pause. The stick has a dead zone (PAD_DEAD, was 0.18 with a jump to 0.18 at its edge) that its output starts from, so the
+// first nudge past it is a small turn, and a mild curve (PAD_EXPO, was 1 = straight) for fine steering near the middle.
+export const PAD_DEAD = 0.18, PAD_EXPO = 1.4, PAD_TRIGGER_DEAD = 0.08;
+export const stickCurve = (a) => { const m = Math.abs(a); return m <= PAD_DEAD ? 0 : Math.sign(a) * Math.pow(Math.min(1, (m - PAD_DEAD) / (1 - PAD_DEAD)), PAD_EXPO); };
 const padPrev = {};
 export function pollGamepads() {
   const pads = navigator.getGamepads ? navigator.getGamepads() : [];
   let any = false;
-  const pad = { steer: 0, push: false, brake: false, hop: false, back: false, item: false };
+  const pad = { steer: 0, push: false, pushV: 0, brake: false, hop: false, back: false, item: false };
   for (const p of pads) {
     if (!p || !p.connected) continue;
     const b = (i) => !!(p.buttons[i] && (p.buttons[i].pressed || p.buttons[i].value > 0.5));
-    const ax = Math.abs(p.axes[0]) > 0.18 ? p.axes[0] : (b(14) ? -1 : b(15) ? 1 : 0);
+    const ax = stickCurve(p.axes[0]) || (b(14) ? -1 : b(15) ? 1 : 0);
+    const rtV = p.buttons[7] && p.buttons[7].value > PAD_TRIGGER_DEAD ? Math.min(1, p.buttons[7].value) : p.buttons[7] && p.buttons[7].pressed ? 1 : 0;
     const prev = padPrev[p.index] || {};
     const now = { a: b(0), b: b(1), x: b(2), y: b(3), lb: b(4), rb: b(5), lt: b(6), rt: b(7), start: b(9), up: b(12) || p.axes[1] < -0.6, down: b(13) || p.axes[1] > 0.6, left: b(14) || p.axes[0] < -0.6, right: b(15) || p.axes[0] > 0.6 };
     const used = ax !== 0 || Object.values(now).some(Boolean);
     if (used) { any = true; I.last = 'gamepad'; }
-    pad.steer = ax || pad.steer; pad.push = pad.push || now.a || now.rt; pad.brake = pad.brake || now.b;
+    pad.steer = ax || pad.steer; pad.push = pad.push || now.a || now.rt; pad.pushV = Math.max(pad.pushV, now.a ? 1 : rtV); pad.brake = pad.brake || now.b;
     pad.hop = pad.hop || now.rb; pad.back = pad.back || now.y; pad.item = pad.item || now.lb || now.lt || now.x;
     if ((now.lb || now.lt || now.x) && !(prev.lb || prev.lt || prev.x)) I.itemP = true;
     if (now.start && !prev.start) I.pauseP = true;
@@ -120,7 +125,7 @@ export function initTouch(zone, btns) {
 export function readIntent() {
   const p = I.pad || {};
   const brake = I.brake || !!p.brake;
-  const push = I.push || p.push ? 1 : 0;
+  const push = I.push ? 1 : p.pushV || 0;
   const out = { steer: I.steer || p.steer || 0, push: I.autoPush ? (brake ? 0 : 1) : push, brake, hop: I.hop || !!p.hop, back: I.back || !!p.back, item: I.itemP };
   I.itemP = false;
   return out;
