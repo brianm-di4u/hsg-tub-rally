@@ -33,7 +33,7 @@ import { initInput, initTouch, pollGamepads, readIntent, consumeMenu, consumePau
 import { Hud } from './ui/hud.js';
 import { Screens } from './ui/screens.js';
 import { loadSave, writeSave, resetSave, saveProblem, saveGrandfathered, storeCup, loadCup, clearCup } from './save.js';
-import { initAudio, setAudio, wakeAudio, sfx, tubLoop, rivalLoop, rivalEvent, setListener, USE_CUE, playTheme, playScene, setIntensity, audioState, setMuffle, suspendAudio, resumeAudio } from './ui/audio.js';
+import { initAudio, setAudio, wakeAudio, sfx, sfxPan, tubLoop, rivalLoop, rivalEvent, setListener, USE_CUE, playTheme, playScene, setIntensity, audioState, setMuffle, suspendAudio, resumeAudio } from './ui/audio.js';
 import { dateKey, dailyPlan, liveStreak } from './daily.js';
 import { factAt, LANDMARK_NAMES, BATTLE_GOAL } from './data/facts.js';
 import { installHooks } from './hooks.js';
@@ -772,10 +772,11 @@ function showTrophy() {
 // sounds, call-outs and camera shake from the player's sim events this step
 function playerFeedback(me) {
   for (const e of me.events) {
-    const snd = { boost: 'boost', falsestart: 'bump', fumble: 'hit', wall: 'bump', bump: 'bump', pickup: 'pickup', ticket: 'ticket', bribe: 'whistle', judge: 'whistle', taskDone: 'cheer', blocked: 'snap', drained: 'splash', charge: 'charge', land: 'land' }[e.type];
+    const snd = { boost: 'boost', falsestart: 'bump', fumble: 'hit', wall: 'bump', bump: 'bump', pickup: 'pickup', ticket: 'ticket', bribe: 'whistle', judge: 'whistle', taskDone: 'cheer', blocked: 'snap', drained: 'splash', charge: 'charge', land: 'land', fall: 'fall' }[e.type];
     // the one argument a cue takes: splash(big), bump, land(speed), boost(kind), charge(stage)
     if (snd) sfx(snd, e.type === 'drained' ? true : e.type === 'wall' || e.type === 'bump' || e.type === 'land' ? e.v : e.type === 'boost' ? e.kind : e.type === 'charge' ? e.stage : undefined);
     if (e.type === 'use') sfx(USE_CUE[e.item] || 'menu');
+    if (e.type === 'incoming') { sfxPan('alert', (App.mirror ? -1 : 1) * e.side * 0.7); App.hud.say('Incoming'); } // S1-14, S5-21: the chevron is the HUD's own
     haptic(e.type === 'wall' ? (e.v > 3 ? 'wall' : '') : e.type === 'charge' ? (e.stage >= 2 ? 'hot' : 'warm') : e.type); // S5-19: wall, bump, land, boost, fumble; the rest are not felt
     if (e.type === 'boost') { App.hud.flash(e.kind === 'hot' ? 'HOT STEAM!' : e.kind === 'start' ? 'GREAT START!' : 'WARM STEAM', 'boost', 1); App.cam.punch = e.kind === 'hot' ? 6 : 4; App.cam.shake = Math.max(App.cam.shake, 0.25); }
     else if (e.type === 'falsestart') App.hud.flash('FALSE START! Too early on Push', 'bad', 1.6);
@@ -810,6 +811,7 @@ function startHint() {
   return `${how} just before SCRUB! for a GREAT START`;
 }
 
+const LOW_WATER = 5; // gallons
 // a mirrored picture reverses what the player means by left and right
 function mirrored(i) { if (App.mirror) i.steer = -i.steer; return i; }
 
@@ -843,8 +845,11 @@ function stepOnce() {
     if (me && e.kart === me.id && e.type === 'lap') { if (e.lap === r.laps) setIntensity(1); if (e.lap > r.laps) sfx('finish', r.finishOrder.indexOf(me.id) + 1 || me.place); else sfx(e.lap === r.laps ? 'finalLap' : 'lap'); }
     if (me && e.kart === me.id && e.type === 'lap') App.hud.flash(e.lap === r.laps ? 'FINAL LAP!' : e.lap > r.laps ? 'FINISH!' : `LAP ${e.lap}`, 'lap', 1.4);
   }
-  if (me && me.water.gal <= 0.01 && !App._dryShown) { App.hud.flash('BONE DRY!', 'bad', 1.4); App._dryShown = true; }
+  if (me && me.water.gal <= 0.01 && !App._dryShown) { App.hud.flash('BONE DRY!', 'bad', 1.4); sfx('dry'); App._dryShown = true; }
   if (me && me.water.gal > 1) App._dryShown = false;
+  // S5-21: two ticks at 5 gallons, once until the tub is above 6 again
+  if (me && r.phase === 'race' && me.water.gal <= LOW_WATER && !App._lowShown) { sfx('low'); App._lowShown = true; }
+  if (me && me.water.gal > LOW_WATER + 1) App._lowShown = false;
   if (r.phase === 'done' && !App._resultsShown) {
     App._resultsShown = true;
     setIntensity(0);
@@ -1004,6 +1009,7 @@ function drawRace(r, alpha, dt) {
   App.fx.update(r, tr, App.paused || (App.testPaused && App.clock == null) ? 0 : dt, App.time, App.reducedMotion, App.frameEvents);
   App.frameEvents.length = 0;
   if (App.sky) App.sky.position.copy(App.renderer.camera.position).setY(0);
+  App.hud.still = App.reducedMotion;
   App.hud.startHint = r.phase === 'countdown' && r.player >= 0 && !App.raceOpts.autoplay ? startHint() : '';
   App.hud.update(r, tr, r.player >= 0 ? r.karts[r.player] : null, dt);
 }

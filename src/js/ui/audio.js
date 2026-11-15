@@ -28,7 +28,7 @@ const SOFT_CLIP = (() => {
 })();
 const DUCK_DB = 6, DUCK_MS = 300; // music dips this much under the big cues
 // Per-cue output trim, found with audioRender so every gameplay cue peaks 0.25 to 0.45 at the shipped volume.
-const CUE_TRIM = { quack: 3.48, splash: 13.2, steam: 7.8, snap: 4.727, whistle: 2.303, cheer: 7.3, bump: 6.03, pickup: 3.096, ticket: 4.856, boost: 6.7, hit: 4.2, ready: 6.581, go: 4.4, menu: 16.265, tick: 11, confirm: 3.6, trophy: 2.2, lap: 2.55, finish: 2.2, finalLap: 3.66, charge: 8.188, land: 6.03, swish: 10.293 };
+const CUE_TRIM = { quack: 3.48, splash: 13.2, steam: 7.8, snap: 4.727, whistle: 2.303, cheer: 7.3, bump: 6.03, pickup: 3.096, ticket: 4.856, boost: 6.7, hit: 4.2, ready: 6.581, go: 4.4, menu: 16.265, tick: 11, confirm: 3.6, trophy: 2.2, lap: 2.55, finish: 2.2, finalLap: 3.66, charge: 8.188, land: 6.03, swish: 10.293, alert: 2.91, low: 3.42, dry: 5.42, fall: 10.3 };
 const DUCKS = { boost: 1, hit: 1, finish: 1.9, trophy: 1.9 };
 const SWELLS = { lap: 0.5, finalLap: 0.8, finish: 1 }; // the crowd roars on a lap, the last lap and the finish
 const state = { cues: [], ducks: 0, on: true, music: true, ambience: true, vol: 0.6, musicVol: 1, started: false, theme: null, scene: null, intensity: 0, muffle: false, hidden: false, swell: 0, swells: 0, crowd: 0, wind: 0 };
@@ -253,10 +253,23 @@ export const SFX = {
   land(v = 8) { const s = clamp01(v / 14); tone(75, 0.14 + 0.1 * s, { type: 'sine', vol: 0.2 + 0.2 * s, slide: 0.55 }); noise(0.07, { vol: 0.08 + 0.06 * s, type: 'lowpass', freq: 500 + 900 * s }); },
   // a rival goes by: a band of air sweeping up
   swish() { noise(0.38, { vol: 0.14, freq: 500, q: 0.9, sweep: 5 }); noise(0.3, { vol: 0.06, type: 'highpass', freq: 3000, at: 0.05 }); },
+  // something is coming at the player (S1-14, S5-21): a rising two-tone alert, quicker and higher than any pickup
+  alert() { [660, 988].forEach((f, i) => { tone(f, 0.1, { type: 'square', vol: 0.09, at: i * 0.1, filter: 2800, det: 7 }); tone(f * 2, 0.08, { type: 'sine', vol: 0.04, at: i * 0.1 }); }); },
+  // the water is nearly gone (5 gallons): two quick ticks; and gone: a hollow thunk of an empty tub
+  low() { [0, 0.13].forEach((at) => { tone(784, 0.05, { type: 'triangle', vol: 0.1, at, det: 6 }); noise(0.03, { vol: 0.05, at, freq: 2400, q: 1.5 }); }); },
+  dry() { tone(150, 0.3, { type: 'sine', vol: 0.22, slide: 0.45 }); tone(300, 0.14, { type: 'triangle', vol: 0.08, slide: 0.6, filter: 700, det: 8 }); noise(0.1, { vol: 0.07, type: 'lowpass', freq: 500 }); },
+  // over the edge: a falling whistle and a small splash
+  fall() { tone(760, 0.55, { type: 'triangle', vol: 0.1, slide: 0.3, det: 8, rev: 0.15 }); noise(0.22, { vol: 0.06, at: 0.45, freq: 1500, q: 0.8, sweep: 0.4, rev: 0.2 }); },
 };
 // pos: { pan, gain } puts the cue somewhere in the stereo field and quieter (a rival's cue); null for the player's own.
 function playCue(name, pos, ...a) { cueG = (CUE_TRIM[name] ?? 1) * (pos ? pos.gain : 1); cuePan = pos ? pos.pan : 0; try { SFX[name](...a); } finally { cueG = 1; cuePan = 0; } }
 function logCue(name, pos, a) { state.cues.push(name + (a.length && a[0] !== undefined ? ':' + a.map(String).join(',') : '') + (pos ? '@' + pos.pan.toFixed(2) + '*' + pos.gain.toFixed(2) : '')); if (state.cues.length > 24) state.cues.shift(); }
+// A cue placed on one side (pan -0.7 to 0.7) without the distance a rival's cue has: the warning knows where the threat is.
+export function sfxPan(name, pan, ...a) {
+  if (!ctx || !state.on || !SFX[name]) return;
+  const pos = { pan: Math.max(-MAX_PAN, Math.min(MAX_PAN, pan || 0)), gain: 1 };
+  playCue(name, pos, ...a); logCue(name, pos, a);
+}
 // Dip the music under a big cue: DUCK_DB for about DUCK_MS, then back to its own level.
 function duckMusic() { if (kit) kit.music.duck(DUCK_DB, DUCK_MS); }
 export function sfx(name, ...a) {

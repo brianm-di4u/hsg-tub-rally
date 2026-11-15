@@ -76,6 +76,27 @@ export function rollItem(rng, place) {
   return rng.weighted(Object.entries(t));
 }
 
+// S1-14, S5-21: what is coming at a kart. A live object another kart owns counts when it is within `range` metres and heading
+// for the kart: a duck homing on it, or a soap whose line passes within INCOMING_MISS metres of it. Nearest first. along and
+// side are where it is, relative to the kart's heading (side is positive to the right).
+export const INCOMING_RANGE = 25, INCOMING_MISS = 2.5, INCOMING_GAP = 0.7; // m, m, seconds between two warnings to one kart
+export function incoming(race, k, range = INCOMING_RANGE) {
+  const out = [];
+  if (!race.items || k.state === 'rescue' || k.finished || k.bubbleT > 0) return out;
+  const fx = Math.sin(k.yaw), fz = Math.cos(k.yaw);
+  for (const o of race.items.live) {
+    if (o.owner === k.id || o.dead || Math.abs(o.y - k.y) > 2.5) continue;
+    const dx = o.x - k.x, dz = o.z - k.z, dist = Math.hypot(dx, dz);
+    if (dist > range) continue;
+    if (o.type === 'duck') { if (o.target !== k.id) continue; } else if (o.type === 'soap') {
+      const sp = Math.hypot(o.vx, o.vz);
+      if (sp < 4 || (-dx * o.vx - dz * o.vz) / (dist * sp || 1) < 0.9 || Math.abs(dx * o.vz - dz * o.vx) / sp > INCOMING_MISS) continue;
+    } else continue;
+    out.push({ id: o.id, type: o.type, dist, along: dx * fx + dz * fz, side: -dx * fz + dz * fx });
+  }
+  return out.sort((a, b) => a.dist - b.dist);
+}
+
 export function stepItems(race, track, inputs, dt) {
   const S = race.items, rng = race.rng.items, karts = race.karts;
   if (race.phase !== 'race') return;
@@ -124,6 +145,18 @@ export function stepItems(race, track, inputs, dt) {
   // live objects
   for (const o of S.live) stepObject(race, track, o, dt);
   S.live = S.live.filter((o) => !o.dead);
+  // the player is told once about each thing coming at them (and never twice within INCOMING_GAP seconds)
+  for (const k of karts) {
+    if (!k.human) continue;
+    for (const th of incoming(race, k)) {
+      const o = S.live.find((x) => x.id === th.id);
+      if (!o || o.warned) continue;
+      o.warned = true;
+      if (race.time - (k.warnT ?? -9) < INCOMING_GAP) continue;
+      k.warnT = race.time;
+      k.events.push({ type: 'incoming', by: th.type, dist: +th.dist.toFixed(1), side: +Math.max(-1, Math.min(1, th.side / (th.dist || 1))).toFixed(2) });
+    }
+  }
   // shields and sprays tick down
   for (const k of karts) {
     if (k.sprayT > 0) {

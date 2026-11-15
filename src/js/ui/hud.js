@@ -5,7 +5,7 @@ import { pixelText } from './pixelfont.js';
 import { MIN_FINISH_GAL } from '../sim/water.js';
 import { TEAM_BY_ID } from '../data/teams.js';
 import { TASKS } from '../sim/rules-real.js';
-import { ITEMS } from '../sim/items.js';
+import { ITEMS, incoming } from '../sim/items.js';
 
 const ORD = ['', '1ST', '2ND', '3RD', '4TH', '5TH', '6TH', '7TH', '8TH'];
 const PLACE_FILL = [null, ['#FFF6C8', '#F2C230'], ['#F4F6FA', '#A9B4C2'], ['#FFE1C4', '#C8783C']];
@@ -42,10 +42,11 @@ export class Hud {
       <div class="hud-bl"><canvas class="hud-water" width="150" height="96" aria-hidden="true"></canvas><div class="hud-pips" aria-hidden="true"></div></div>
       <canvas class="hud-map" width="150" height="150" aria-hidden="true"></canvas>
       <div class="hud-center"><canvas class="hud-count" aria-hidden="true"></canvas><div class="hud-call" role="status" aria-live="polite"></div><p class="hud-fact" aria-hidden="true"></p><p class="hud-start" aria-hidden="true"></p><p class="hud-lm" aria-hidden="true"></p><button type="button" class="hud-skip" hidden></button></div>
+      <div class="hud-warn" aria-hidden="true" hidden><b>INCOMING</b><span><i></i><i></i><i></i></span></div>
       <div class="hud-task" role="status" aria-live="assertive"><b class="t-name"></b><span class="t-how"></span><canvas class="t-meter" width="220" height="26" aria-hidden="true"></canvas></div>
       <div class="sr-only" aria-live="polite" id="hud-sr"></div>`;
     const q = (s) => root.querySelector(s);
-    this.el = { lap: q('.hud-lap'), time: q('.hud-time'), timeC: q('.hud-timec'), place: q('.hud-place'), water: q('.hud-water'), pips: q('.hud-pips'), map: q('.hud-map'), count: q('.hud-count'), call: q('.hud-call'), fact: q('.hud-fact'), start: q('.hud-start'), lm: q('.hud-lm'), skipB: q('.hud-skip'), iname: q('.item-name'), icon: q('.item-icon'), tk: q('.tk-n'), tkL: q('.tk-l'), parL: q('.hud-par'), sr: q('#hud-sr'), item: q('.hud-item'), task: q('.hud-task'), tname: q('.t-name'), thow: q('.t-how'), tmeter: q('.t-meter') };
+    this.el = { warn: q('.hud-warn'), lap: q('.hud-lap'), time: q('.hud-time'), timeC: q('.hud-timec'), place: q('.hud-place'), water: q('.hud-water'), pips: q('.hud-pips'), map: q('.hud-map'), count: q('.hud-count'), call: q('.hud-call'), fact: q('.hud-fact'), start: q('.hud-start'), lm: q('.hud-lm'), skipB: q('.hud-skip'), iname: q('.item-name'), icon: q('.item-icon'), tk: q('.tk-n'), tkL: q('.tk-l'), parL: q('.hud-par'), sr: q('#hud-sr'), item: q('.hud-item'), task: q('.hud-task'), tname: q('.t-name'), thow: q('.t-how'), tmeter: q('.t-meter') };
     this.el.pips.innerHTML = Object.keys(ITEM_ICONS).map((k) => `<span class="pip pip-${k}" title="${ITEM_NAMES[k]}"><i></i><em>${ITEM_LABELS[k]}</em></span>`).join('');
     this.last = {};
     this.callT = 0;
@@ -92,6 +93,8 @@ export class Hud {
     this.el.sr.textContent = text;
   }
   // S1-07: the "Enter: results" prompt shown while the field finishes; empty text puts it away
+  // a line for screen readers only (the chevron and the cue say it for everyone else)
+  say(text) { this.el.sr.textContent = text; }
   skip(text) {
     if (this.el.skipB.hidden === !text && this.el.skipB.textContent === text) return;
     this.el.skipB.hidden = !text; this.el.skipB.textContent = text;
@@ -119,6 +122,12 @@ export class Hud {
     const startOn = !!this.startHint && race.phase === 'countdown' && race.time >= -2.1 && !this.root.querySelector('.hud-tip:not([hidden])');
     if (startOn !== L.startOn || (startOn && el.start.textContent !== this.startHint)) { L.startOn = startOn; el.start.textContent = this.startHint || ''; el.start.classList.toggle('show', startOn); }
     if (!me) return;
+    // S1-14: a chevron on the screen edge the thing is coming from (the left and right edges swap in a mirrored race)
+    const th = race.phase === 'race' && !me.finished ? incoming(race, me)[0] : null;
+    let edge = '';
+    if (th) { const side = this.mirror ? -th.side : th.side; edge = Math.abs(th.along) >= Math.abs(side) ? (th.along < 0 ? 'behind' : 'ahead') : side < 0 ? 'left' : 'right'; }
+    if (edge !== L.warn) { L.warn = edge; el.warn.dataset.edge = edge; el.warn.hidden = !edge; }
+    if (!!this.still !== L.still) { L.still = !!this.still; el.warn.classList.toggle('still', L.still); }
     // lap
     const lap = Math.max(1, Math.min(race.laps, me.lap || 1));
     const lapTxt = race.row ? race.row.label.toUpperCase() : race.battle ? `${race.karts.filter((k) => !k.out).length} LEFT` : `LAP ${lap}/${race.laps}`;
