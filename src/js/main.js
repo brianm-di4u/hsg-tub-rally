@@ -156,10 +156,14 @@ function saveMessage(problem) {
   return '';
 }
 
+// S2-29: Esc and P pause or resume a race that is running or paused. On results, standings, Settings or Help they are
+// not the race's: Esc reaches the menu's Back, as Backspace and the pad's B do.
+const pauseKeyLive = () => App.scene === 'race' && !!App.race && App.race.phase !== 'done' && (!App.screens.cur || App.screens.cur === 'pause');
+
 function onKey(e) {
   if (App.capture && App.screens.cur === 'controls' && window.TR_TEACH) return window.TR_TEACH.capture(e, App.capture, controlsScreen);
   if (App.scene === 'race' && e.code === 'KeyT' && !e.repeat && window.TR_TEACH) window.TR_TEACH.tipSkip();
-  if (App.scene === 'race' && (e.code === 'Escape' || e.code === 'KeyP')) {
+  if (pauseKeyLive() && (e.code === 'Escape' || e.code === 'KeyP')) {
     if (!e.repeat) togglePause();
     return true;
   }
@@ -808,7 +812,7 @@ function frameStep(t) {
   pollGamepads();
   setMuffle(!!App.paused && App.scene === 'race');
   const m = consumeMenu();
-  if (consumePause() && App.scene === 'race') togglePause();
+  if (consumePause() && pauseKeyLive()) togglePause();
   if (App.screens.cur) App.screens.nav(m);
   showSaveStatus();
   const r = App.race;

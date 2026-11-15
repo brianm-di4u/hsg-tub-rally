@@ -179,3 +179,39 @@ tests.push(
     },
   },
 );
+
+// ---------------------------------------------------------------- S2-29
+tests.push(
+  {
+    name: 'council A S2-29: Esc goes back from the results to the title, as Backspace does',
+    viewports: ['desktop'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.game('newGame', { track: 'bathhouse-row', team: 'engine-six', classId: 'soak', laps: 1, seed: 5, autoplay: true, paused: true });
+      await t.stepUntil((s) => s.race && s.race.phase === 'done', { max: 60 * 300, chunk: 300, label: 'race done' });
+      await t.page.waitForSelector('.panel.results', { timeout: 5000 });
+      await t.page.keyboard.press('Escape');
+      await t.page.waitForFunction(() => window.__game.getState().screen === 'title', null, { timeout: 5000 });
+      t.equal((await t.state()).scene, 'title', 'Esc on the results screen leaves for the title');
+    },
+  },
+  {
+    name: 'council A S2-29: Esc in Settings opened from the pause menu goes back to the pause menu, not into the race',
+    viewports: ['desktop'],
+    async run(t) {
+      await startRace(t);
+      await t.page.keyboard.press('Escape');
+      await t.waitFrames(3);
+      await t.page.locator('.panel.pause [data-act="settings"]').click();
+      await t.waitFrames(3);
+      t.equal((await t.state()).screen, 'settings', 'in Settings');
+      await t.page.keyboard.press('Escape');
+      await t.waitFrames(4);
+      const s = await t.state();
+      t.expect(s.screen === 'pause' && s.paused, 'Esc went back to the pause menu, race still paused (' + s.screen + ')');
+      await t.page.keyboard.press('Escape');
+      await t.waitFrames(3);
+      t.expect(!(await t.state()).paused, 'and Esc on the pause menu still resumes');
+    },
+  },
+);
