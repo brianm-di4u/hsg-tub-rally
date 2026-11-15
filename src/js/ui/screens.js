@@ -167,6 +167,9 @@ function raceOptsRow(app) {
   return `<div class="set-row race-opts">${grp('Laps', RACE_LAPS.map((n) => chip('raceLaps', n, n, s.raceLaps === n)).join(''))}${grp('Items', chip('raceItems', 'true', 'On', s.raceItems !== false) + chip('raceItems', 'false', 'Off', s.raceItems === false))}${grp('Rivals', RACE_RIVALS.map((n) => chip('raceRivals', n, n, s.raceRivals === n)).join(''))}</div>`;
 }
 
+// S4-05: a postcard's picture is its course's own sky (the colours the race uses), a ridge and a postmark, drawn in CSS
+const SKY = { 'bathhouse-row': ['#79B3E2', '#DCEEF6'], 'park-avenue': ['#2B2350', '#E8875A'], 'whittington-valley': ['#86B8DE', '#E2EEE8'], 'bridge-street': ['#6FA9DC', '#E4EEF2'], 'hs-mountain': ['#6FA8DC', '#DDEFF5'], 'goat-rock-gulpha': ['#6FA8DC', '#DDEFF5'], 'west-mountain': ['#6AA6D8', '#E3F0F4'], 'hill-wheatley': ['#79B3E2', '#DCEEF6'], 'sunset-ridge': ['#5B4A8A', '#F7B267'] };
+
 const TEMPLATES = {
   title: (app) => `
     <div class="title-wrap">
@@ -311,7 +314,7 @@ const TEMPLATES = {
       ${trial ? `<p class="sub trial-note">Time Trial runs at ${CLASSES.scald.name} speed with no items.</p>` : ''}
       ${mirrorRow(app)}
       ${trial ? '' : raceOptsRow(app)}
-      <div class="card-row">${list.map((t, i) => { const best = app.save.best[t.id], tt = (app.save.trial || {})[t.id], mt = medalTimes(t.id); return `<button type="button" class="ccard postcard" data-act="course" data-id="${t.id}" ${i === 0 ? 'autofocus' : ''}><b>${t.name}</b><small>${t.blurb || ''}</small><i class="fact">${factFor(t.id).t}</i><em>${Math.round(t.length || 0)} m lap${(window.TR_INFO || {})[t.id] && window.TR_INFO[t.id].real ? ` · real streets ${(window.TR_INFO[t.id].real / 1000).toFixed(1)} km, compressed` : ''}${trial ? '' : best ? ` · best ${fmtTime(best.race)}${best.lap ? ` · lap ${fmtTime(best.lap)}` : ''}${CLASSES[best.cls] ? ` (${CLASSES[best.cls].name})` : ''}` : ''}</em>${trial ? `<span class="tt">${tt ? `${medalChip(tt.medal)} <span>Best ${fmtTime(tt.race)}${tt.lap ? ` · lap ${fmtTime(tt.lap)}` : ''}</span>` : '<span>No time set yet</span>'}${mt ? `<span class="tgt">Gold ${fmtTime(mt.gold)} · Silver ${fmtTime(mt.silver)} · Bronze ${fmtTime(mt.bronze)}</span>` : ''}</span>` : ''}</button>`; }).join('')}</div>
+      <div class="card-row">${list.map((t, i) => { const best = app.save.best[t.id], tt = (app.save.trial || {})[t.id], mt = medalTimes(t.id); return `<button type="button" class="ccard postcard" data-act="course" data-id="${t.id}" ${i === 0 ? 'autofocus' : ''}><span class="pc-pic" aria-hidden="true" style="--a:${(SKY[t.id] || SKY['hill-wheatley'])[0]};--b:${(SKY[t.id] || SKY['hill-wheatley'])[1]}"></span><b>${t.name}</b><small>${t.blurb || ''}</small><i class="fact">${factFor(t.id).t}</i><em>${Math.round(t.length || 0)} m lap${(window.TR_INFO || {})[t.id] && window.TR_INFO[t.id].real ? ` · real streets ${(window.TR_INFO[t.id].real / 1000).toFixed(1)} km, compressed` : ''}${trial ? '' : best ? ` · best ${fmtTime(best.race)}${best.lap ? ` · lap ${fmtTime(best.lap)}` : ''}${CLASSES[best.cls] ? ` (${CLASSES[best.cls].name})` : ''}` : ''}</em>${trial ? `<span class="tt">${tt ? `${medalChip(tt.medal)} <span>Best ${fmtTime(tt.race)}${tt.lap ? ` · lap ${fmtTime(tt.lap)}` : ''}</span>` : '<span>No time set yet</span>'}${mt ? `<span class="tgt">Gold ${fmtTime(mt.gold)} · Silver ${fmtTime(mt.silver)} · Bronze ${fmtTime(mt.bronze)}</span>` : ''}</span>` : ''}</button>`; }).join('')}</div>
       <nav class="menu row">${btn('back', 'Back', 'data-back')}</nav>
     </div>`,
   standings: (app, { rows, round, rounds, cupName, final }) => `

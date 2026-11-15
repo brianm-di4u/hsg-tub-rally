@@ -196,6 +196,8 @@ kbd { display: inline-block; padding: 0 5px; border: 2px solid var(--ink); borde
 .ccard em { font-style: normal; color: var(--mist); font-weight: 700; font-size: 13px; }
 .ccard.postcard { background: linear-gradient(180deg, #F1E6C8 0%, #E3D2A6 100%); color: var(--ink); border-color: #7a5a35; box-shadow: inset 0 0 0 6px #F7F0DC; }
 .ccard.postcard b { color: #7E2F1F; }
+.pc-pic { position: relative; display: block; height: 54px; margin: -2px -2px 2px; border: 2px solid #7a5a35; border-radius: 6px; overflow: hidden; --g: color-mix(in srgb, var(--b) 35%, #20402c); background: radial-gradient(90px 34px at 22% 112%, var(--g) 98%, transparent), radial-gradient(120px 40px at 78% 118%, var(--g) 98%, transparent), linear-gradient(180deg, var(--a), var(--b)); }
+.pc-pic::after { content: ''; position: absolute; right: 6px; top: 5px; width: 26px; height: 26px; border: 2px dashed rgba(60,40,25,0.7); border-radius: 50%; transform: rotate(-12deg); }
 .ccard.postcard em { color: #5A4C38; }
 .ccard[data-act="locked"] { opacity: 0.55; }
 .medal { display: inline-block; padding: 1px 8px 1px 6px; border-radius: 10px; border: 2px solid var(--ink); font: 800 12px/1.4 var(--font-ui); color: var(--ink); }
@@ -373,7 +375,7 @@ body[data-screen="results"] .touch, body[data-screen="standings"] .touch, body[d
 }
 /* team select: the confirm and back bricks stay pinned to the bottom of the panel while the team list scrolls
    (on phones the panel is shorter than its contents) */
-.panel.teams > .menu.row { position: sticky; bottom: 0; z-index: 2; margin-top: 4px; padding: 16px 0 8px; background: linear-gradient(180deg, rgba(24,63,99,0) 0, var(--lake-deep) 12px); }
+.panel.teams > .menu.row, .panel.courses > .menu.row { position: sticky; bottom: 0; z-index: 2; margin-top: 4px; padding: 16px 0 8px; background: linear-gradient(180deg, rgba(24,63,99,0) 0, var(--lake-deep) 12px); }
 @media (max-height: 500px) and (min-aspect-ratio: 1/1) {
   .panel.teams > .menu.row { display: flex; padding: 12px 0 2px; }
   .panel.teams > .menu.row .mbtn { font-size: 14px; min-height: 36px; padding: 4px 12px; }
