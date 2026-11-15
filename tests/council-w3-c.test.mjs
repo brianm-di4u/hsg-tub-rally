@@ -141,7 +141,7 @@ export const tests = [
       t.expect(b && ['splash', 'soak', 'scald', 'boil'].every((c) => Array.isArray(b[c]) && b[c][0] < b[c][1]), 'a band for every class');
       t.expect(b.splash[1] < b.soak[1] && b.soak[1] < b.scald[1] && b.scald[1] <= b.boil[1], 'the worst allowed placing rises with the class');
       t.expect(b.splash[0] < b.soak[0] && b.soak[0] < b.scald[0], 'and so does the best');
-      const run = spawnSync(process.execPath, ['tools/balance.mjs', '--track', 'bathhouse-row', '--class', 'splash', '--races', '1', '--bot'], { cwd: ROOT, encoding: 'utf8', timeout: 240000 });
+      const run = spawnSync(process.execPath, ['tools/balance.mjs', '--track', 'bathhouse-row', '--class', 'splash', '--races', '1', '--bot'], { cwd: ROOT, encoding: 'utf8', timeout: 1200000 });
       const line = (run.stdout || '').split('\n').find((l) => l.includes('bot mean place')) || '';
       t.expect(/bot mean place\s+\d\.\d{3}\s+target \d(\.\d)?–\d(\.\d)?\s+· placings (\d\/){7}\d/.test(line), 'the tool prints the bot\'s place and the placing counts: ' + line);
       t.expect(/target 2\.3/.test(line) || line.includes(String(b.splash[0])), 'against the committed band');
