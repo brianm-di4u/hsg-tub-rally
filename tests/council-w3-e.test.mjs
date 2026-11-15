@@ -367,4 +367,35 @@ export const tests = [
       t.expect(!a.air && a.boost === 0 && a.slosh < 0.05, 'an empty tub hardly washes ' + JSON.stringify(a));
     },
   },
+  // ---------------------------------------------------------------- S5-28
+  {
+    name: 'council E S5-28: every event the player causes or must notice plays a cue, Sound off silences them all, and every cue renders audible',
+    viewports: ['desktop'],
+    async run(t) {
+      await profile(t);
+      await unlock(t);
+      await t.game('newGame', { seed: 12, paused: true });
+      await t.game('act', 'skipCountdown');
+      const EVENTS = [
+        [{ type: 'boost', kind: 'hot' }, 'boost'], [{ type: 'falsestart' }, 'bump'], [{ type: 'fumble', item: 'soap' }, 'hit'], [{ type: 'wall', v: 8 }, 'bump'], [{ type: 'bump', v: 6 }, 'bump'],
+        [{ type: 'pickup', item: 'duck' }, 'pickup'], [{ type: 'ticket', n: 1 }, 'ticket'], [{ type: 'bribe' }, 'whistle'], [{ type: 'judge', task: 'x' }, 'whistle'], [{ type: 'taskDone', task: 'x' }, 'cheer'],
+        [{ type: 'blocked' }, 'snap'], [{ type: 'drained' }, 'splash'], [{ type: 'charge', stage: 1 }, 'charge'], [{ type: 'land', v: 9 }, 'land'], [{ type: 'fall' }, 'fall'], [{ type: 'incoming', by: 'duck', side: 0, dist: 10 }, 'alert'],
+        [{ type: 'use', item: 'duck' }, 'quack'], [{ type: 'use', item: 'soap' }, 'menu'], [{ type: 'use', item: 'towel' }, 'snap'], [{ type: 'use', item: 'blaster' }, 'splash'], [{ type: 'use', item: 'jet' }, 'steam'], [{ type: 'use', item: 'bubble' }, 'pickup'],
+      ];
+      const cuesAfter = async (ev) => { const n = (await t.state()).audio.cues.length; await t.game('act', 'event', ev); return (await t.state()).audio.cues.slice(n).map((c) => c.split(/[:@]/)[0]); };
+      for (const [ev, cue] of EVENTS) {
+        const got = await cuesAfter(ev);
+        t.expect(got.includes(cue), ev.type + (ev.item ? ':' + ev.item : '') + ' plays ' + cue + ' (got ' + got + ')');
+      }
+      // every cue the game has makes sound when rendered, and Sound off silences every event
+      const list = await t.game('audioList');
+      for (const c of list.cues) t.expect((await render(t, 'cue:' + c, 3)).peak > 0.05, 'the ' + c + ' cue is audible');
+      await t.page.evaluate((k) => { const s = JSON.parse(localStorage.getItem(k)); s.settings.sound = false; localStorage.setItem(k, JSON.stringify(s)); }, KEY);
+      await t.reload(); await unlock(t);
+      await t.game('newGame', { seed: 12, paused: true }); await t.game('act', 'skipCountdown');
+      let loud = 0;
+      for (const [ev] of EVENTS) loud += (await cuesAfter(ev)).length;
+      t.equal(loud, 0, 'with Sound off no event makes a cue');
+    },
+  },
 ];
