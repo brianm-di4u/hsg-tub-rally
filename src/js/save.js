@@ -13,7 +13,7 @@ const touchDevice = () => { try { return !!window.matchMedia('(pointer: coarse)'
 export const DEFAULT_SAVE = () => ({
   v: 1,
   // seenIntro: first-run tips shown (S2-01); older saves count as seen
-  settings: { sound: true, music: true, ambience: true, volume: 0.6, musicVol: 1, res: 'native', quality: 'auto', autoPush: touchDevice(), steerAssist: false, reducedMotion: null, hudScale: 1, keys: null, mirror: false, seenIntro: false, raceLaps: 3, raceItems: true, raceRivals: 7 },
+  settings: { sound: true, music: true, ambience: true, volume: 0.6, musicVol: 1, res: 'native', quality: 'auto', autoPush: touchDevice(), steerAssist: false, reducedMotion: null, hudScale: 1, keys: null, mirror: false, seenIntro: false, raceLaps: 3, raceItems: true, raceRivals: 7, vibration: touchDevice() },
   // rec: the unlock record's version. A save that has none was written before wave 2 and keeps everything it could use (see projection)
   unlocked: { teams: [], cups: ['bathhouse'], classes: ['splash', 'soak'], mirror: false, rec: 2 },
   best: {}, // trackId → the complete winning race record, including its lap
@@ -92,6 +92,7 @@ function projection(raw) {
   out.dailyStreak = cleanStreak(s.dailyStreak);
   if (!Number.isFinite(out.stats.bestStreak) || out.stats.bestStreak < 0) out.stats.bestStreak = 0;
   st.mirror = st.mirror === true;
+  st.vibration = typeof st.vibration === 'boolean' ? st.vibration : d.settings.vibration; // S5-19: on for a touch device unless the player turned it off
   st.steerAssist = st.steerAssist === true;
   st.hudScale = Number.isFinite(st.hudScale) && st.hudScale >= 0.7 && st.hudScale <= 1.4 ? st.hudScale : 1;
   st.keys = cleanKeys(st.keys);

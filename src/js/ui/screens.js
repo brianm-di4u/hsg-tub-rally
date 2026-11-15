@@ -407,6 +407,8 @@ const TEMPLATES = {
       <div class="set-row two"><span>Music level</span>${[['0.4', 'Low'], ['0.7', 'Medium'], ['1', 'Normal']].map(([v, l]) => opt('musicVol', v, l, s.musicVol < 0.55 ? '0.4' : s.musicVol < 0.85 ? '0.7' : '1')).join('')}</div>
       <div class="set-row two"><span>Ambience</span>${opt('ambience', 'true', 'On', String(s.ambience))}${opt('ambience', 'false', 'Off', String(s.ambience))}</div>
       ${s.sound === false && (s.music !== false || s.ambience !== false) ? '<p class="set-note" role="status">Sound is Off, so Music and Ambience are silent too.</p>' : ''}
+      <div class="set-row two"><span>Vibration</span>${opt('vibration', 'true', 'On', String(s.vibration))}${opt('vibration', 'false', 'Off', String(s.vibration))}</div>
+      ${s.vibration !== false && (s.reducedMotion ?? !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) ? '<p class="set-note" role="status">Motion is Reduced, so Vibration is off too.</p>' : ''}
       <div class="set-row two"><span>Motion</span>${opt('reducedMotion', 'false', 'Full', String(s.reducedMotion))}${opt('reducedMotion', 'true', 'Reduced', String(s.reducedMotion))}</div>
       <div class="set-row two"><span>Race tips</span>${opt('seenIntro', 'false', 'Show', String(s.seenIntro))}${opt('seenIntro', 'true', 'Hide', String(s.seenIntro))}</div>
       <div class="set-row two"><span>Controls</span><button type="button" class="chip" data-act="controls">Change keys</button></div>

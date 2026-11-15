@@ -71,17 +71,21 @@ function withContext(c, vol, fn) {
 
 export function initAudio(settings) {
   state.on = settings.sound !== false; state.music = settings.music !== false; state.ambience = settings.ambience !== false; state.vol = settings.volume ?? 0.6; state.musicVol = settings.musicVol ?? 1;
-  const start = () => {
-    if (!state.started) unlock();
-    // iPad Safari can suspend an existing context while backgrounded. Resume it
-    // inside the next user gesture instead of leaving a started game silent.
-    if (ctx && ctx.state !== 'running') ctx.resume().catch(() => {});
-  };
+  const start = wakeAudio;
   window.addEventListener('keydown', start, { once: false });
   window.addEventListener('pointerdown', start, { once: false });
   // Safari has asked for the unlock inside touchend or click; either may be the first gesture it accepts.
   window.addEventListener('touchend', start, { once: false });
   window.addEventListener('click', start, { once: false });
+}
+
+// A gesture: the first one builds the audio, later ones wake it if the browser put it to sleep. A gamepad button press
+// is one too (S5-29), so a player who never touches the keyboard or the screen still hears the game.
+export function wakeAudio() {
+  if (!state.started) unlock();
+  // iPad Safari can suspend an existing context while backgrounded. Resume it
+  // inside the next user gesture instead of leaving a started game silent.
+  if (ctx && ctx.state !== 'running') ctx.resume().catch(() => {});
 }
 
 function unlock() {

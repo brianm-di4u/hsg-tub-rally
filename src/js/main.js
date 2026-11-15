@@ -28,11 +28,12 @@ import { makeRng } from './rng.js';
 import { trackData, TRACK_BY_ID, TRACKS, builtIds } from './data/tracks.js';
 import { CUP_BY_ID } from './data/cups.js';
 import { TEAMS, TEAM_BY_ID, CLASSES } from './data/teams.js';
+import { haptic, setHaptics } from './ui/haptics.js';
 import { initInput, initTouch, pollGamepads, readIntent, consumeMenu, consumePause, setBindings, getBindings, I as INPUT } from './ui/input.js';
 import { Hud } from './ui/hud.js';
 import { Screens } from './ui/screens.js';
 import { loadSave, writeSave, resetSave, saveProblem, saveGrandfathered, storeCup, loadCup, clearCup } from './save.js';
-import { initAudio, setAudio, sfx, tubLoop, rivalLoop, rivalEvent, setListener, USE_CUE, playTheme, playScene, setIntensity, audioState, setMuffle, suspendAudio, resumeAudio } from './ui/audio.js';
+import { initAudio, setAudio, wakeAudio, sfx, tubLoop, rivalLoop, rivalEvent, setListener, USE_CUE, playTheme, playScene, setIntensity, audioState, setMuffle, suspendAudio, resumeAudio } from './ui/audio.js';
 import { dateKey, dailyPlan, liveStreak } from './daily.js';
 import { factAt, LANDMARK_NAMES, BATTLE_GOAL } from './data/facts.js';
 import { installHooks } from './hooks.js';
@@ -100,6 +101,7 @@ async function boot() {
   App.screens.app = { save: App.save, onMenu, cup: savedCup() };
   initInput(onKey);
   initAudio(App.save.settings);
+  setHaptics(App.save.settings.vibration, App.reducedMotion);
   App.audioState = audioState;
   initTouch($('#touch-steer'), { push: $('#t-push'), brake: $('#t-brake'), hop: $('#t-hop'), item: $('#t-item') });
   $('#t-pause').addEventListener('click', () => togglePause(true));
@@ -495,6 +497,7 @@ function persistSave(intent) {
   const mq = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
   App.reducedMotion = s.reducedMotion ?? !!(mq && mq.matches);
   setAudio(s);
+  setHaptics(s.vibration, App.reducedMotion);
   App.saveProblem = result.stored ? null : result.problem;
   App.saveError = saveMessage(App.saveProblem);
   if (App.saveError) App.hud.flash('Changes not saved · kept in this tab', 'bad', 3);
@@ -773,6 +776,7 @@ function playerFeedback(me) {
     // the one argument a cue takes: splash(big), bump, land(speed), boost(kind), charge(stage)
     if (snd) sfx(snd, e.type === 'drained' ? true : e.type === 'wall' || e.type === 'bump' || e.type === 'land' ? e.v : e.type === 'boost' ? e.kind : e.type === 'charge' ? e.stage : undefined);
     if (e.type === 'use') sfx(USE_CUE[e.item] || 'menu');
+    haptic(e.type === 'wall' ? (e.v > 3 ? 'wall' : '') : e.type === 'charge' ? (e.stage >= 2 ? 'hot' : 'warm') : e.type); // S5-19: wall, bump, land, boost, fumble; the rest are not felt
     if (e.type === 'boost') { App.hud.flash(e.kind === 'hot' ? 'HOT STEAM!' : e.kind === 'start' ? 'GREAT START!' : 'WARM STEAM', 'boost', 1); App.cam.punch = e.kind === 'hot' ? 6 : 4; App.cam.shake = Math.max(App.cam.shake, 0.25); }
     else if (e.type === 'falsestart') App.hud.flash('FALSE START! Too early on Push', 'bad', 1.6);
     else if (e.type === 'fumble') { App.hud.flash('Dropped the ' + (e.item || 'item') + '! Circle the tub!', 'bad', 1.6); App.cam.shake = 0.8; App.views[me.id].flash = 1; }
@@ -905,6 +909,7 @@ function frameStep(t) {
   // moving the frozen clock forward hands exactly that step to one frame (motion strips)
   if (App.clock != null) { dt = Math.min(0.25, Math.max(0, App.clock - App.time)); App.time = App.clock; } else App.time += dt;
   pollGamepads();
+  if (INPUT.padPress) { INPUT.padPress = false; wakeAudio(); }
   setMuffle(!!App.paused && App.scene === 'race');
   const m = consumeMenu();
   if (consumePause() && pauseKeyLive()) togglePause();
