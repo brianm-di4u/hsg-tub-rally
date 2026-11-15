@@ -232,7 +232,7 @@ kbd { display: inline-block; padding: 0 5px; border: 2px solid var(--ink); borde
 .award-list li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 12px; border-radius: 10px; background: rgba(0,0,0,0.25); font-weight: 700; }
 .award-list li b { color: var(--gold); }
 @media (prefers-reduced-motion: reduce) { .hud-task { transition: none; } }
-.fact-line { margin: 8px 0 0; font-style: italic; font-size: 14px; line-height: 1.35; color: var(--mist); text-wrap: balance; }
+.fact-line, .voice { margin: 8px 0 0; font-style: italic; font-size: 14px; line-height: 1.35; color: var(--mist); text-wrap: balance; }
 .ccard .fact { font-style: italic; font-size: 13px; line-height: 1.3; color: #3A2E22; }
 .ccard:not(.postcard) .fact { color: var(--mist); }
 

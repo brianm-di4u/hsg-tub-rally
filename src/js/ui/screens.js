@@ -171,7 +171,7 @@ function raceOptsRow(app) {
 const SKY = { 'bathhouse-row': ['#79B3E2', '#DCEEF6'], 'park-avenue': ['#2B2350', '#E8875A'], 'whittington-valley': ['#86B8DE', '#E2EEE8'], 'bridge-street': ['#6FA9DC', '#E4EEF2'], 'hs-mountain': ['#6FA8DC', '#DDEFF5'], 'goat-rock-gulpha': ['#6FA8DC', '#DDEFF5'], 'west-mountain': ['#6AA6D8', '#E3F0F4'], 'hill-wheatley': ['#79B3E2', '#DCEEF6'], 'sunset-ridge': ['#5B4A8A', '#F7B267'] };
 
 // S4-04: the winning captain's line on the results
-const voice = (rs) => { const w = rs && rs.length > 1 && rs.find((r) => r.place === 1), tm = w && TEAM_BY_ID[w.team]; return tm ? `<p class="fact-line voice">${tm.captain}${w.human ? ' (you)' : ''}: “${tm.say}”</p>` : ''; };
+const voice = (rs) => { const w = rs && rs.length > 1 && rs.find((r) => r.place === 1), tm = w && TEAM_BY_ID[w.team]; return tm ? `<p class="voice">${tm.captain}${w.human ? ' (you)' : ''}: “${tm.say}”</p>` : ''; };
 
 const TEMPLATES = {
   title: (app) => `
