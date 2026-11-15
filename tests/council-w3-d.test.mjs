@@ -93,7 +93,7 @@ export const tests = [
       const open = (humanClean) => t.page.evaluate(([c, ids]) => { const mk = (h) => [0, 1].map((i) => ({ place: i + 1, team: ids[i], human: i === 1, time: 90 + i, gal: 14, clean: i === 0 || (i === 1 && h), points: 10, tickets: 0, lost: [], dry: false })); window.TR_APP.App.screens.show('results', { results: mk(c), laps: 3, trackName: 'Bathhouse Row' }); }, [humanClean, IDS]);
       await open(false); await t.waitFrames(2);
       t.equal(await t.page.evaluate(() => document.querySelectorAll('.rtable [title]').length), 0, 'no tooltip on the badge');
-      const legend = await text(t, '.panel.results .clean-note');
+      const legend = await text(t, '.panel.results .clean-legend');
       t.expect(/CLEAN = 10\+ gallons and all four items, one more point\./.test(legend), 'the legend is under the table when a rival is clean: ' + legend);
       await shot(t, 'S3-15', 'results-legend');
       await open(true); await t.waitFrames(2);

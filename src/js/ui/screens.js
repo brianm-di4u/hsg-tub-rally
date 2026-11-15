@@ -155,7 +155,7 @@ function cupStanding(rows, round, rounds) {
 }
 
 // the CLEAN badge in a rival's row, explained in text (it was a tooltip, which touch never shows)
-const cleanLegend = (results) => (results || []).some((r) => r.clean && !r.human) && !(results || []).some((r) => r.clean && r.human) ? `<p class="clean-note"><b class="clean">CLEAN</b> = ${CLEAN_RULE}, one more point.</p>` : '';
+const cleanLegend = (results) => (results || []).some((r) => r.clean && !r.human) && !(results || []).some((r) => r.clean && r.human) ? `<p class="clean-legend"><b class="clean">CLEAN</b> = ${CLEAN_RULE}, one more point.</p>` : '';
 
 // P-N06: Quick Race setup under the course list: laps, items, rivals
 const RACE_LAPS = [1, 3, 5], RACE_RIVALS = [3, 7];
@@ -250,7 +250,7 @@ const TEMPLATES = {
         ${driveHelp(app.helpAll)}
         <section><h3>The start</h3><ul>
           <li>Press <b>Push</b> in the last half second before <b>SCRUB!</b> for a GREAT START boost.</li>
-          <li>Hold Push from <b>READY</b> and it is a false start: you stumble for a moment.</li></ul></section>
+          <li>Push too early, from <b>READY</b>, and it is a false start: you stumble for a moment.</li></ul></section>
         <section><h3>Keep your water</h3><ul>
           <li>Your tub starts full. Hard turns, slides, landings and hits slosh water out. Crowds' water blasters, refill buckets, fountains and creek fords top you up.</li>
           <li>More water is heavier: steadier, but slower to get going.</li>
