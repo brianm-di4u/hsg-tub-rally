@@ -113,7 +113,7 @@ export function stepKart(k, inp, track, dt, env = {}) {
     yawTarget = -dir * (1.25 + 0.95 * s) * st.turn * vFac;
     if (grounded) {
       k.driftT += dt;
-      k.charge += dt * (0.7 + 0.5 * Math.max(0, s));
+      k.charge += dt * (0.7 + 0.5 * Math.max(0, s)) * (st.charge ?? 1);
       const ns = k.charge >= HOT_T ? 2 : k.charge >= WARM_T ? 1 : 0;
       if (ns > k.stage) { k.stage = ns; k.events.push({ type: 'charge', stage: ns }); }
     }
@@ -287,7 +287,7 @@ export function collideKarts(karts, dt) {
           setWorldVel(a, va.x - (jimp / ma) * dx, va.z - (jimp / ma) * dz);
           setWorldVel(b, vb.x + (jimp / mb) * dx, vb.z + (jimp / mb) * dz);
           if (-rel > 4) {
-            jolt(a.water, 0, 0, 0.04 * -rel * (mb / ma)); jolt(b.water, 0, 0, 0.04 * -rel * (ma / mb));
+            jolt(a.water, 0, 0, 0.04 * -rel * (mb / ma) * (a.stats.bump ?? 1)); jolt(b.water, 0, 0, 0.04 * -rel * (ma / mb) * (b.stats.bump ?? 1));
             a.events.push({ type: 'bump', v: -rel }); b.events.push({ type: 'bump', v: -rel });
           }
         }

@@ -27,7 +27,12 @@ export const CLASSES = {
   boil: { id: 'boil', name: 'Boil', vTop: 23, ai: 1.08, rubber: 0, noise: 0.2, aggro: 1, hunt: 1, spill: 1.15, wall: 1.1, unlock: 'Win a cup on Scald' },
 };
 
-// Captain names are invented. `perk` nudges one stat a little (never more than 4%).
+// Captain names are invented. `perk` nudges one stat a little (never more than 4%). The four teams that are won, not given
+// (S3-09), also carry a signature in `perk` that changes how they race, named in `sig`:
+//   wall       how much speed a wall hit costs (1 = a normal tub)
+//   startBoost how long the timed start boost lasts (1 = a normal start)
+//   charge     how fast a power slide charges to Warm and Hot (1 = normal)
+//   bump       how much water a bump from another tub spills (1 = normal)
 // Colours: tub, trim, crew shirt, crew hat, captain outfit, skin tone, flag.
 export const TEAMS = [
   { id: 'engine-six', name: 'Engine Six Soakers', div: 'traditional', archetype: 'Firefighters', captain: 'Capt. Rosa Hydrant',
@@ -41,7 +46,7 @@ export const TEAMS = [
     emblem: 'card', hat: 'fedora', perk: { top: 1.02 }, unlocked: true },
   { id: 'gator-gang', name: 'Gator Gang', div: 'traditional', archetype: 'Alligator costumes', captain: 'Big Al Bayou',
     colors: { tub: '#3E7B3A', trim: '#E5D27A', shirt: '#4E8E45', hat: '#3E7B3A', cap: '#5FA052', skin: '#8D5A3B', flag: '#E5D27A' },
-    emblem: 'gator', hat: 'snout', perk: { grip: 1.03 }, unlocked: false },
+    emblem: 'gator', hat: 'snout', perk: { grip: 1.03, wall: 0.6 }, sig: 'Thick hide: wall hits cost 40% less speed.', unlocked: false },
   { id: 'bubble-patrol', name: 'Bubble Patrol', div: 'modified', archetype: 'Police officers', captain: 'Sgt. Penny Suds',
     colors: { tub: '#2B4D9B', trim: '#E8ECF2', shirt: '#2B4D9B', hat: '#1D2C55', cap: '#E8ECF2', skin: '#7A4E36', flag: '#E8ECF2' },
     emblem: 'star', hat: 'peaked', perk: { push: 1.03 }, unlocked: true },
@@ -53,7 +58,7 @@ export const TEAMS = [
     emblem: 'antenna', hat: 'antenna', perk: { turn: 1.03 }, unlocked: true },
   { id: 'silks-stirrups', name: 'Silks & Stirrups', div: 'modified', archetype: 'Jockey silks', captain: 'Jo "Photo Finish" Furlong',
     colors: { tub: '#E8E8E8', trim: '#D6226E', shirt: '#D6226E', hat: '#2FA84F', cap: '#2FA84F', skin: '#E9BE98', flag: '#2FA84F' },
-    emblem: 'horseshoe', hat: 'jockey', perk: { top: 1.02 }, unlocked: false },
+    emblem: 'horseshoe', hat: 'jockey', perk: { top: 1.02, startBoost: 1.5 }, sig: 'Out of the gate: the start boost lasts 50% longer.', unlocked: false },
   { id: 'steam-rangers', name: 'Steam Rangers', div: 'stock', archetype: 'Flat-hat rangers', captain: 'Ranger Hazel Fern',
     colors: { tub: '#6B7F4A', trim: '#C7A86A', shirt: '#8C979C', hat: '#C9A66B', cap: '#4E6136', skin: '#A86F4C', flag: '#C7A86A' },
     emblem: 'pine', hat: 'flat-brim', perk: { slosh: 0.96 }, unlocked: true },
@@ -62,10 +67,10 @@ export const TEAMS = [
     emblem: 'badge', hat: 'cowboy', perk: { push: 1.03 }, unlocked: true },
   { id: 'flamingo-flock', name: 'Flamingo Flock', div: 'stock', archetype: 'Flamingos', captain: 'Flo Mingo',
     colors: { tub: '#F28DB2', trim: '#FFFFFF', shirt: '#F7B6CE', hat: '#F28DB2', cap: '#F7B6CE', skin: '#C9875F', flag: '#FFFFFF' },
-    emblem: 'flamingo', hat: 'beak', perk: { turn: 1.03 }, unlocked: false },
+    emblem: 'flamingo', hat: 'beak', perk: { turn: 1.03, charge: 1.2 }, sig: 'Quick charge: power slides reach Warm and Hot 20% sooner.', unlocked: false },
   { id: 'tub-ninjas', name: 'Tub Ninjas', div: 'stock', archetype: 'Ninjas', captain: 'Shadow Scrub',
     colors: { tub: '#23232B', trim: '#D33A3A', shirt: '#2E2E38', hat: '#D33A3A', cap: '#2E2E38', skin: '#E0B48E', flag: '#D33A3A' },
-    emblem: 'moon', hat: 'headband', perk: { rim: 1.03 }, unlocked: false },
+    emblem: 'moon', hat: 'headband', perk: { rim: 1.03, bump: 0 }, sig: 'Silent bumps: bumping another tub spills no water.', unlocked: false },
 ];
 
 export const TEAM_BY_ID = Object.fromEntries(TEAMS.map((t) => [t.id, t]));
@@ -84,6 +89,7 @@ export function kartStats(teamId, classId, mods = {}) {
   const p = (k) => (d[k] ?? 1) * (t.perk[k] ?? 1) * (mods[k] ?? 1);
   return {
     team: t.id, div: d.id, tubKg: d.tubKg + 80, capGal: d.capGal,
-    vTop: c.vTop * p('top'), push: p('push'), turn: p('turn'), grip: p('grip'), slosh: p('slosh'), rim: p('rim'), spill: c.spill ?? 1, wall: c.wall ?? 1,
+    vTop: c.vTop * p('top'), push: p('push'), turn: p('turn'), grip: p('grip'), slosh: p('slosh'), rim: p('rim'), spill: c.spill ?? 1, wall: (c.wall ?? 1) * (t.perk.wall ?? 1),
+    startBoost: t.perk.startBoost ?? 1, charge: t.perk.charge ?? 1, bump: t.perk.bump ?? 1,
   };
 }

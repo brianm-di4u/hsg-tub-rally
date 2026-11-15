@@ -40,5 +40,24 @@
   "sunset-ridge": 53.38,
   "west-mountain": 55.23,
   "whittington-valley": 53.61
+ },
+ "botPlace": {
+  "note": "Mean finishing place (1 to 8) of the --bot driver (skill 1.02 at Soak pace in every class, uses its items) starting last on the grid, 24 races on bathhouse-row (S3-07). Measured before and after wave 3 (Splash 3.3 and 3.0, Soak 5.6 and 5.5, Scald 7.0 and 7.0, Boil 7.3 and 6.7); the bands are about one place either side, and the worst allowed place rises with the class.",
+  "splash": [
+   2,
+   4.2
+  ],
+  "soak": [
+   4.5,
+   6.6
+  ],
+  "scald": [
+   5.8,
+   7.8
+  ],
+  "boil": [
+   6.2,
+   8
+  ]
  }
 }

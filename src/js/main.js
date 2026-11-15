@@ -17,7 +17,8 @@ import { loadPackTextures } from './gfx/textures.js';
 import { loadModel, cloneModel, hasModel } from './gfx/models.js';
 import { Track } from './sim/track.js';
 import { landmarkPose } from './sim/landmarks.js';
-import { makeRace, stepRace, DT } from './sim/race.js';
+import { makeRace, stepRace, finishRace, DT } from './sim/race.js';
+import { ITEMS } from './sim/items.js';
 import { assistSteer } from './sim/ai.js';
 import { makeRecorder, record, packGhost, unpackGhost, unpackPar, ghostPose } from './sim/ghost.js';
 import { parOf, medalTimes, medalFor, PAR_LAPS } from './sim/medals.js';
@@ -103,6 +104,7 @@ async function boot() {
   initTouch($('#touch-steer'), { push: $('#t-push'), brake: $('#t-brake'), hop: $('#t-hop'), item: $('#t-item') });
   $('#t-pause').addEventListener('click', () => togglePause(true));
   initTouchMode();
+  App.hud.el.skipB.addEventListener('click', () => { if (skipReady()) skipToResults(); });
   window.addEventListener('resize', () => App.renderer.resize());
   // three.js re-creates its own resources after a lost context; the app tells the player and refits its render targets
   $('#gl').addEventListener('webglcontextlost', (e) => { e.preventDefault(); App.glLost = true; showGlNotice('Graphics were interrupted. Waiting for the browser to restore them...'); });
@@ -174,11 +176,44 @@ const pauseKeyLive = () => App.scene === 'race' && !!App.race && App.race.phase 
 function onKey(e) {
   if (App.capture && App.screens.cur === 'controls' && window.TR_TEACH) return window.TR_TEACH.capture(e, App.capture, controlsScreen);
   if (App.scene === 'race' && e.code === 'KeyT' && !e.repeat && window.TR_TEACH) window.TR_TEACH.tipSkip();
+  if (skipReady() && !e.repeat && (e.code === 'Enter' || e.code === 'NumpadEnter' || e.code === 'Space')) { skipToResults(); return true; }
   if (pauseKeyLive() && (e.code === 'Escape' || e.code === 'KeyP')) {
     if (!e.repeat) togglePause();
     return true;
   }
   return false;
+}
+
+// S1-07: once the player is over the line and the rest of the field is still coming in, Enter, Space, the pad's A or a tap on the
+// prompt goes straight to the results. It waits SKIP_GRACE seconds after the line, so a key still being pressed as the tub
+// crosses cannot skip the finish, and the prompt only shows when the wait is a real one (the field is usually in within two seconds).
+const SKIP_GRACE = 2;
+function skipReady() {
+  const r = App.race, me = r && r.player >= 0 ? r.karts[r.player] : null;
+  return !!me && App.scene === 'race' && r.phase === 'race' && me.finished && !r.stepExtra && !App.raceOpts.autoplay && !App.paused && !App.screens.cur && r.time - me.finishT >= SKIP_GRACE;
+}
+function skipToResults() {
+  App.skipped = true;
+  finishRace(App.race, App.track);
+}
+// the prompt names the key of the device in use
+function skipPrompt() {
+  const on = skipReady();
+  App.hud.skip(on ? (INPUT.last === 'touch' ? 'Tap for results' : INPUT.last === 'gamepad' ? 'A: results' : 'Enter: results') : '');
+}
+
+// S2-08: a locked card answers in the panel itself (the HUD is not on screen in menus); role=status has it announced
+function menuNote(text) {
+  const root = App.screens.root, panel = root.querySelector('.panel');
+  if (!panel) return;
+  let p = root.querySelector('[data-menu-note]');
+  if (!p) {
+    p = document.createElement('p');
+    p.className = 'unlock menu-note'; p.dataset.menuNote = ''; p.setAttribute('role', 'status');
+    (panel.querySelector('canvas') || panel.firstChild).after(p);
+  }
+  p.textContent = text;
+  if (p.scrollIntoView) p.scrollIntoView({ block: 'nearest' });
 }
 
 // Course packs (and the texture/model packs they use) load on demand as classic scripts.
@@ -303,7 +338,7 @@ export async function startRace(opts = {}) {
   const count = o.mode === 'timetrial' ? 1 : (o.count ?? 8);
   if (o.mode === 'battle') App.race = makeBattle(track, { human: o.team, seed: o.seed, classId: o.classId, autoplay: o.autoplay, count: o.count });
   else if (o.mode === 'row') App.race = makeHeat(track, { teams: o.heatTeams, human: o.team, seed: o.seed, stops: o.stops, label: o.label, autoplay: o.autoplay, classId: o.classId });
-  else App.race = makeRace(track, { laps: o.laps, classId: o.classId, player: o.team, seed: o.seed, mode: o.mode, noItems: o.noItems ?? o.mode === 'timetrial', count, autoplay: o.autoplay, rivals: o.rivals });
+  else App.race = makeRace(track, { laps: o.laps, classId: o.classId, player: o.team, seed: o.seed, mode: o.mode, noItems: o.noItems ?? o.mode === 'timetrial', count, autoplay: o.autoplay, rivals: o.rivals, order: o.order });
   // dusk and sunset courses: a fill lifts the crews off the darker road
   const dusk = /dusk|sunset/.test((track.json && track.json.env && track.json.env.time) || '');
   App.views = App.race.karts.map((k, i) => {
@@ -346,7 +381,7 @@ export async function startRace(opts = {}) {
   }
   App.cam.snap();
   App.acc = 0;
-  App.paused = false; App.resumeT = 0;
+  App.paused = false; App.resumeT = 0; App.skipped = false;
   App.testPaused = !!o.paused;
   setScene('race');
   App.screens.hide();
@@ -389,10 +424,19 @@ function gotoTitle() {
   if (window.TR_TEACH) window.TR_TEACH.tipStop();
   document.body.classList.remove('racing');
   App.hud.root.classList.remove('on');
+  App.titleTeam = null; titleTub();
   App.screens.show('title');
   setIntensity(0);
   playScene('town');
   playTheme('title');
+}
+
+// S2-24: the title's flyover carries a turning tub (a team the player has open, a different one each visit), so the first
+// screen shows the game's hook: bathtubs pushed by crews. Going back to the title keeps the one already there.
+function titleTub() {
+  const open = TEAMS.filter((t) => t.unlocked || App.save.unlocked.teams.includes(t.id));
+  if (!open.some((t) => t.id === App.titleTeam)) App.titleTeam = open[Math.floor(Math.random() * open.length)].id;
+  setPreview(App.titleTeam);
 }
 
 // S2-25: the next local fact for the course in play; the counter runs on across the session
@@ -541,17 +585,25 @@ function onMenu(act, data) {
     }
     case 'course':
       setPreview(null);
-      startRace({ mode: F.mode === 'timetrial' ? 'timetrial' : 'quick', count: F.mode === 'timetrial' ? 1 : 8, track: data.id, team: F.team, classId: F.mode === 'timetrial' ? 'scald' : F.classId });
+      if (F.mode === 'timetrial') startRace({ mode: 'timetrial', count: 1, track: data.id, team: F.team, classId: 'scald' });
+      else startRace({ mode: 'quick', count: s.settings.raceRivals + 1, laps: s.settings.raceLaps, noItems: s.settings.raceItems === false, track: data.id, team: F.team, classId: F.classId }); // P-N06: the Quick Race setup
       break;
     case 'nextRace': {
       const g = App.gp;
       g.round++;
-      startRace({ mode: 'gp', track: g.tracks[g.round], team: App.raceOpts.team, classId: App.raceOpts.classId, seed: App.raceOpts.seed + 17, rivals: g.rivals });
+      startRace({ mode: 'gp', track: g.tracks[g.round], team: App.raceOpts.team, classId: App.raceOpts.classId, seed: App.raceOpts.seed + 17, rivals: g.rivals, order: gpRows().map((r) => r.team) }); // S1-19: the grid follows the standings
       break;
     }
     case 'standingsGo': showStandings(); break;
     case 'trophy': showTrophy(); break;
-    case 'locked': App.hud.flash('Locked for now', 'lap', 1); break;
+    case 'locked': menuNote(data.why || 'Locked for now.'); break;
+    case 'raceOpt': { // the laps, items and rivals chips under the Quick Race course list
+      const v = data.v === 'true' ? true : data.v === 'false' ? false : +data.v;
+      persistSave({ settings: { [data.k]: v } });
+      App.screens.show('courses', { list: builtCourses(), trial: false });
+      App.screens.root.querySelector(`[data-act="raceOpt"][data-k="${data.k}"][data-v="${data.v}"]`)?.focus({ preventScroll: true });
+      break;
+    }
     case 'mirror': { // the Mirror switch on the course and cup screens
       if (!s.unlocked.mirror) break;
       persistSave({ settings: { mirror: data.v === 'true' } });
@@ -568,11 +620,12 @@ function onMenu(act, data) {
     case 'settings': App.capture = null; App.prevScreen = App.screens.cur; App.screens.show('settings'); break;
     case 'back':
       if (App.scene === 'race' && App.paused) App.screens.show('pause', { fact: App.pauseFact });
-      else { setPreview(null); App.screens.show('title'); }
+      else { titleTub(); App.screens.show('title'); }
       break;
     case 'continueCup': {
       const c = savedCup();
       if (!c) { refreshCup(); App.screens.show('title'); break; }
+      setPreview(null);
       App.gp = { cup: c.cup, name: c.name, tracks: c.tracks, round: c.round, table: c.table, rivals: c.rivals, recorded: c.round };
       App.raceOpts = { team: c.team, classId: c.classId, seed: c.seed };
       App.flow = { mode: 'gp', team: c.team, classId: c.classId };
@@ -721,6 +774,7 @@ function playerFeedback(me) {
     if (e.type === 'use') sfx(USE_CUE[e.item] || 'menu');
     if (e.type === 'boost') { App.hud.flash(e.kind === 'hot' ? 'HOT STEAM!' : e.kind === 'start' ? 'GREAT START!' : 'WARM STEAM', 'boost', 1); App.cam.punch = e.kind === 'hot' ? 6 : 4; App.cam.shake = Math.max(App.cam.shake, 0.25); }
     else if (e.type === 'fumble') { App.hud.flash('Dropped the ' + (e.item || 'item') + '! Circle the tub!', 'bad', 1.6); App.cam.shake = 0.8; App.views[me.id].flash = 1; }
+    else if (e.type === 'pickup' && ITEMS[e.item] && !(App.hud.callT > 0)) App.hud.flash(ITEMS[e.item].name + ': ' + ITEMS[e.item].tip, 'lap', 1.6); // S2-02: say what it is
     else if (e.type === 'taskFail') App.hud.flash('Judges say no! Dropped the ' + (e.item || 'item') + '. Circle the tub!', 'bad', 1.8);
     else if (e.type === 'wall' && e.v > 7) App.cam.shake = Math.min(1, e.v / 14);
     else if (e.type === 'land' && e.v > 7) App.cam.shake = 0.4;
@@ -780,7 +834,9 @@ function stepOnce() {
     playTheme('results');
     const me = r.player >= 0 ? r.karts[r.player] : null;
     let record = null;
-    if (me && me.finished && r.mode !== 'row' && r.mode !== 'battle') {
+    // a race with a custom setup (laps, items or field size changed) is a different race: its time is not a course best
+    const custom = r.mode !== 'timetrial' && (r.laps !== 3 || !!r.noItems || r.karts.length !== 8);
+    if (me && me.finished && r.mode !== 'row' && r.mode !== 'battle' && !custom) {
       const lap = me.lapTimes.length ? Math.min(...me.lapTimes.slice(1).concat(me.lapTimes.length === 1 ? me.lapTimes : [])) : null;
       record = { track: App.track.id, finishT: me.finishT,
         value: { race: +me.finishT.toFixed(3), lap: lap ? +lap.toFixed(3) : null, team: me.team, cls: r.classId },
@@ -799,7 +855,7 @@ function stepOnce() {
     if (App.trialResult && App.trialResult.medalNew) sfx('cheer');
     if (r.mode === 'gp') recordGp(r);
     if (r.mode === 'row') { setTimeout(() => { if (App.race === r) onHeatDone(r); }, window.__TEST__ ? 0 : 1200); return; }
-    setTimeout(() => { if (App.race === r) App.screens.show('results', { results: r.results, laps: r.laps, trackName: App.track.name, gp: r.mode === 'gp', newRecord: App.newRecord, mode: r.mode, trial: App.trialResult, daily: App.dailyResult, fact: nextFact() }); }, window.__TEST__ ? 0 : 1500);
+    setTimeout(() => { if (App.race === r) App.screens.show('results', { results: r.results, laps: r.laps, trackName: App.track.name, gp: r.mode === 'gp', newRecord: App.newRecord, mode: r.mode, trial: App.trialResult, daily: App.dailyResult, fact: nextFact(), custom: custom && r.mode === 'quick' }); }, window.__TEST__ ? 0 : App.skipped ? 300 : 1500);
   }
   if (r.phase !== 'done') App._resultsShown = false;
 }
@@ -839,6 +895,7 @@ function frameStep(t) {
   const m = consumeMenu();
   if (consumePause() && pauseKeyLive()) togglePause();
   if (App.screens.cur) App.screens.nav(m);
+  else if (m.ok && skipReady()) skipToResults();
   showSaveStatus();
   const r = App.race;
   if (App.scene === 'race' && r) {
@@ -851,6 +908,7 @@ function frameStep(t) {
     }
     const alpha = App.paused || App.testPaused ? 1 : App.acc / DT;
     drawRace(r, alpha, dt);
+    skipPrompt();
     audioFrame(r, dt, !App.paused && !App.testPaused && !(App.resumeT > 0));
     const down = App.governor.frame(dt, !App.paused && !App.testPaused);
     if (down) { App.tier = down; if (App.renderer.ssao) { App.renderer.ssao.dispose(); App.renderer.ssao = null; } if (down === 'low' && App.shadow) App.shadow.setEnabled(false); const env = App.track.json.env || {}; App.renderer.setEnv({ ...env, fog: env.fog ? [Math.min(env.fog[0], TIERS[down].fogFar * 0.4), Math.min(env.fog[1], TIERS[down].fogFar)] : undefined }); }
@@ -956,7 +1014,7 @@ function drawAttract(dt) {
   if (App.preview) {
     // the chosen team's tub, turning on the road in front of the camera
     const ps = s + 11, pc = tr.at(ps), pp = tr.point(ps, 1.2);
-    const pose = { x: pp.x, y: pp.y, z: pp.z, yaw: App.time * 0.7, groundY: pp.y };
+    const pose = { x: pp.x, y: pp.y, z: pp.z, yaw: reduce ? 0.6 : App.time * 0.7, groundY: pp.y };
     App.preview.k.runPhase = App.time * 3;
     App.preview.pose = pose;
     App.preview.view.update(App.preview.k, pose, dt, App.time);
@@ -968,7 +1026,9 @@ function drawAttract(dt) {
     cam.position.set(pc.x - pc.tz * 3.2 - pc.tx * back, pc.y + 2.6 + tall * 0.6, pc.z + pc.tx * 3.2 - pc.tz * back);
     const lx = -(pp.z - cam.position.z), lz = pp.x - cam.position.x, ll = Math.hypot(lx, lz) || 1;
     // very wide (phone landscape) screens: aim further left so the tub sits in the right third, clear of the panel
-    const aimL = aspect > 1.9 ? 3.9 : 2.6;
+    // (on the title the two-column menu is wider than a panel, so the tub sits further right still)
+    const onTitle = App.screens.cur === 'title';
+    const aimL = aspect > 1.9 ? (onTitle ? 4.8 : 3.9) : (onTitle ? 3.7 : 2.6);
     cam.lookAt(pp.x - (lx / ll) * aimL * wide, pp.y + 0.9 - tall * 6.2, pp.z - (lz / ll) * aimL * wide);
   } else App.footBlobs.set([]);
   if (App.camOverride) { const o = App.camOverride; cam.position.set(o.pos[0], o.pos[1], o.pos[2]); cam.lookAt(o.target[0], o.target[1], o.target[2]); }

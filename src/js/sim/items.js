@@ -6,16 +6,16 @@ import { addWater, removeWater } from './water.js';
 import { LIMIT } from './track.js';
 
 export const ITEMS = {
-  duck: { name: 'Rubber Duck', kind: 'shot' },
-  soap: { name: 'Bar of Soap', kind: 'shot' },
-  bomb: { name: 'Bath Bomb', kind: 'trap' },
-  loofah: { name: 'Loofah Shield', kind: 'guard' },
-  towel: { name: 'Towel Snap', kind: 'melee' },
-  jet: { name: 'Thermal Jet', kind: 'boost' },
-  jet3: { name: 'Triple Thermal Jet', kind: 'boost', uses: 3 },
-  blaster: { name: 'Water Blaster', kind: 'spray' },
-  bubble: { name: 'Bubble Bath', kind: 'guard' },
-  hose: { name: 'Fire Hose', kind: 'boost' },
+  duck: { name: 'Rubber Duck', kind: 'shot', tip: 'Homes in on the tub ahead.' },
+  soap: { name: 'Bar of Soap', kind: 'shot', tip: 'Slides ahead. Hold Brake to drop it behind.' },
+  bomb: { name: 'Bath Bomb', kind: 'trap', tip: 'Lands as a slick ahead. Hold Brake to leave it behind.' },
+  loofah: { name: 'Loofah Shield', kind: 'guard', tip: 'Three blocks. Use again to fling one.' },
+  towel: { name: 'Towel Snap', kind: 'melee', tip: 'Snaps nearby tubs and swats shots away.' },
+  jet: { name: 'Thermal Jet', kind: 'boost', tip: 'One burst of speed.' },
+  jet3: { name: 'Triple Thermal Jet', kind: 'boost', uses: 3, tip: 'Three bursts of speed.' },
+  blaster: { name: 'Water Blaster', kind: 'spray', tip: 'Sprays the tub ahead and takes some water.' },
+  bubble: { name: 'Bubble Bath', kind: 'guard', tip: 'Hits bounce off for three seconds.' },
+  hose: { name: 'Fire Hose', kind: 'boost', tip: 'Speed, extra water, and shoves tubs aside.' },
 };
 
 // odds by place (1st … 8th): the front gets defensive items, the back gets catch-up items
@@ -267,10 +267,14 @@ function stepObject(race, track, o, dt) {
   }
 }
 
-// AI item decisions: simple, situational, a little random (difficulty sets aggression)
+// AI item decisions: simple, situational, a little random (difficulty sets aggression).
+// S3-13: rivals that hunt (Scald 0.5, Boil 1; Splash and Soak play as before) keep a duck until its target is in reach and a hose
+// for a straight, but never longer than HOLD_MAX seconds.
+const HOLD_MAX = 8, DUCK_REACH = 45;
 function aiItem(race, track, k, drv, dt) {
   drv.itemDelay -= dt;
   if (drv.itemDelay > 0) return { use: false, back: false };
+  drv.itemHold = (drv.itemHold || 0) + dt;
   const aggro = drv.cls.aggro, item = k.held, karts = race.karts;
   const hunt = drv.cls.hunt || 0; // Scald and Boil rivals aim at the player: a longer reach and a surer throw
   const reach = (r, base, extra) => base + (r.o.human ? extra * hunt : 0);
@@ -278,9 +282,14 @@ function aiItem(race, track, k, drv, dt) {
   const rel = (o) => { const dx = o.x - k.x, dz = o.z - k.z; return { along: dx * fx + dz * fz, side: dx * -fz + dz * fx }; };
   const ahead = karts.filter((o) => o !== k && o.state !== 'rescue').map((o) => ({ o, ...rel(o) })).filter((r) => r.along > 0);
   const behind = karts.filter((o) => o !== k && o.state !== 'rescue').map((o) => ({ o, ...rel(o) })).filter((r) => r.along < 0);
-  const go = (back = false) => { drv.itemDelay = (0.8 + race.rng.ai.next() * 2) * (1 - 0.35 * hunt); return { use: true, back }; };
+  const go = (back = false) => { drv.itemHold = 0; drv.itemDelay = (0.8 + race.rng.ai.next() * 2) * (1 - 0.35 * hunt); return { use: true, back }; };
   switch (item) {
-    case 'duck': if (k.place > 1) return go(); break;
+    case 'duck': {
+      if (k.place <= 1) break;
+      const tgt = karts.find((o) => o !== k && !o.finished && o.place === k.place - 1), r = tgt && rel(tgt);
+      if (!hunt || drv.itemHold > HOLD_MAX || (r && r.along > 0 && r.along < DUCK_REACH)) return go();
+      break;
+    }
     case 'soap': {
       const inReach = ahead.filter((r) => r.along < reach(r, 35, 25) && Math.abs(r.side) < 2.5);
       if (inReach.length && ((hunt > 0.4 && inReach.some((r) => r.o.human)) || race.rng.ai.next() < aggro)) return go(false);
@@ -293,7 +302,7 @@ function aiItem(race, track, k, drv, dt) {
     case 'jet': case 'jet3': { const vm = track.a.vmax; if (!vm || vm[track.at(k.s + 30).i] > 18) return go(); break; }
     case 'blaster': if (ahead.some((r) => r.along < reach(r, 11, 8) && Math.abs(r.side) < 4)) return go(); break;
     case 'bubble': if (k.water.gal < k.water.cap * 0.35 || race.rng.ai.next() < 0.004) return go(); break;
-    case 'hose': return go();
+    case 'hose': { const vm = track.a.vmax; if (!hunt || drv.itemHold > HOLD_MAX || !vm || vm[track.at(k.s + 25).i] > 18) return go(); break; }
     default: break;
   }
   return { use: false, back: false };

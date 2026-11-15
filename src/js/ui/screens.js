@@ -1,7 +1,9 @@
 // Menu screens (DOM): title, pause, results, settings, how-to-play. Keyboard, gamepad and touch friendly:
 // every action is a real <button>, arrow keys / d-pad move focus, Enter / A confirms, Esc / B goes back.
 import { pixelText } from './pixelfont.js';
-import { fmtTime } from './hud.js';
+import { fmtTime, drawItemIcon } from './hud.js';
+import { ITEMS } from '../sim/items.js';
+import { MIN_FINISH_GAL } from '../sim/water.js';
 import { TEAM_BY_ID, TEAMS, DIVISIONS, CLASSES, kartStats } from '../data/teams.js';
 import { CUPS, CUP_BY_ID, TROPHY } from '../data/cups.js';
 import { factFor } from '../data/facts.js';
@@ -52,7 +54,7 @@ const medalChip = (m) => (m > 0 ? `<b class="medal m${m}">${MEDAL_NAMES[m]}</b>`
 const mirrorRow = (app) => {
   const ok = app.save.unlocked.mirror === true, on = ok && app.save.settings.mirror === true;
   const chip = (v, label, cur) => `<button type="button" class="chip ${cur ? 'sel' : ''}" data-act="mirror" data-v="${v}" aria-pressed="${cur}">${label}</button>`;
-  return `<div class="set-row two mirror-row"><span>Mirror</span>${ok ? chip('false', 'Off', !on) + chip('true', 'On', on) + '<small>Same course, left for right. Signs read backwards.</small>' : '<button type="button" class="chip" data-act="locked" aria-disabled="true">Win a cup on Scald to unlock</button>'}</div>`;
+  return `<div class="set-row two mirror-row"><span>Mirror</span>${ok ? chip('false', 'Off', !on) + chip('true', 'On', on) + '<small>Same course, left for right. Signs read backwards.</small>' : '<button type="button" class="chip" data-act="locked" data-why="Win a cup on Scald to unlock Mirror." aria-disabled="true">Win a cup on Scald to unlock</button>'}</div>`;
 };
 const btn = (act, label, extra = '') => `<button type="button" class="mbtn" data-act="${act}" ${extra}>${label}</button>`;
 
@@ -101,6 +103,39 @@ function driveHelp(open) {
           ${open ? others.map((k) => `<h4>${CONTROLS[k].name}</h4>${list(k)}`).join('') : ''}</section>`;
 }
 
+// S2-09: the player's Clean Finish, or what cost it. Visible text, not a tooltip, so it reads on touch too.
+const ITEM_WORDS = { towel: 'towel', mat: 'bath mat', soap: 'soap', loofah: 'loofah mitt' };
+function cleanLine(r) {
+  if (!r || r.estimated) return '';
+  if (r.clean) return `<p class="clean-note" role="status"><b class="clean">CLEAN</b> Clean Finish: ${MIN_FINISH_GAL} gallons or more and all four items, for a bonus point.</p>`;
+  const why = [];
+  if (r.lost && r.lost.length) why.push('lost the ' + r.lost.map((i) => ITEM_WORDS[i] || i).join(' and the '));
+  if (r.dry) why.push(r.gal >= MIN_FINISH_GAL ? `finished just under ${MIN_FINISH_GAL} gal` : `finished with ${r.gal.toFixed(1)} gal, under the ${MIN_FINISH_GAL} needed`);
+  return `<p class="clean-note" role="status">No Clean Finish: ${why.join(' and ') || 'something was missing'}.</p>`;
+}
+
+// S2-02: the items list in How to Play is made from ITEMS, so it cannot drift from the game
+const iconCache = {};
+function itemIconUrl(id) {
+  if (iconCache[id] == null) {
+    try { const c = document.createElement('canvas'); c.width = c.height = 40; drawItemIcon(c.getContext('2d'), id, 20, 20, 15); iconCache[id] = c.toDataURL(); } catch (e) { iconCache[id] = ''; }
+  }
+  return iconCache[id];
+}
+const itemsHelp = () => `<section><h3>Items and tickets</h3>
+          <p class="help-lead">Drive through a soap bubble to pick up an item, then press the item button to use it.</p>
+          <ul class="item-list">${Object.entries(ITEMS).map(([id, it]) => `<li><img alt="" width="28" height="28" src="${itemIconUrl(id)}"><span><b>${it.name}</b> ${it.tip}</span></li>`).join('')}</ul>
+          <p class="help-lead">Collect bath tickets. Drive through a judge's lane with three for a head start.</p></section>`;
+
+// P-N06: Quick Race setup under the course list: laps, items, rivals
+const RACE_LAPS = [1, 3, 5], RACE_RIVALS = [3, 7];
+function raceOptsRow(app) {
+  const s = app.save.settings;
+  const chip = (k, v, label, cur) => `<button type="button" class="chip ${cur ? 'sel' : ''}" data-act="raceOpt" data-k="${k}" data-v="${v}" aria-pressed="${cur}">${label}</button>`;
+  const grp = (name, chips) => `<div class="opt-grp" role="group" aria-label="${name}"><b>${name}</b>${chips}</div>`;
+  return `<div class="set-row race-opts">${grp('Laps', RACE_LAPS.map((n) => chip('raceLaps', n, n, s.raceLaps === n)).join(''))}${grp('Items', chip('raceItems', 'true', 'On', s.raceItems !== false) + chip('raceItems', 'false', 'Off', s.raceItems === false))}${grp('Rivals', RACE_RIVALS.map((n) => chip('raceRivals', n, n, s.raceRivals === n)).join(''))}</div>`;
+}
+
 const TEMPLATES = {
   title: (app) => `
     <div class="title-wrap">
@@ -128,13 +163,14 @@ const TEMPLATES = {
       ${fact ? `<p class="fact-line">${fact.t}</p>` : ''}
       <nav class="menu">${btn('resume', 'Resume', 'autofocus data-back')}${btn('restart', 'Restart race')}${btn('help', 'How to play')}${btn('settings', 'Settings')}${btn('quit', 'Quit to title')}</nav>
     </div>`,
-  results: (app, { results, laps, trackName, gp, newRecord, mode, trial, daily, fact }) => `
+  results: (app, { results, laps, trackName, gp, newRecord, mode, trial, daily, fact, custom }) => `
     <div class="panel results" role="dialog" aria-label="Race results">
       <canvas data-pixel="${app.banner || 'RESULTS'}" data-scale="6"></canvas>
-      <p class="sub">${mode === 'battle' ? `${trackName} · Water Fight: last tub with water wins` : `${trackName || ''} · ${laps} ${laps === 1 ? 'lap' : 'laps'}`}${newRecord ? ' · <b class="clean">NEW RECORD</b>' : ''}</p>
+      <p class="sub">${mode === 'battle' ? `${trackName} · Water Fight: last tub with water wins` : `${trackName || ''} · ${laps} ${laps === 1 ? 'lap' : 'laps'}`}${newRecord ? ' · <b class="clean">NEW RECORD</b>' : ''}${custom ? ' · custom setup, not kept as a record' : ''}</p>
       <table class="rtable"><thead><tr><th>#</th><th>Team</th><th>Time</th><th>Water</th><th>Pts</th></tr></thead><tbody>
       ${(results || []).map((r) => `<tr class="${r.human ? 'me' : ''}"><td>${r.place}</td><td><span class="sw" style="background:${TEAM_BY_ID[r.team].colors.tub}"></span>${TEAM_BY_ID[r.team].name}${r.human ? ' (you)' : ''}</td><td>${r.estimated ? '~' : ''}${fmtTime(r.time)}</td><td>${r.gal.toFixed(0)} gal${r.clean ? ' <b class="clean" title="Clean Finish: 10+ gallons and all four items">CLEAN</b>' : ''}</td><td>${r.points}</td></tr>`).join('')}
       </tbody></table>
+      ${mode === 'battle' ? '' : cleanLine((results || []).find((r) => r.human))}
       ${trial ? trialLines(trial) : ''}${daily ? dailyLines(daily) : ''}
       ${fact ? `<p class="fact-line">${fact.t}</p>` : ''}
       <nav class="menu row">${gp ? btn('standingsGo', 'Standings', 'autofocus') : btn('restart', mode === 'timetrial' ? 'Try again' : 'Race again', 'autofocus')}${gp ? btn('quitCup', 'Quit cup') : btn('quit', 'Title', 'data-back')}</nav>
@@ -186,6 +222,7 @@ const TEMPLATES = {
           <li>Your tub starts full. Hard turns, slides, landings and hits slosh water out. Crowds' water blasters, refill buckets, fountains and creek fords top you up.</li>
           <li>More water is heavier: steadier, but slower to get going.</li>
           <li>Cross the line with <b>10 gallons or more</b> and all four attendant items for a <b>Clean Finish</b> bonus point.</li></ul></section>
+        ${itemsHelp()}
         <section><h3>Water Fight</h3><ul>
           <li>Eight tubs circle the plaza fountain. Item hits spill more water here, and a dry tub is out.</li>
           <li>Refill only at the fountain. The last tub with water wins, or the fullest when the 150 second clock ends.</li></ul></section>
@@ -204,12 +241,13 @@ const TEMPLATES = {
     return `
     <div class="panel teams" role="dialog" aria-label="Choose your team">
       <canvas data-pixel="CHOOSE YOUR TEAM" data-scale="4"></canvas>
-      <div class="team-grid">${TEAMS.map((t) => `<button type="button" class="tcard ${t.id === cur.id ? 'sel' : ''}" data-act="${unlocked(t) ? 'team' : 'locked'}" data-id="${t.id}" ${unlocked(t) ? '' : 'aria-disabled="true"'} aria-pressed="${t.id === cur.id}">
+      <div class="team-grid">${TEAMS.map((t) => `<button type="button" class="tcard ${t.id === cur.id ? 'sel' : ''}" data-act="${unlocked(t) ? 'team' : 'locked'}" data-id="${t.id}" ${unlocked(t) ? '' : `data-why="${t.sig ? t.name + ': ' + t.sig + ' ' : ''}Win a Grand Prix cup to unlock the next team." aria-disabled="true"`} aria-pressed="${t.id === cur.id}">
         <span class="tsw" style="background:${t.colors.tub};border-color:${t.colors.flag}"></span><b>${t.name.replace(/-/g, '‑')}</b><small>${DIVISIONS[t.div].name}${unlocked(t) ? '' : '<i class="lk">locked</i>'}</small></button>`).join('')}</div>
       <div class="team-info">
         <h3>${cur.name}</h3>
         <p><b>Captain:</b> ${cur.captain} · <b>Inspired by:</b> ${cur.archetype} (fictional team)</p>
         <p><b>${d.name} division</b>: ${d.tub}. ${d.blurb}</p>
+        ${cur.sig ? `<p class="sig"><b>Signature:</b> ${cur.sig}</p>` : ''}
         <div class="stats">${bar('Top speed', (st.vTop / 19.5 - 0.9) / 0.15)}${bar('Push', (st.push - 0.8) / 0.35)}${bar('Handling', (st.turn - 0.8) / 0.4)}${bar('Water', (st.capGal / 44) * (1.15 - (st.slosh - 0.8)))}</div>
       </div>
       <nav class="menu row">${btn('teamOk', 'Choose ' + cur.name.replace(/^The /, ''), 'autofocus')}${btn('back', 'Back', 'data-back')}</nav>
@@ -221,14 +259,14 @@ const TEMPLATES = {
     <div class="panel classes" role="dialog" aria-label="Choose a speed class">
       <canvas data-pixel="WATER TEMPERATURE" data-scale="4"></canvas>
       <p class="sub">Speed class: game difficulty, named for bath temperatures</p>
-      <nav class="menu">${Object.values(CLASSES).map((c, i) => `<button type="button" class="mbtn" data-act="${ok(c.id) ? 'cls' : 'locked'}" data-id="${c.id}" ${i === 1 ? 'autofocus' : ''} ${ok(c.id) ? '' : 'aria-disabled="true"'}>${c.name}${ok(c.id) ? '' : ` (${c.unlock || 'Win a cup'})`}</button>`).join('')}${btn('back', 'Back', 'data-back')}</nav>
+      <nav class="menu">${Object.values(CLASSES).map((c, i) => `<button type="button" class="mbtn" data-act="${ok(c.id) ? 'cls' : 'locked'}" data-id="${c.id}" ${i === 1 ? 'autofocus' : ''} ${ok(c.id) ? '' : `data-why="${c.unlock || 'Win a cup'} to unlock ${c.name}." aria-disabled="true"`}>${c.name}${ok(c.id) ? '' : ` (${c.unlock || 'Win a cup'})`}</button>`).join('')}${btn('back', 'Back', 'data-back')}</nav>
     </div>`;
   },
   cups: (app, { built }) => `
     <div class="panel cups" role="dialog" aria-label="Choose a cup">
       <canvas data-pixel="CHOOSE A CUP" data-scale="4"></canvas>
       ${mirrorRow(app)}
-      <div class="card-row">${CUPS.map((c, i) => { const n = c.tracks.filter((id) => built.includes(id)).length, open = app.save.unlocked.cups.includes(c.id); return `<button type="button" class="ccard" data-act="${n && open ? 'cup' : 'locked'}" data-id="${c.id}" ${i === 0 ? 'autofocus' : ''} ${open ? '' : 'aria-disabled="true"'}><b>${c.name}</b><small>${c.blurb}</small><em>${!open ? `Locked: ${c.unlock || 'win a cup'}` : n ? `${n} of 4 courses ready` : 'courses coming soon'}</em></button>`; }).join('')}</div>
+      <div class="card-row">${CUPS.map((c, i) => { const n = c.tracks.filter((id) => built.includes(id)).length, open = app.save.unlocked.cups.includes(c.id); return `<button type="button" class="ccard" data-act="${n && open ? 'cup' : 'locked'}" data-id="${c.id}" ${i === 0 ? 'autofocus' : ''} ${open ? (n ? '' : 'data-why="Its courses are coming soon."') : `data-why="${c.unlock || 'Win a cup'} to unlock the ${c.name}." aria-disabled="true"`}><b>${c.name}</b><small>${c.blurb}</small><em>${!open ? `Locked: ${c.unlock || 'win a cup'}` : n ? `${n} of 4 courses ready` : 'courses coming soon'}</em></button>`; }).join('')}</div>
       <nav class="menu row">${btn('back', 'Back', 'data-back')}</nav>
     </div>`,
   courses: (app, { list, trial }) => `
@@ -236,6 +274,7 @@ const TEMPLATES = {
       <canvas data-pixel="CHOOSE A COURSE" data-scale="4"></canvas>
       ${trial ? `<p class="sub trial-note">Time Trial runs at ${CLASSES.scald.name} speed with no items.</p>` : ''}
       ${mirrorRow(app)}
+      ${trial ? '' : raceOptsRow(app)}
       <div class="card-row">${list.map((t, i) => { const best = app.save.best[t.id], tt = (app.save.trial || {})[t.id], mt = medalTimes(t.id); return `<button type="button" class="ccard postcard" data-act="course" data-id="${t.id}" ${i === 0 ? 'autofocus' : ''}><b>${t.name}</b><small>${t.blurb || ''}</small><i class="fact">${factFor(t.id).t}</i><em>${Math.round(t.length || 0)} m lap${(window.TR_INFO || {})[t.id] && window.TR_INFO[t.id].real ? ` · real streets ${(window.TR_INFO[t.id].real / 1000).toFixed(1)} km, compressed` : ''}${trial ? '' : best ? ` · best ${fmtTime(best.race)}${best.lap ? ` · lap ${fmtTime(best.lap)}` : ''}${CLASSES[best.cls] ? ` (${CLASSES[best.cls].name})` : ''}` : ''}</em>${trial ? `<span class="tt">${tt ? `${medalChip(tt.medal)} <span>Best ${fmtTime(tt.race)}${tt.lap ? ` · lap ${fmtTime(tt.lap)}` : ''}</span>` : '<span>No time set yet</span>'}${mt ? `<span class="tgt">Gold ${fmtTime(mt.gold)} · Silver ${fmtTime(mt.silver)} · Bronze ${fmtTime(mt.bronze)}</span>` : ''}</span>` : ''}</button>`; }).join('')}</div>
       <nav class="menu row">${btn('back', 'Back', 'data-back')}</nav>
     </div>`,

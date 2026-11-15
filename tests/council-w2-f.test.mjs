@@ -35,6 +35,10 @@ export const tests = [
     viewports: ['desktop', 'mobile'],
     async run(t) {
       await start(t);
+      // the orbit needs the field still racing for four seconds after the line; which rivals are slow depends on the seed and the
+      // teams, so one rival is held where it stands (a rescue that never ends), once the countdown, which can reset it, is over
+      await t.game('step', 230);
+      await t.page.evaluate(() => { const k = TR_APP.App.race.karts[0]; k.state = 'rescue'; k.stateT = 1e9; });
       let st = await toLine(t);
       await t.waitFrames(3);
       let f = await fin(t);

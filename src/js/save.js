@@ -13,7 +13,7 @@ const touchDevice = () => { try { return !!window.matchMedia('(pointer: coarse)'
 export const DEFAULT_SAVE = () => ({
   v: 1,
   // seenIntro: first-run tips shown (S2-01); older saves count as seen
-  settings: { sound: true, music: true, ambience: true, volume: 0.6, musicVol: 1, res: 'native', quality: 'auto', autoPush: touchDevice(), steerAssist: false, reducedMotion: null, hudScale: 1, keys: null, mirror: false, seenIntro: false },
+  settings: { sound: true, music: true, ambience: true, volume: 0.6, musicVol: 1, res: 'native', quality: 'auto', autoPush: touchDevice(), steerAssist: false, reducedMotion: null, hudScale: 1, keys: null, mirror: false, seenIntro: false, raceLaps: 3, raceItems: true, raceRivals: 7 },
   // rec: the unlock record's version. A save that has none was written before wave 2 and keeps everything it could use (see projection)
   unlocked: { teams: [], cups: ['bathhouse'], classes: ['splash', 'soak'], mirror: false, rec: 2 },
   best: {}, // trackId → the complete winning race record, including its lap
@@ -98,6 +98,10 @@ function projection(raw) {
   st.seenIntro = raw !== null && !(object(s.settings) && own(s.settings, 'seenIntro')) ? true : st.seenIntro === true;
   st.volume = Number.isFinite(st.volume) ? Math.min(1, Math.max(0, st.volume)) : d.settings.volume;
   st.musicVol = Number.isFinite(st.musicVol) ? Math.min(1, Math.max(0.1, st.musicVol)) : d.settings.musicVol; // how loud the music sits under the effects; 1 is the shipped mix
+  // Quick Race setup (P-N06): laps 1, 3 or 5, items on or off, 3 or 7 rivals; anything else is today's race
+  if (![1, 3, 5].includes(st.raceLaps)) st.raceLaps = d.settings.raceLaps;
+  st.raceItems = st.raceItems !== false;
+  if (![3, 7].includes(st.raceRivals)) st.raceRivals = d.settings.raceRivals;
   if (!['authentic', 'crisp', 'native'].includes(st.res)) st.res = d.settings.res;
   if (!['auto', 'low', 'medium', 'high'].includes(st.quality)) st.quality = d.settings.quality;
   // Apply the existing migration before this action's explicit resolution choice.

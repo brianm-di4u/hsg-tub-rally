@@ -5,6 +5,7 @@ import { pixelText } from './pixelfont.js';
 import { MIN_FINISH_GAL } from '../sim/water.js';
 import { TEAM_BY_ID } from '../data/teams.js';
 import { TASKS } from '../sim/rules-real.js';
+import { ITEMS } from '../sim/items.js';
 
 const ORD = ['', '1ST', '2ND', '3RD', '4TH', '5TH', '6TH', '7TH', '8TH'];
 const PLACE_FILL = [null, ['#FFF6C8', '#F2C230'], ['#F4F6FA', '#A9B4C2'], ['#FFE1C4', '#C8783C']];
@@ -37,14 +38,14 @@ export class Hud {
     root.innerHTML = `
       <div class="hud-tl"><canvas class="hud-lap" aria-hidden="true"></canvas><div class="hud-time" aria-hidden="true"><canvas class="hud-timec"></canvas></div></div>
       <div class="hud-tr empty"><small class="hud-par" aria-hidden="true" hidden>GOLD</small><canvas class="hud-place" aria-hidden="true"></canvas></div>
-      <div class="hud-item" aria-hidden="true"><div class="bubble"><canvas class="item-icon" width="48" height="48"></canvas></div><div class="tickets"><span class="tk-ico"></span><b class="tk-n">0</b><small class="tk-l">tickets</small></div></div>
+      <div class="hud-item" aria-hidden="true"><div class="bubble"><canvas class="item-icon" width="48" height="48"></canvas></div><div class="tickets"><span class="tk-ico"></span><b class="tk-n">0</b><small class="tk-l">tickets</small></div><small class="item-name" aria-hidden="true"></small></div>
       <div class="hud-bl"><canvas class="hud-water" width="150" height="96" aria-hidden="true"></canvas><div class="hud-pips" aria-hidden="true"></div></div>
       <canvas class="hud-map" width="150" height="150" aria-hidden="true"></canvas>
-      <div class="hud-center"><canvas class="hud-count" aria-hidden="true"></canvas><div class="hud-call" role="status" aria-live="polite"></div><p class="hud-fact" aria-hidden="true"></p><p class="hud-lm" aria-hidden="true"></p></div>
+      <div class="hud-center"><canvas class="hud-count" aria-hidden="true"></canvas><div class="hud-call" role="status" aria-live="polite"></div><p class="hud-fact" aria-hidden="true"></p><p class="hud-lm" aria-hidden="true"></p><button type="button" class="hud-skip" hidden></button></div>
       <div class="hud-task" role="status" aria-live="assertive"><b class="t-name"></b><span class="t-how"></span><canvas class="t-meter" width="220" height="26" aria-hidden="true"></canvas></div>
       <div class="sr-only" aria-live="polite" id="hud-sr"></div>`;
     const q = (s) => root.querySelector(s);
-    this.el = { lap: q('.hud-lap'), time: q('.hud-time'), timeC: q('.hud-timec'), place: q('.hud-place'), water: q('.hud-water'), pips: q('.hud-pips'), map: q('.hud-map'), count: q('.hud-count'), call: q('.hud-call'), fact: q('.hud-fact'), lm: q('.hud-lm'), icon: q('.item-icon'), tk: q('.tk-n'), tkL: q('.tk-l'), parL: q('.hud-par'), sr: q('#hud-sr'), item: q('.hud-item'), task: q('.hud-task'), tname: q('.t-name'), thow: q('.t-how'), tmeter: q('.t-meter') };
+    this.el = { lap: q('.hud-lap'), time: q('.hud-time'), timeC: q('.hud-timec'), place: q('.hud-place'), water: q('.hud-water'), pips: q('.hud-pips'), map: q('.hud-map'), count: q('.hud-count'), call: q('.hud-call'), fact: q('.hud-fact'), lm: q('.hud-lm'), skipB: q('.hud-skip'), iname: q('.item-name'), icon: q('.item-icon'), tk: q('.tk-n'), tkL: q('.tk-l'), parL: q('.hud-par'), sr: q('#hud-sr'), item: q('.hud-item'), task: q('.hud-task'), tname: q('.t-name'), thow: q('.t-how'), tmeter: q('.t-meter') };
     this.el.pips.innerHTML = Object.keys(ITEM_ICONS).map((k) => `<span class="pip pip-${k}" title="${ITEM_NAMES[k]}"><i></i><em>${ITEM_LABELS[k]}</em></span>`).join('');
     this.last = {};
     this.callT = 0;
@@ -89,6 +90,11 @@ export class Hud {
     this.el.call.className = 'hud-call show ' + kind;
     this.callT = secs;
     this.el.sr.textContent = text;
+  }
+  // S1-07: the "Enter: results" prompt shown while the field finishes; empty text puts it away
+  skip(text) {
+    if (this.el.skipB.hidden === !text && this.el.skipB.textContent === text) return;
+    this.el.skipB.hidden = !text; this.el.skipB.textContent = text;
   }
   // S4-03: a quiet caption for a landmark the tub has just passed
   landmark(text, secs = 2.6) {
@@ -213,6 +219,7 @@ export class Hud {
     const g = this.el.icon.getContext('2d');
     g.clearRect(0, 0, 48, 48);
     this.el.item.classList.toggle('has', !!id);
+    this.el.iname.textContent = id && ITEMS[id] ? ITEMS[id].name : ''; // S2-02
     if (!id) return;
     drawItemIcon(g, id, 24, 24, 18);
     if (n > 1) { g.fillStyle = '#1A1410'; g.beginPath(); g.roundRect(26, 30, 22, 18, 5); g.fill(); g.fillStyle = '#FFFFFF'; g.font = 'bold 15px system-ui'; g.textAlign = 'center'; g.fillText('×' + n, 37, 44); g.textAlign = 'left'; }

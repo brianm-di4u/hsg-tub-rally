@@ -26,7 +26,7 @@ export function gridPoses(track, n) {
   return out;
 }
 
-// opts: { laps, classId, player: teamId | null, rivals: [teamId…], seed, mode, noItems }
+// opts: { laps, classId, player: teamId | null, rivals: [teamId…], seed, mode, noItems, order: [teamId…] front to back, slot }
 export function makeRace(track, opts = {}) {
   const seed = opts.seed ?? 1;
   const rng = makeStreams(seed);
@@ -36,9 +36,15 @@ export function makeRace(track, opts = {}) {
   if (opts.player) ids.push(opts.player);
   const pool = (opts.rivals && opts.rivals.length ? opts.rivals : TEAMS.map((t) => t.id)).filter((id) => !ids.includes(id));
   while (ids.length < n && pool.length) ids.push(pool.splice(rng.race.int(pool.length), 1)[0]);
-  // the player starts at the back of the grid; rivals in random order ahead
-  const order = ids.slice(opts.player ? 1 : 0);
+  // the player starts at the back of the grid and rivals in random order ahead, unless the caller seats the field
+  // (S1-19: Grand Prix rounds after the first line up by the cup standings, leader on the front row)
+  let order = ids.slice(opts.player ? 1 : 0);
   if (opts.player) order.push(opts.player);
+  if (opts.order && opts.order.length) {
+    const seated = opts.order.filter((id, i) => ids.includes(id) && opts.order.indexOf(id) === i);
+    order = seated.concat(order.filter((id) => !seated.includes(id)));
+  }
+  if (opts.player && opts.slot != null) { order = order.filter((id) => id !== opts.player); order.splice(Math.min(Math.max(0, opts.slot), order.length), 0, opts.player); } // the balance tool seats its bot
   const poses = gridPoses(track, order.length);
   const karts = order.map((id, i) => makeKart(i, id, classId, poses[i], { human: id === opts.player }));
   const drivers = karts.map((k) => (k.human && !opts.autoplay ? null : makeDriver(k, classId, rng.ai, k.human ? 1.02 : 0.94 + rng.ai.next() * 0.1)));
@@ -81,9 +87,9 @@ export function stepRace(race, track, inputs, dt = DT) {
       race.karts.forEach((k, i) => {
         const t0 = race.pushAtGo[i];
         if (k.whim) { k.boostT = 1.4; k.boostKind = 'whim'; k.events.push({ type: 'boost', kind: 'whim' }); }
-        else if (t0 != null && t0 > -0.45) { k.boostT = 0.9; k.boostKind = 'start'; k.events.push({ type: 'boost', kind: 'start' }); }
+        else if (t0 != null && t0 > -0.45) { k.boostT = 0.9 * (k.stats.startBoost ?? 1); k.boostKind = 'start'; k.events.push({ type: 'boost', kind: 'start' }); }
         else if (t0 != null && t0 < -1.6) { k.state = 'swap'; k.stateT = 0.7; }
-        else if (!k.human && race.drivers[i] && race.rng.ai.next() < 0.45 * race.drivers[i].cls.aggro) { k.boostT = 0.7; k.boostKind = 'start'; }
+        else if (!k.human && race.drivers[i] && race.rng.ai.next() < 0.45 * race.drivers[i].cls.aggro) { k.boostT = 0.7 * (k.stats.startBoost ?? 1); k.boostKind = 'start'; }
       });
     }
     return;
@@ -183,6 +189,7 @@ export function finishRace(race, track) {
   race.results = est.map(({ k, t }, i) => ({
     place: i + 1, kart: k.id, team: k.team, human: k.human, time: t, estimated: !k.finished,
     gal: Math.round(k.water.gal * 10) / 10, items: Object.values(k.items).filter(Boolean).length,
+    lost: Object.keys(k.items).filter((id) => !k.items[id]), dry: k.water.gal < MIN_FINISH_GAL, // S2-09: what a missed Clean Finish needs said
     clean: k.finished ? !!k.clean : k.water.gal >= MIN_FINISH_GAL && Object.values(k.items).every(Boolean),
     points: POINTS[i] ?? 0, tickets: k.tickets, bestLap: k.lapTimes.length ? Math.min(...k.lapTimes) : null,
   }));
