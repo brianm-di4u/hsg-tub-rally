@@ -88,7 +88,7 @@ export function stepRace(race, track, inputs, dt = DT) {
         const t0 = race.pushAtGo[i];
         if (k.whim) { k.boostT = 1.4; k.boostKind = 'whim'; k.events.push({ type: 'boost', kind: 'whim' }); }
         else if (t0 != null && t0 > -0.45) { k.boostT = 0.9 * (k.stats.startBoost ?? 1); k.boostKind = 'start'; k.events.push({ type: 'boost', kind: 'start' }); }
-        else if (t0 != null && t0 < -1.6) { k.state = 'swap'; k.stateT = 0.7; }
+        else if (t0 != null && t0 < -1.6) { k.state = 'swap'; k.stateT = 0.7; if (k.human) k.events.push({ type: 'falsestart' }); } // S2-04: pushing from READY costs 0.7 s of slow going, and the player is told
         else if (!k.human && race.drivers[i] && race.rng.ai.next() < 0.45 * race.drivers[i].cls.aggro) { k.boostT = 0.7 * (k.stats.startBoost ?? 1); k.boostKind = 'start'; }
       });
     }

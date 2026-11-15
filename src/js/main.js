@@ -768,11 +768,12 @@ function showTrophy() {
 // sounds, call-outs and camera shake from the player's sim events this step
 function playerFeedback(me) {
   for (const e of me.events) {
-    const snd = { boost: 'boost', fumble: 'hit', wall: 'bump', bump: 'bump', pickup: 'pickup', ticket: 'ticket', bribe: 'whistle', judge: 'whistle', taskDone: 'cheer', blocked: 'snap', drained: 'splash', charge: 'charge', land: 'land' }[e.type];
+    const snd = { boost: 'boost', falsestart: 'bump', fumble: 'hit', wall: 'bump', bump: 'bump', pickup: 'pickup', ticket: 'ticket', bribe: 'whistle', judge: 'whistle', taskDone: 'cheer', blocked: 'snap', drained: 'splash', charge: 'charge', land: 'land' }[e.type];
     // the one argument a cue takes: splash(big), bump, land(speed), boost(kind), charge(stage)
     if (snd) sfx(snd, e.type === 'drained' ? true : e.type === 'wall' || e.type === 'bump' || e.type === 'land' ? e.v : e.type === 'boost' ? e.kind : e.type === 'charge' ? e.stage : undefined);
     if (e.type === 'use') sfx(USE_CUE[e.item] || 'menu');
     if (e.type === 'boost') { App.hud.flash(e.kind === 'hot' ? 'HOT STEAM!' : e.kind === 'start' ? 'GREAT START!' : 'WARM STEAM', 'boost', 1); App.cam.punch = e.kind === 'hot' ? 6 : 4; App.cam.shake = Math.max(App.cam.shake, 0.25); }
+    else if (e.type === 'falsestart') App.hud.flash('FALSE START! Too early on Push', 'bad', 1.6);
     else if (e.type === 'fumble') { App.hud.flash('Dropped the ' + (e.item || 'item') + '! Circle the tub!', 'bad', 1.6); App.cam.shake = 0.8; App.views[me.id].flash = 1; }
     else if (e.type === 'pickup' && ITEMS[e.item] && !(App.hud.callT > 0)) App.hud.flash(ITEMS[e.item].name + ': ' + ITEMS[e.item].tip, 'lap', 1.6); // S2-02: say what it is
     else if (e.type === 'taskFail') App.hud.flash('Judges say no! Dropped the ' + (e.item || 'item') + '. Circle the tub!', 'bad', 1.8);
@@ -795,6 +796,15 @@ function kartEvents(k) {
   else if (me) for (const e of k.events) rivalEvent(me, k, e, r.time);
 }
 
+// S2-04: the way to a GREAT START, in the words of the device in use (Push pressed in the last half second before SCRUB!)
+const PUSH_KEY = { ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→' };
+function startHint() {
+  if (INPUT.autoPush) return 'Auto-push takes over at SCRUB!';
+  const code = (getBindings().push || ['ArrowUp'])[0] || 'ArrowUp';
+  const how = INPUT.last === 'touch' ? 'Tap Push' : INPUT.last === 'gamepad' ? 'Press A or RT' : 'Tap ' + (PUSH_KEY[code] || String(code).replace(/^(Key|Digit)/, ''));
+  return `${how} just before SCRUB! for a GREAT START`;
+}
+
 // a mirrored picture reverses what the player means by left and right
 function mirrored(i) { if (App.mirror) i.steer = -i.steer; return i; }
 
@@ -804,6 +814,8 @@ function stepOnce() {
   App.prev = r.karts.map(poseOf);
   const inputs = [];
   if (r.player >= 0) inputs[r.player] = App.held ? { ...App.held } : assistSteer(App.track, r.karts[r.player], mirrored(readIntent()), INPUT.steerAssist);
+  // S2-04: Auto-push does not push through the countdown (it would be a false start every race); it takes over at SCRUB!
+  if (r.phase === 'countdown' && INPUT.autoPush && !App.held && inputs[r.player]) inputs[r.player].push = 0;
   stepRace(r, App.track, inputs, DT);
   App.steps++;
   if (App.rec && r.phase === 'race' && r.player >= 0 && !r.karts[r.player].finished) record(App.rec, r.karts[r.player], r.time);
@@ -985,6 +997,7 @@ function drawRace(r, alpha, dt) {
   App.fx.update(r, tr, App.paused || (App.testPaused && App.clock == null) ? 0 : dt, App.time, App.reducedMotion, App.frameEvents);
   App.frameEvents.length = 0;
   if (App.sky) App.sky.position.copy(App.renderer.camera.position).setY(0);
+  App.hud.startHint = r.phase === 'countdown' && r.player >= 0 && !App.raceOpts.autoplay ? startHint() : '';
   App.hud.update(r, tr, r.player >= 0 ? r.karts[r.player] : null, dt);
 }
 

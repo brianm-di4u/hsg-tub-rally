@@ -240,6 +240,9 @@ const TEMPLATES = {
       <p class="sub">Goal: cross the line first, with 10 gallons or more. Slide through turns for steam boosts.</p>
       <div class="help-cols">
         ${driveHelp(app.helpAll)}
+        <section><h3>The start</h3><ul>
+          <li>Press <b>Push</b> in the last half second before <b>SCRUB!</b> for a GREAT START boost.</li>
+          <li>Hold Push from <b>READY</b> and it is a false start: you stumble for a moment.</li></ul></section>
         <section><h3>Keep your water</h3><ul>
           <li>Your tub starts full. Hard turns, slides, landings and hits slosh water out. Crowds' water blasters, refill buckets, fountains and creek fords top you up.</li>
           <li>More water is heavier: steadier, but slower to get going.</li>

@@ -3,6 +3,13 @@
 import fs from 'node:fs';
 import { CLASSES, TEAMS } from '../src/js/data/teams.js';
 import { DEFAULT_SAVE } from '../src/js/save.js';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { Track } from '../src/js/sim/track.js';
+import { makeRace, stepRace, DT } from '../src/js/sim/race.js';
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const track = (id) => new Track(JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'tracks', id + '.json'), 'utf8')));
 
 const SHOTS = '../_council/hsg-tub-rally/wave-3/shots';
 const KEY = 'hsg-tub-rally-v1';
@@ -135,6 +142,70 @@ export const tests = [
       await t.page.waitForFunction(() => document.body.dataset.screen === 'pause', null, { timeout: 4000 });
       await t.page.keyboard.press('Space');
       await t.page.waitForFunction(() => !document.body.dataset.screen, null, { timeout: 4000 });
+    },
+  },
+  // ---------------------------------------------------------------- S2-04
+  {
+    name: 'council D S2-04: pushing from READY is a false start the player is told about; a press just before SCRUB! is the start boost',
+    node: true,
+    async run(t) {
+      const tr = track('bathhouse-row');
+      // the human presses Push at `from` seconds (relative to SCRUB!) and holds it; returns the human's events on the step the race begins
+      const go = (from) => {
+        const r = makeRace(tr, { seed: 5, classId: 'soak', player: 'engine-six', laps: 1 });
+        const me = r.karts[r.player];
+        let begin = null;
+        for (let i = 0; i < 400 && !begin; i++) {
+          const inp = [];
+          inp[r.player] = { steer: 0, push: from != null && r.time >= from ? 1 : 0, brake: false, hop: false, back: false, item: false };
+          stepRace(r, tr, inp, DT);
+          if (r.phase === 'race') begin = { events: me.events.map((e) => e.type + (e.kind ? ':' + e.kind : '')), state: me.state };
+        }
+        return begin;
+      };
+      const held = go(-3.2), early = go(-1.4), none = go(null), late = go(-0.3);
+      t.expect(held.events.includes('falsestart') && held.state === 'swap', 'holding Push from READY is a false start: ' + JSON.stringify(held));
+      t.expect(!held.events.some((e) => e.startsWith('boost')), 'and gives no boost');
+      t.expect(!early.events.includes('falsestart') && !early.events.some((e) => e.startsWith('boost')), 'a press after the early window is neither: ' + JSON.stringify(early));
+      t.expect(none.events.length === 0, 'no press, no event: ' + JSON.stringify(none));
+      t.expect(late.events.includes('boost:start') && !late.events.includes('falsestart'), 'a press in the last half second is the start boost: ' + JSON.stringify(late));
+    },
+  },
+  {
+    name: 'council D S2-04: the countdown teaches the GREAT START from SET, a false start flashes, and Auto-push does not false-start',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await freshProfile(t);
+      const begin = async (o = {}) => { await t.waitIdle(8000); await t.game('newGame', { track: 'bathhouse-row', team: 'engine-six', classId: 'soak', laps: 1, seed: 5, paused: true, ...o }); await t.waitFrames(3); };
+      const hint = () => t.page.evaluate(() => { const e = document.querySelector('.hud-start'); return { text: e.textContent, shown: e.classList.contains('show') && getComputedStyle(e).display !== 'none' }; });
+      const at = async (secs) => { const now = (await t.state()).race.time; await t.game('step', Math.max(1, Math.ceil((secs - now) * 60))); await t.waitFrames(2); };
+      await begin();
+      let h = await hint();
+      t.expect(!h.shown, 'under READY the hint is not up yet');
+      await at(-1.8);
+      h = await hint();
+      const word = t.viewport === 'mobile' ? 'Tap Push' : 'Tap ↑';
+      t.expect(h.shown && h.text === word + ' just before SCRUB! for a GREAT START', 'from SET it says how, in the words of the device: ' + JSON.stringify(h));
+      await shot(t, 'S2-04', 'start-hint');
+      await t.checkLayout();
+      await t.game('act', 'skipCountdown'); await t.waitFrames(3);
+      t.expect(!(await hint()).shown, 'it is gone once the race runs');
+      // a false start flashes the call-out and plays the bump cue
+      await begin();
+      await t.game('act', 'input', { steer: 0, push: 1, brake: false, hop: false, back: false, item: false });
+      await at(0.05);
+      const call = await t.page.evaluate(() => document.querySelector('.hud-call').textContent);
+      t.expect(/FALSE START/.test(call), 'a false start is called out: ' + call);
+      await shot(t, 'S2-04', 'false-start');
+      await t.game('act', 'input', null);
+      // Auto-push does not push through the countdown, so it is never a false start, and its hint says so
+      await setSave(t, { ...DEFAULT_SAVE(), settings: { ...DEFAULT_SAVE().settings, seenIntro: true, autoPush: true } });
+      await t.reload(); await begin();
+      await at(-1.8);
+      t.equal((await hint()).text, 'Auto-push takes over at SCRUB!', 'the hint for Auto-push');
+      await at(0.05);
+      const auto = await t.page.evaluate(() => ({ call: document.querySelector('.hud-call').textContent }));
+      t.expect(!/FALSE START/.test(auto.call), 'Auto-push is not a false start: ' + auto.call);
     },
   },
 ];
