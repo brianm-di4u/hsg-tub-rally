@@ -106,4 +106,35 @@ export const tests = [
       t.equal(await t.page.evaluate(() => document.querySelector('#boot-fail').hidden), true, 'after Reload the game starts and the card is gone');
     },
   },
+  // ---------------------------------------------------------------- P-N03
+  {
+    name: 'council D P-N03: Space presses the focused button in menus, and is still Hop in a race',
+    viewports: ['desktop'],
+    async run(t) {
+      await freshProfile(t);
+      await t.game('scene', 'title'); await t.waitFrames(3);
+      await t.page.focus('[data-act="settings"]');
+      await t.page.keyboard.press('Space');
+      await t.page.waitForFunction(() => document.body.dataset.screen === 'settings', null, { timeout: 4000 });
+      // a settings chip toggles with Space as it does with Enter
+      const chip = await t.page.evaluate(() => { const c = document.querySelector('.panel.settings button.chip[aria-pressed="false"]'); c.focus(); return { act: c.dataset.act, k: c.dataset.k || '', v: c.dataset.v }; });
+      await t.page.keyboard.press('Space');
+      await t.page.waitForFunction((c) => { const e = Array.from(document.querySelectorAll('.panel.settings button.chip')).find((x) => x.dataset.act === c.act && (x.dataset.k || '') === c.k && x.dataset.v === c.v); return e && e.getAttribute('aria-pressed') === 'true'; }, chip, { timeout: 4000 }).catch(() => t.fail('Space did not press the focused chip ' + JSON.stringify(chip)));
+      // the event is left alone with a menu open, and taken as Hop in a race
+      const pressed = () => t.page.evaluate(() => { const e = new KeyboardEvent('keydown', { code: 'Space', key: ' ', cancelable: true, bubbles: true }); window.dispatchEvent(e); return e.defaultPrevented; });
+      t.equal(await pressed(), false, 'a menu leaves Space to the button');
+      await t.game('act', 'menu', 'back');
+      await t.waitIdle(8000);
+      await t.game('newGame', { track: 'bathhouse-row', team: 'engine-six', classId: 'soak', laps: 1, seed: 5, paused: true });
+      await t.game('act', 'skipCountdown'); await t.waitFrames(3);
+      t.equal(await t.page.evaluate(() => document.body.dataset.screen || null), null, 'the race has no menu up');
+      t.equal(await pressed(), true, 'in a race Space is Hop');
+      await t.page.keyboard.up('Space');
+      // the pause menu: Space presses Resume
+      await t.page.keyboard.press('Escape');
+      await t.page.waitForFunction(() => document.body.dataset.screen === 'pause', null, { timeout: 4000 });
+      await t.page.keyboard.press('Space');
+      await t.page.waitForFunction(() => !document.body.dataset.screen, null, { timeout: 4000 });
+    },
+  },
 ];

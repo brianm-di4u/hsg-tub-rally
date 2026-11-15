@@ -45,6 +45,8 @@ export function initInput(onKey) {
     if (e.code === 'ArrowLeft' || e.code === 'KeyA') m.left = true;
     if (e.code === 'ArrowRight' || e.code === 'KeyD') m.right = true;
     if (e.code === 'Escape' || e.code === 'Backspace') m.cancel = true;
+    // P-N03: with a menu open, Space is the browser's key for the focused button, not Hop
+    if (e.code === 'Space' && document.body.dataset.screen) return;
     const a = map[e.code];
     if (!a || !enabled) return;
     e.preventDefault();
