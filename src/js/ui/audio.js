@@ -13,28 +13,39 @@ let ctx = null, rev = null, comp = null, master = null, sfxBus = null, ambBus = 
 // bus levels (the mix the game ships; audioRender measures them at SHIP_VOL, the default volume setting)
 const SHIP_VOL = 0.6;
 // Each line keeps the pre-wave value beside it (wave 2, S5-01): edit one line to reverse a step.
-const MASTER_K = 0.8;     // was 0.5
-const SFX_BUS = 1.0;      // was 0.9
-const MUSIC_BUS = 1.0;    // was 0.32 (the old tunes peaked at 0.02 on the output); each piece's own loudness is its trim in scores.js
-const AMBIENCE_BUS = 1.0; // the ambience beds are levelled by each scene's trim in scores.js
-const KIT_SEED = 0x7B1;   // seeds the kit's ambience one-shots; every tune has its own seed in scores.js
-const COMP = { threshold: -14, ratio: 4, knee: 8, attack: 0.004, release: 0.25 }; // limiter between master and speakers (none before)
+// was 0.5
+const MASTER_K = 0.8;
+// was 0.9
+const SFX_BUS = 1.0;
+// was 0.32 (the old tunes peaked at 0.02 on the output); each piece's own loudness is its trim in scores.js
+const MUSIC_BUS = 1.0;
+// the ambience beds are levelled by each scene's trim in scores.js
+const AMBIENCE_BUS = 1.0;
+// seeds the kit's ambience one-shots; every tune has its own seed in scores.js
+const KIT_SEED = 0x7B1;
+// limiter between master and speakers (none before)
+const COMP = { threshold: -14, ratio: 4, knee: 8, attack: 0.004, release: 0.25 };
 const REVERB_WET = 0.7;
-const CLIP_FROM = 0.75, CLIP_TOP = 0.94; // the soft clip: straight up to 0.75, then curving towards 0.94 (0.91 at an input of 1 or more)
+// the soft clip: straight up to 0.75, then curving towards 0.94 (0.91 at an input of 1 or more)
+const CLIP_FROM = 0.75, CLIP_TOP = 0.94;
 const SOFT_CLIP = (() => {
   const n = 4097, curve = new Float32Array(n), span = CLIP_TOP - CLIP_FROM;
   for (let i = 0; i < n; i++) { const x = (i / (n - 1)) * 2 - 1, v = Math.abs(x); curve[i] = Math.sign(x) * (v <= CLIP_FROM ? v : CLIP_FROM + span * Math.tanh((v - CLIP_FROM) / span)); }
   return curve;
 })();
-const DUCK_DB = 6, DUCK_MS = 300; // music dips this much under the big cues
+// music dips this much under the big cues
+const DUCK_DB = 6, DUCK_MS = 300;
 // Per-cue output trim, found with audioRender so every gameplay cue peaks 0.25 to 0.45 at the shipped volume.
 const CUE_TRIM = { quack: 3.48, splash: 13.2, steam: 7.8, snap: 4.727, whistle: 2.303, cheer: 7.3, bump: 6.03, pickup: 3.096, ticket: 4.856, boost: 6.7, hit: 4.2, ready: 6.581, go: 4.4, menu: 16.265, tick: 11, confirm: 3.6, trophy: 2.2, lap: 2.55, finish: 2.2, finalLap: 3.66, charge: 8.188, land: 6.03, swish: 10.293, record: 2.35, unlock: 3.0, alert: 2.91, low: 3.42, dry: 5.42, fall: 10.3 };
 const DUCKS = { boost: 1, hit: 1, finish: 1.9, trophy: 1.9, record: 1 };
-const SWELLS = { lap: 0.5, finalLap: 0.8, finish: 1 }; // the crowd roars on a lap, the last lap and the finish
+// the crowd roars on a lap, the last lap and the finish
+const SWELLS = { lap: 0.5, finalLap: 0.8, finish: 1 };
 const state = { cues: [], ducks: 0, on: true, music: true, ambience: true, vol: 0.6, musicVol: 1, started: false, theme: null, scene: null, intensity: 0, muffle: false, hidden: false, swell: 0, swells: 0, crowd: 0, wind: 0 };
 
-const OPEN_HZ = 5200; // was 22000: a gentle low-pass keeps the tune under the cues
-const FADE_MUSIC = 1.6, FADE_AMB = 2.5; // seconds to crossfade between pieces and between places
+// was 22000: a gentle low-pass keeps the tune under the cues
+const OPEN_HZ = 5200;
+// seconds to crossfade between pieces and between places
+const FADE_MUSIC = 1.6, FADE_AMB = 2.5;
 
 // The bus tree is built by one function so a test can build the same tree on an OfflineAudioContext.
 function makeBuses(c, vol) {
@@ -49,7 +60,8 @@ function makeBuses(c, vol) {
   b.master = c.createGain(); b.master.gain.value = vol * MASTER_K; b.master.connect(b.comp);
   b.sfx = c.createGain(); b.sfx.gain.value = SFX_BUS; b.sfx.connect(b.master);
   b.lp = c.createBiquadFilter(); b.lp.type = 'lowpass'; b.lp.frequency.value = OPEN_HZ; b.lp.connect(b.master);
-  b.amb = c.createGain(); b.amb.gain.value = 1; b.amb.connect(b.master); // the kit's music goes into b.lp, its ambience here
+  // the kit's music goes into b.lp, its ambience here
+  b.amb = c.createGain(); b.amb.gain.value = 1; b.amb.connect(b.master);
   // a short room for splashes, cheers and whistles: 0.4 s of decaying noise, sent to the sfx bus at a low level
   b.rev = c.createConvolver(); b.rev.buffer = c.createBuffer(2, Math.floor(c.sampleRate * 0.4), c.sampleRate);
   for (let ch = 0; ch < 2; ch++) { const d = b.rev.buffer.getChannelData(ch); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length) ** 2.5; }
@@ -92,7 +104,8 @@ function unlock() {
   try {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
-    state.started = true; // one attempt only: a failed build must not leave every later gesture making another context
+    // one attempt only: a failed build must not leave every later gesture making another context
+    state.started = true;
     ctx = new AC();
     bindBuses(makeBuses(ctx, state.vol));
     master.gain.value = state.on ? state.vol * MASTER_K : 0;
@@ -133,10 +146,14 @@ export function audioState() {
     mix: ctx ? { master: +master.gain.value.toFixed(3), sfx: sfxBus.gain.value, musicLP: Math.round(musicLP.frequency.value), limiter: { threshold: comp.threshold.value, ratio: comp.ratio.value } } : null };
 }
 
-let cueG = 1; // trim of the cue being played (set by playCue)
-let cueAt = 0; // offline mixes only: start the cue this many seconds in
-let cuePan = 0; // stereo position of the cue being played, -0.7..0.7 (0 = centre)
-const CENTS = 20, SPREAD_DB = 2; // every play of a cue differs: pitch within +/-20 cents, level down to -2 dB, a new noise offset
+// trim of the cue being played (set by playCue)
+let cueG = 1;
+// offline mixes only: start the cue this many seconds in
+let cueAt = 0;
+// stereo position of the cue being played, -0.7..0.7 (0 = centre)
+let cuePan = 0;
+// every play of a cue differs: pitch within +/-20 cents, level down to -2 dB, a new noise offset
+const CENTS = 20, SPREAD_DB = 2;
 const jitterF = () => 2 ** (((Math.random() * 2 - 1) * CENTS) / 1200), jitterG = () => 10 ** ((-Math.random() * SPREAD_DB) / 20);
 const clamp01 = (x) => Math.max(0, Math.min(1, x));
 // Where a cue's gain node goes: its bus, through a panner when the cue has a position, plus an optional reverb send.
@@ -152,7 +169,8 @@ function tone(freq, dur, { type = 'square', vol = 0.2, at = 0, slide = 0, attack
   const cue = bus === sfxBus;
   if (cue) { vol *= cueG * jitterG(); freq *= jitterF(); at += cueAt; }
   const t = ctx.currentTime + at, g = ctx.createGain(), n = det ? 3 : 1;
-  g.gain.value = 0.0001; // a gain node starts at 1: until its first event the source may be heard for a sample (a click)
+  // a gain node starts at 1: until its first event the source may be heard for a sample (a click)
+  g.gain.value = 0.0001;
   g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(0.0002, vol / Math.sqrt(n)), t + attack); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   let sink = g;
   if (formants) {
@@ -172,7 +190,8 @@ function noise(dur, { vol = 0.2, at = 0, type = 'bandpass', freq = 1200, q = 1, 
   const cue = bus === sfxBus;
   if (cue) { vol *= cueG * jitterG(); at += cueAt; }
   const t = ctx.currentTime + at, s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
-  g.gain.value = 0.0001; // see tone()
+  // see tone()
+  g.gain.value = 0.0001;
   s.buffer = noiseBuf; s.loop = true;
   f.type = type; f.frequency.setValueAtTime(freq, t); f.Q.value = q;
   if (sweep) f.frequency.exponentialRampToValueAtTime(Math.max(40, freq * sweep), t + dur);
@@ -183,9 +202,12 @@ function noise(dur, { vol = 0.2, at = 0, type = 'bandpass', freq = 1200, q = 1, 
 
 // Cues are layers: a transient (noise or a short click), a body (detuned tones) and, where it suits, a low thump
 // underneath and a short reverb tail. Impact cues take the speed of the hit (m/s) and scale with it.
-const READY_HZ = [392, 494, 587]; // was 440 for both beeps
-const GO_HZ = 1175;               // was 880: the octave above the last beep
-const UNLOCK_AT = 1.5; // s after the trophy fanfare starts: the gold one is over by then
+// was 440 for both beeps
+const READY_HZ = [392, 494, 587];
+// was 880: the octave above the last beep
+const GO_HZ = 1175;
+// s after the trophy fanfare starts: the gold one is over by then
+const UNLOCK_AT = 1.5;
 export const SFX = {
   quack() { const b = 520 * 2 ** (((Math.random() * 2 - 1) * 90) / 1200); tone(b, 0.09, { type: 'sawtooth', vol: 0.14, slide: 0.7, formants: [700, 1200], det: 9, rev: 0.12 }); tone(b * 0.9, 0.11, { type: 'sawtooth', vol: 0.14, slide: 0.65, at: 0.1, formants: [650, 1150], det: 9, rev: 0.12 }); },
   splash(big = false) {
@@ -197,7 +219,8 @@ export const SFX = {
   whistle() { for (let i = 0; i < 3; i++) tone(2400 + (i % 2) * 300, 0.09, { type: 'sine', vol: 0.12, at: i * 0.09, det: 10, rev: 0.3 }); },
   cheer() { noise(1.2, { vol: 0.1, freq: 900, q: 0.4, rev: 0.4 }); noise(0.9, { vol: 0.06, freq: 2200, q: 0.6, at: 0.15 }); noise(0.7, { vol: 0.04, freq: 1500, q: 0.5, at: 0.3, sweep: 1.3 }); },
   bump(v = 10) {
-    const s = Math.max(0.35, clamp01(v / 14)); // soft nudge to hard crash
+    // soft nudge to hard crash
+    const s = Math.max(0.35, clamp01(v / 14));
     tone(60, 0.12 + 0.12 * s, { type: 'sine', vol: 0.34 * s, slide: 0.6 });
     tone(130, 0.1 + 0.06 * s, { type: 'triangle', vol: 0.14 * s, slide: 0.5, filter: 500 + 900 * s, det: 8 });
     noise(0.05 + 0.07 * s, { vol: 0.13 * s, type: 'lowpass', freq: 350 + 1500 * s });
@@ -288,8 +311,10 @@ export function sfx(name, ...a) {
 // rises with speed, slosh follows spilling.
 let footT = 0, rumble = null, slide = null, tub = null;
 // Power-slide voice: a tone and a hiss that climb with the charge, so Warm and Hot can be heard coming.
-const SLIDE_LEVEL = 0.13;           // output level of the whole voice (cues sit well above it)
-const SLIDE_HZ = 260, SLIDE_OCT = 1.75; // tone: 260 Hz uncharged, 875 Hz fully charged (the Hot tick is 1320 Hz)
+// output level of the whole voice (cues sit well above it)
+const SLIDE_LEVEL = 0.13;
+// tone: 260 Hz uncharged, 875 Hz fully charged (the Hot tick is 1320 Hz)
+const SLIDE_HZ = 260, SLIDE_OCT = 1.75;
 const slideInfo = { on: false, charge: 0, hz: 0 };
 function slideUpdate(k, active, when, record) {
   if (!slide) {
@@ -326,8 +351,10 @@ function tubUpdate(k, active, when, record) {
 }
 // ---- ambience: one bed per place (scores.js SCENES). The crowd bed rises with speed, a swell on a lap or a pass and
 // the last lap; the wind bed rises with speed. amb.set() moves each bed's level.
-const AMB_TOP = 20;           // m/s at which the crowd and wind beds reach their full level from speed
-const CROWD_BASE = 0.2, CROWD_SPEED = 0.5, CROWD_FINAL = 0.2, SWELL_S = 3; // the crowd: standing level, speed share, last-lap lift, seconds a swell takes to die away
+// m/s at which the crowd and wind beds reach their full level from speed
+const AMB_TOP = 20;
+// the crowd: standing level, speed share, last-lap lift, seconds a swell takes to die away
+const CROWD_BASE = 0.2, CROWD_SPEED = 0.5, CROWD_FINAL = 0.2, SWELL_S = 3;
 const WIND_BASE = 0.15;
 export function crowdSwell(x) { state.swell = Math.max(state.swell, x); state.swells++; }
 function ambUpdate(k, dt, active) {
@@ -368,9 +395,12 @@ export function tubLoop(k, dt, active) {
 // A pool of three feet-and-water voices follows the nearest rivals inside RIVAL_RANGE: quieter with distance,
 // panned to the side of the screen they are on, pulsing faster when they are quicker. Their item hits, bumps and
 // falls play as the ordinary cues, quieter and panned. A rival going by within 4 m gets a swish.
-const RIVAL_VOICES = 3, RIVAL_RANGE = 25, EVENT_RANGE = 30; // m
-const RIVAL_LEVEL = 0.16;     // voice level at 0 m and full speed (output peak is measured by audioRender)
-const RIVAL_CUE_GAIN = 0.8;   // a rival's cue at 0 m, against the same cue for the player
+// m
+const RIVAL_VOICES = 3, RIVAL_RANGE = 25, EVENT_RANGE = 30;
+// voice level at 0 m and full speed (output peak is measured by audioRender)
+const RIVAL_LEVEL = 0.16;
+// a rival's cue at 0 m, against the same cue for the player
+const RIVAL_CUE_GAIN = 0.8;
 const MAX_PAN = 0.7;
 const falloff = (dist, range) => Math.pow(clamp01(1 - dist / range), 1.5);
 let rivalVoices = null, listener = { rx: 1, rz: 0 };
@@ -419,7 +449,8 @@ export function rivalLoop(me, karts, active, dt) {
       // passing: it crossed the player's side-line within 4 m, fast enough to be a pass and not a wobble
       if (prev !== undefined && sp.dist < 4 && Math.sign(prev) !== Math.sign(rel) && Math.abs(rel - prev) / Math.max(dt, 1e-3) >= 1.5 && (rivalPassT - (lastPass.get(k.id) ?? -9)) > 1.2) {
         lastPass.set(k.id, rivalPassT); rivalInfo.passes++;
-        const pos = { pan: sp.pan, gain: prev < rel ? 1 : 0.7 }; // 1: it overtook the player; 0.7: the player overtook it
+        // 1: it overtook the player; 0.7: the player overtook it
+        const pos = { pan: sp.pan, gain: prev < rel ? 1 : 0.7 };
         if (prev > rel) crowdSwell(0.5);
         playCue('swish', pos); logCue('swish', pos, []);
       }
@@ -438,7 +469,8 @@ export function rivalEvent(me, k, e, time) {
   if (!name || (e.type === 'wall' && !(e.v > 4))) return;
   const sp = spatial(me, k, EVENT_RANGE), near = { pickup: 14, boost: 22 }[e.type] ?? EVENT_RANGE;
   if (sp.gain < 0.05 || sp.dist > near) return;
-  if (e.type === 'bump') { // the player's own bump already sounds; both karts of a pair report it
+  // the player's own bump already sounds; both karts of a pair report it
+  if (e.type === 'bump') {
     if (sp.dist < 3 || (lastRivalBump && time - lastRivalBump.t < 0.15 && Math.hypot(k.x - lastRivalBump.x, k.z - lastRivalBump.z) < 4)) return;
     lastRivalBump = { t: time, x: k.x, z: k.z };
   }
@@ -491,34 +523,41 @@ export function audioList() { return { music: musicNames(), ambience: Object.key
 export function audioRender(name, seconds = 10, wantWav = false, args = [], vol = SHIP_VOL) {
   const T0 = 0.05, LOUD = [['finish', 2], ['hit', 2.3], ['go', 2.4], ['boost', 2.5], ['bump', 2.6], ['pickup', 2.7]];
   const build = (oc) => withContext(oc, vol, () => {
-    if (name.startsWith('cue:')) { const [c, pan] = name.slice(4).split('@'); playCue(c, pan ? { pan: +pan, gain: 1 } : null, ...args); return null; } // 'cue:swish@-0.7' is panned left
-    if (name === 'loop:slide') { // a slide held for the whole render: the charge climbs from 0 to just past Hot
+    // 'cue:swish@-0.7' is panned left
+    if (name.startsWith('cue:')) { const [c, pan] = name.slice(4).split('@'); playCue(c, pan ? { pan: +pan, gain: 1 } : null, ...args); return null; }
+    // a slide held for the whole render: the charge climbs from 0 to just past Hot
+    if (name === 'loop:slide') {
       const track = [];
       for (let t = 0; t < seconds; t += 0.05) { const k = { drift: 1, state: 'run', air: false, vf: 15, charge: (t / seconds) * HOT_T * 1.05 }; slideUpdate(k, true, t, false); track.push([+t.toFixed(2), +(k.charge / HOT_T).toFixed(3), Math.round(SLIDE_HZ * 2 ** (SLIDE_OCT * clamp01(k.charge / HOT_T)))]); }
       return { track };
     }
-    if (name === 'loop:tub') { // the boost and water voices held for the whole render; args[0] is the kart's state: { vf, boostT, air, gal, cap, spillFx }
+    // the boost and water voices held for the whole render; args[0] is the kart's state: { vf, boostT, air, gal, cap, spillFx }
+    if (name === 'loop:tub') {
       const a = { vf: 15, boostT: 0, air: false, gal: 30, cap: 42, spillFx: 0, ...(args[0] || {}) };
       tubUpdate({ state: 'run', vf: a.vf, boostT: a.boostT, air: a.air, water: { gal: a.gal, cap: a.cap, spillFx: a.spillFx } }, true, 0, false);
       return null;
     }
-    if (name.startsWith('loop:rivals:')) { // one rival held at a pan and a distance, running: 'loop:rivals:-0.7:8'
+    // one rival held at a pan and a distance, running: 'loop:rivals:-0.7:8'
+    if (name.startsWith('loop:rivals:')) {
       const [, , pan, dist] = name.split(':'); rivalUpdate([{ id: 1, dist: +dist, pan: +pan, speed: 18 }], 0, false);
       return null;
     }
     const k = newKit(ctx), level = args[0];
-    if (name.startsWith('mix:')) { // the busiest moment: a tune and the town crowd at full level, with the loudest cues stacked on them
+    // the busiest moment: a tune and the town crowd at full level, with the loudest cues stacked on them
+    if (name.startsWith('mix:')) {
       const piece = name.slice(4); if (!SCORES[piece]) throw new Error('no such piece: ' + piece);
       k.music.intensity(level ?? 1); k.music.play(SCORES[piece], { at: T0, fade: 0.02 }); k.amb.play(SCENES.town, { at: T0, fade: 0.02 }); k.amb.set('crowd', 1, 0.01);
       k.scheduleUntil(seconds + 0.2);
       for (const [c, t] of LOUD) { cueAt = t; try { playCue(c, null); } finally { cueAt = 0; } }
       return () => k.music.info();
     }
-    if (SCORES[name]) { // a piece by itself
+    // a piece by itself
+    if (SCORES[name]) {
       k.music.intensity(level ?? 0); k.music.play(SCORES[name], { at: T0, fade: 0.02 }); k.scheduleUntil(seconds + 0.2);
       return () => { const i = k.music.info(); return { ...i, formSeconds: +((i.formBars * 240) / (SCORES[name].bpm * (1 + 0.08 * (level ?? 0)))).toFixed(1) }; };
     }
-    if (SCENES[name]) { // an ambience scene by itself, with the crowd and wind beds held at one level
+    // an ambience scene by itself, with the crowd and wind beds held at one level
+    if (SCENES[name]) {
       k.amb.set('crowd', level ?? 0.5, 0.01); k.amb.set('wind', level ?? 0.5, 0.01); k.amb.play(SCENES[name], { at: T0, fade: 0.02 }); k.scheduleUntil(seconds + 0.2);
       return null;
     }

@@ -50,8 +50,10 @@ export function buildSky(THREE, env = {}) {
   // tree line on the silhouette, hazier toward each hill's foot. They reach below the ground so no band shows where
   // the terrain ends.
   const ridgeCols = env.ridges || ['#7F9AB0', '#5F7F6E', '#40604A'], seed = env.ridgeSeed || 3;
-  const LAYERS = [[352, 0.6, 14, 58], [334, 0.42, 8, 46], [316, 0.24, 4, 36], [296, 0.14, 0, 16]]; // radius, haze, valley floor, hump height (the last: foothills)
-  const rpos = [], rcol = [], rinf = [], N = (env.boards ?? 1) < 1 ? 120 : 180, STEP = 6, BOT = -60; // Low: 3° columns
+  // radius, haze, valley floor, hump height (the last: foothills)
+  const LAYERS = [[352, 0.6, 14, 58], [334, 0.42, 8, 46], [316, 0.24, 4, 36], [296, 0.14, 0, 16]];
+  // Low: 3° columns
+  const rpos = [], rcol = [], rinf = [], N = (env.boards ?? 1) < 1 ? 120 : 180, STEP = 6, BOT = -60;
   const sunXZ = [sd[0] / sl, sd[2] / sl];
   const rnd = (i, k) => (((i * 2654435761) ^ (k * 2246822519)) >>> 0) / 4294967296;
   LAYERS.forEach(([R2, haze, floor, hump], li) => {

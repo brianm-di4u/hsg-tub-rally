@@ -4,9 +4,12 @@
 
 export const MIN_FINISH_GAL = 10;
 
-const OMEGA = 7.5; // slosh natural frequency (rad/s)
-const ACC_GAIN = 0.04; // tilt (rad) per m/s² of acceleration at rest
-const SPILL_K = 4; // gallons per second per radian of excess tilt, at full capacity (was 5 until the quicker thrust of S1-04)
+// slosh natural frequency (rad/s)
+const OMEGA = 7.5;
+// tilt (rad) per m/s² of acceleration at rest
+const ACC_GAIN = 0.04;
+// gallons per second per radian of excess tilt, at full capacity (was 5 until the quicker thrust of S1-04)
+const SPILL_K = 4;
 
 export function makeWater(capGal) {
   return { gal: capGal, cap: capGal, tf: 0, tr: 0, vf: 0, vr: 0, spilled: 0, refilled: 0, spillFx: 0, dryT: 0 };

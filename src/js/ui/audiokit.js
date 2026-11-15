@@ -18,7 +18,8 @@
 // Scheduling is driven by audio-clock time, not by the timer: `kit.scheduleUntil(t)` schedules every bar and
 // ambience event that starts before `t`. That is what lets a test render the music faster than real time in an
 // OfflineAudioContext (see measureAudio at the bottom) and it means a throttled timer cannot bunch notes up.
-const TEMPO_LIFT = 0.08; // the last lap runs this much faster at full intensity (the kit's default was 0.06)
+// the last lap runs this much faster at full intensity (the kit's default was 0.06)
+const TEMPO_LIFT = 0.08;
 export function makeAudioKit(ctx, out, opt = {}) {
   const sr = ctx.sampleRate;
   let seed = (opt.seed || 0x5EED1) >>> 0;
@@ -36,7 +37,8 @@ export function makeAudioKit(ctx, out, opt = {}) {
 
   let mLevel = opt.music ?? 0.5, aLevel = opt.ambience ?? 0.5, inten = 0, held = false, timer = 0;
   const musicBus = gain(mLevel, out), ambBus = gain(aLevel, opt.ambOut || out);
-  const dead = [];   // { at, nodes }: sub-buses to disconnect once their fade-out has finished
+  // { at, nodes }: sub-buses to disconnect once their fade-out has finished
+  const dead = [];
   const retire = (bus, nodes, at, fade) => {
     bus.gain.cancelScheduledValues(at); bus.gain.setValueAtTime(Math.max(bus.gain.value, 0.0001), at);
     bus.gain.linearRampToValueAtTime(0.0001, at + Math.max(fade, 0.02)); dead.push({ at: at + fade + 0.2, nodes });
@@ -76,7 +78,8 @@ export function makeAudioKit(ctx, out, opt = {}) {
     k: (m, t, v) => { const o = ctx.createOscillator(), e = gain(0.0001, m.lp); o.frequency.setValueAtTime(115, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.11); e.gain.setValueAtTime(v, t); e.gain.exponentialRampToValueAtTime(0.0001, t + 0.16); o.connect(e); o.start(t); o.stop(t + 0.2); },
     s: (m, t, v) => { const e = gain(0.0001, lowpass(1900, m.inp, 'bandpass', 0.8)); e.gain.setValueAtTime(v * 0.9, t); e.gain.exponentialRampToValueAtTime(0.0001, t + 0.13); noise(t, 0.15).connect(e); },
     h: (m, t, v) => { const e = gain(0.0001, lowpass(6500, m.lp, 'highpass')); e.gain.setValueAtTime(v * 0.35, t); e.gain.exponentialRampToValueAtTime(0.0001, t + 0.04); noise(t, 0.06).connect(e); },
-    b: (m, t, v) => { const e = gain(0.0001, lowpass(3200, m.inp, 'bandpass', 0.5)); e.gain.setValueAtTime(0.0001, t); e.gain.linearRampToValueAtTime(v * 0.4, t + 0.03); e.gain.exponentialRampToValueAtTime(0.0001, t + 0.2); noise(t, 0.22).connect(e); },   // brush
+    // brush
+    b: (m, t, v) => { const e = gain(0.0001, lowpass(3200, m.inp, 'bandpass', 0.5)); e.gain.setValueAtTime(0.0001, t); e.gain.linearRampToValueAtTime(v * 0.4, t + 0.03); e.gain.exponentialRampToValueAtTime(0.0001, t + 0.2); noise(t, 0.22).connect(e); },
   };
 
   // ------------------------------------------------------------------------------------------------- music
@@ -133,11 +136,13 @@ export function makeAudioKit(ctx, out, opt = {}) {
     const mot = [];
     rh.forEach((st, j) => {
       let d;
-      if (st % spb === 0 || B.end) {   // on the beat: a chord tone near the last note, preferring to move
+      // on the beat: a chord tone near the last note, preferring to move
+      if (st % spb === 0 || B.end) {
         const near = (B.end ? strong.filter((k) => cls(k) !== tones[2]) : strong).slice().sort((x, y) => Math.abs(x - m.prev) - Math.abs(y - m.prev));
         const moved = near.filter((k) => k !== m.prev), c = moved.length ? moved : near;
         d = c[m.r() < 0.65 || c.length < 2 ? 0 : 1];
-      } else {                         // off the beat: step along the scale, mostly keeping direction
+      // off the beat: step along the scale, mostly keeping direction
+      } else {
         if (m.prev >= hi - 1) m.dir = -1; else if (m.prev <= lo + 1) m.dir = 1; else if (m.r() < 0.35) m.dir = -m.dir;
         const i = ladder.reduce((best, k, ix) => (Math.abs(k - m.prev) < Math.abs(ladder[best] - m.prev) ? ix : best), 0);
         d = ladder[Math.max(0, Math.min(ladder.length - 1, i + m.dir))];
@@ -151,9 +156,12 @@ export function makeAudioKit(ctx, out, opt = {}) {
   function varyMotif(m, mot, B, spbar) {
     if (mot.length < 2 || B.end) return mot;
     const v = mot.map((n) => ({ ...n })), k = 1 + ((m.r() * (v.length - 1)) | 0), how = m.r();
-    if (how < 0.5) v[k].d += m.r() < 0.5 ? 1 : -1;                                   // neighbour note
-    else if (how < 0.75 && v.length > 2) v.pop();                                     // leave a breath
-    else if (v[k].st - v[k - 1].st >= 2) v.splice(k, 0, { st: v[k].st - 1, d: v[k - 1].d + (v[k].d > v[k - 1].d ? 1 : -1), len: 1 });   // passing note
+    // neighbour note
+    if (how < 0.5) v[k].d += m.r() < 0.5 ? 1 : -1;
+    // leave a breath
+    else if (how < 0.75 && v.length > 2) v.pop();
+    // passing note
+    else if (v[k].st - v[k - 1].st >= 2) v.splice(k, 0, { st: v[k].st - 1, d: v[k - 1].d + (v[k].d > v[k - 1].d ? 1 : -1), len: 1 });
     return v;
   }
   function playBar(m, t0) {

@@ -36,7 +36,8 @@ export function partDepthMat(THREE, uParts, n) {
 // (the y of its direction) falls from SOFT_FROM to SOFT_TO. Park Avenue Nights comes to about 1.8 and Sunset Ridge 2.5; every daylight course (Bathhouse Row is the lowest at 0.55) stays 1.
 const SOFT_LOW = 2.5, SOFT_FROM = 0.5, SOFT_TO = 0.3;
 export function shadowSoft(sunY) {
-  const x = Math.max(0, Math.min(1, (sunY - SOFT_TO) / (SOFT_FROM - SOFT_TO))), s = x * x * (3 - 2 * x); // 0 at a low sun, 1 high
+  // 0 at a low sun, 1 high
+  const x = Math.max(0, Math.min(1, (sunY - SOFT_TO) / (SOFT_FROM - SOFT_TO))), s = x * x * (3 - 2 * x);
   return 1 + (SOFT_LOW - 1) * (1 - s);
 }
 
@@ -45,7 +46,8 @@ export class SunShadow {
     this.THREE = THREE;
     this.size = size; this.radius = radius;
     this.rt = new THREE.WebGLRenderTarget(size, size, { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, format: THREE.RGBAFormat, type: THREE.UnsignedByteType, depthBuffer: true, generateMipmaps: false });
-    this.cam = new THREE.OrthographicCamera(-radius, radius, radius, -radius, 60, 300); // 120 m either side of the focus along the sun
+    // 120 m either side of the focus along the sun
+    this.cam = new THREE.OrthographicCamera(-radius, radius, radius, -radius, 60, 300);
     this.depth = depthMat(THREE);
     this.u = shadowUniforms();
     this.u.uShadowMap.value = this.rt.texture;

@@ -71,15 +71,19 @@ export function installHooks(App, api) {
     act(name, ...args) {
       const r = App.race, k = r && r.player >= 0 ? r.karts[r.player] : null;
       switch (name) {
-        case 'input': App.held = args[0] || null; return true; // held player input for following steps
+        // held player input for following steps
+        case 'input': App.held = args[0] || null; return true;
         case 'hit': if (k) { const ok = fumble(k, r.rng.items, args[0] ?? 3); api.kartEvents(k); return ok; } return false;
-        case 'event': { // hand a kart (the player's by default) a sim event (wall, land, charge...) as a step would
+        // hand a kart (the player's by default) a sim event (wall, land, charge...) as a step would
+        case 'event': {
           const t = args[1] != null && r ? r.karts[args[1]] : k;
           if (t) { const ev = { ...args[0] }; t.events.push(ev); api.kartEvents(t); t.events.splice(t.events.indexOf(ev), 1); return true; }
           return false;
         }
-        case 'audioFrame': if (r) { api.audioFrame(r, args[0] || 1 / 60, true); return true; } return false; // run one frame of race sound as if the race were live
-        case 'ndc': { // where a kart is on screen: x -1 (left) to 1 (right)
+        // run one frame of race sound as if the race were live
+        case 'audioFrame': if (r) { api.audioFrame(r, args[0] || 1 / 60, true); return true; } return false;
+        // where a kart is on screen: x -1 (left) to 1 (right)
+        case 'ndc': {
           const t = r && r.karts[args[0]]; if (!t) return null;
           const v = new window.THREE.Vector3(t.x, t.y + 0.5, t.z).project(App.renderer.camera); return { x: +(App.mirror ? -v.x : v.x).toFixed(3), y: +v.y.toFixed(3), z: +v.z.toFixed(3) };
         }
@@ -90,18 +94,21 @@ export function installHooks(App, api) {
         // fixed review camera: act('camAt', [x,y,z], [tx,ty,tz]) or act('camAt', null) to release
         case 'camAt': App.camOverride = args[0] ? { pos: args[0], target: args[1] } : null; return true;
         case 'landmarks': return App.world ? App.world.children.filter((g) => g.name.startsWith('landmark:')).map((g) => g.name.slice(9)) : [];
-        case 'landmark': { // position of a placed landmark (for review shots)
+        // position of a placed landmark (for review shots)
+        case 'landmark': {
           const g = App.world && App.world.getObjectByName('landmark:' + args[0]);
           return g ? { x: g.position.x, y: g.position.y, z: g.position.z, yaw: g.rotation.y } : null;
         }
         case 'hash': return r ? hashRace(r) : 0;
         case 'camDebug': { const c = App.renderer.camera, k = App.camPose && App.camPose.k; const g = App.track.surface(c.position.x, c.position.z, k ? k.s : 0); return { cam: [c.position.x, c.position.y, c.position.z], ground: g.h, d: g.d, s: g.s, fov: c.fov }; }
-        case 'aiHint': { // what the AI would press for the player's tub right now (for real-keyboard tests)
+        // what the AI would press for the player's tub right now (for real-keyboard tests)
+        case 'aiHint': {
           if (!k) return null;
           App._hintDrv = App._hintDrv && App._hintDrv.k === k ? App._hintDrv : { k, d: makeDriver(k, r.classId, makeRng(5), 1) };
           return driveAI(k, App._hintDrv.d, App.track, { capMul: 1, race: r }, 1 / 60);
         }
-        case 'date': App.dateOverride = args[0] || null; return true; // the Daily Race's idea of today (YYYY-MM-DD), for tests
+        // the Daily Race's idea of today (YYYY-MM-DD), for tests
+        case 'date': App.dateOverride = args[0] || null; return true;
         case 'clearSave': App.save.best = {}; App.save.ghosts = {}; return true;
         // review captures (tools/shots-gpu.mjs): freeze the render clock at ms, or release it with null
         // (CSS transitions and animations run on wall-clock time, so they hold still too while the clock is frozen)
@@ -123,7 +130,8 @@ export function installHooks(App, api) {
         case 'perfLab': return api.perfLab(args[0] || {});
         case 'labStats': return api.labStats();
         case 'fxCount': { const l = App.fx && App.fx.life; let n = 0; if (l) for (let i = 0; i < l.length; i++) if (l[i] > 0) n++; return n; }
-        case 'hud': { // hide or show every 2D layer over the canvas (close-ups)
+        // hide or show every 2D layer over the canvas (close-ups)
+        case 'hud': {
           for (const id of ['hud', 'touch', 'screens']) { const el = document.getElementById(id); if (el) el.style.visibility = args[0] === false ? 'hidden' : ''; }
           return true;
         }
@@ -133,7 +141,8 @@ export function installHooks(App, api) {
           return { calls: App.renderer.info.draws, tris: App.renderer.info.tris, cpuMs: App.cpuMs != null ? +App.cpuMs.toFixed(2) : null, tier: App.tier, mode: App.renderer.mode,
             w: App.renderer.size.w, h: App.renderer.size.h, renderer, software: /swiftshader|llvmpipe|software|basic render/i.test(renderer) };
         }
-        case 'seeThroughNear': { // transparent or fading meshes whose bounds come within a.r m of the camera
+        // transparent or fading meshes whose bounds come within a.r m of the camera
+        case 'seeThroughNear': {
           const cam = App.renderer.camera.position, out = [], r = (args[0] && args[0].r) || 12;
           App.renderer.scene.traverseVisible((o) => {
             if (!o.isMesh || !o.geometry) return;
@@ -146,7 +155,8 @@ export function installHooks(App, api) {
           });
           return out;
         }
-        case 'sceneTris': { // triangles per visible mesh (×instances), largest first; casters also draw in the shadow pass
+        // triangles per visible mesh (×instances), largest first; casters also draw in the shadow pass
+        case 'sceneTris': {
           const rows = [];
           App.renderer.scene.traverseVisible((o) => {
             if (!o.isMesh || !o.geometry) return;

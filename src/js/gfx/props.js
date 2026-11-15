@@ -27,7 +27,8 @@ export function buildProp(type, g, p, yaw, sc = 1, glow = null) {
       g.cyl([x, y, z], 0.32 * sc, 0.4 * sc, 0.6 * sc, 6, hex('#C9CED2'), { top: hex('#4FA9D8') });
       break;
     }
-    case 'flag': { // blue feather flag on a pole (obstacle stop marker)
+    // blue feather flag on a pole (obstacle stop marker)
+    case 'flag': {
       g.cyl([x, y, z], 0.04, 0.04, 3.4, 4, STEEL);
       const a = T(0, 1.2, 0), b = T(0, 3.3, 0), c = T(0.75, 3.0, 0), d = T(0.6, 1.4, 0);
       g.quad(a, d, c, b, BLUE); g.quad(b, c, d, a, mul(BLUE, 0.8));
@@ -49,7 +50,8 @@ export function buildProp(type, g, p, yaw, sc = 1, glow = null) {
       g.obox(T(0, 0.75, -0.22), [0.9 * sc, 0.2, 0.04], hex('#5B3A26'), yaw);
       break;
     }
-    case 'judge': { // judge stand: a small striped booth with a podium
+    // judge stand: a small striped booth with a podium
+    case 'judge': {
       g.obox(T(0, 1.0, 0), [1.4, 1.0, 1.0], hex('#F4F1EA'), yaw, { top: hex('#C8322A') });
       for (const by of [0.55, 1.45]) g.obox(T(0, by, 0), [1.42, 0.14, 1.02], hex('#C8322A'), yaw, { noBottom: true });
       g.obox(T(0, 2.5, 0), [1.6, 0.12, 1.2], hex('#C8322A'), yaw);
@@ -63,7 +65,8 @@ export function buildProp(type, g, p, yaw, sc = 1, glow = null) {
         for (let c = 0; c < 3; c++) {
           if (row[c] !== '#' || (c > 0 && row[c - 1] === '#')) continue;
           let n = 1; while (c + n < 3 && row[c + n] === '#') n++;
-          const u = (li * 4 + c + n / 2) * px - 1.235; // across the board from its left as seen from this face
+          // across the board from its left as seen from this face
+          const u = (li * 4 + c + n / 2) * px - 1.235;
           g.obox(T(f * 0.08, 3.05 + 0.325 - r * px - px / 2, 0.2 - f * u), [0.02, px * 0.46, px * (n / 2 - 0.04)], white, yaw, { noBottom: true });
         }
       }));
@@ -81,7 +84,8 @@ export function buildProp(type, g, p, yaw, sc = 1, glow = null) {
       }
       break;
     }
-    case 'jug': { // the plaza's thermal-water jug fountain, the arena's centrepiece: a studded stone basin of clear
+    // the plaza's thermal-water jug fountain, the arena's centrepiece: a studded stone basin of clear
+    case 'jug': {
       // water around a pedestal, and on it a giant brick stoneware jug (blue band, handle) pouring into the basin
       const S = (v) => v * sc, stone = hex('#B9AE9A'), ware = hex('#D9C49A'), band = hex('#2E6FB0'), water = hex('#4FA9D8');
       g.cyl([x, y, z], S(4.4), S(4.2), S(0.6), 20, stone, { top: stone });
@@ -102,7 +106,8 @@ export function buildProp(type, g, p, yaw, sc = 1, glow = null) {
       g.obox(T(-1.75, 2.78, 0), [S(0.12), S(2.22), S(0.12)], water, yaw);
       break;
     }
-    case 'eagle': { // eagle on a limestone pylon (Row main entrance)
+    // eagle on a limestone pylon (Row main entrance)
+    case 'eagle': {
       g.obox(T(0, 1.1, 0), [0.45, 1.1, 0.45], hex('#D9D2C2'), yaw);
       g.obox(T(0, 2.45, 0), [0.6, 0.25, 0.25], hex('#8A6A3A'), yaw);
       break;

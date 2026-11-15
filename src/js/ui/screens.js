@@ -52,7 +52,8 @@ export class Screens {
     else if (m.cancel) { const back = this.root.querySelector('[data-back]'); if (back) back.click(); return true; }
     else return false;
     btns[Math.max(0, i)].focus();
-    sfx('tick'); // S4-22: focus moved by arrow key or d-pad
+    // S4-22: focus moved by arrow key or d-pad
+    sfx('tick');
     return true;
   }
 }

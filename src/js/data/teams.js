@@ -2,7 +2,8 @@
 // (Traditional = cast iron, Modified = fiberglass/plastic, Stock = tub provided; 2026 official rules, see
 // research/town-content.md). Every team, captain and emblem is fictional, inspired by archetypes of real entries.
 
-export const GAL_KG = 3.785; // one US gallon of water
+// one US gallon of water
+export const GAL_KG = 3.785;
 
 // Base handling per division. Mass in kg (tub + captain); capacity in gallons. Multipliers are relative to Stock.
 export const DIVISIONS = {

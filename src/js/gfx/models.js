@@ -30,7 +30,8 @@ export function loadModel(name, opts = {}) {
     const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), uv = new Float32Array(n * 2), col = new Float32Array(n * 3);
     for (let i = 0; i < n * 3; i++) { pos[i] = P[i] / 100; col[i] = C[i] / 255; }
     for (let i = 0; i < n * 2; i++) uv[i] = UV[i] / 1024;
-    for (let t = 0; t < n; t += 3) { // flat normal per triangle
+    // flat normal per triangle
+    for (let t = 0; t < n; t += 3) {
       const a = t * 3, b = a + 3, c = a + 6;
       const ux = pos[b] - pos[a], uy = pos[b + 1] - pos[a + 1], uz = pos[b + 2] - pos[a + 2];
       const vx = pos[c] - pos[a], vy = pos[c + 1] - pos[a + 1], vz = pos[c + 2] - pos[a + 2];

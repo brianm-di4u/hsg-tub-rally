@@ -74,7 +74,8 @@ async function boot() {
   const mq = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
   App.reducedMotion = App.save.settings.reducedMotion ?? (mq ? mq.matches : false);
   applyInputSettings(App.save.settings);
-  if (mq && window.matchMedia('(pointer: coarse)').matches) INPUT.last = 'touch'; // tips name buttons, not keys
+  // tips name buttons, not keys
+  if (mq && window.matchMedia('(pointer: coarse)').matches) INPUT.last = 'touch';
   App.loading++;
   await loadPackTextures();
   // the Blender crews: optional (a missing pack or an old browser keeps the crews built in code)
@@ -117,7 +118,8 @@ async function boot() {
   window.addEventListener('blur', pauseRace);
   installHooks(App, { startRace, gotoTitle, setScene, stepOnce, kartEvents, audioFrame, onMenu, perfLab, labStats: () => labStats(window.THREE) });
   window.TR_APP = { App, KartView };
-  await loadScript('assets/finale.js').catch((e) => console.warn(e.message)); // the finish ceremony and ambient motion
+  // the finish ceremony and ambient motion
+  await loadScript('assets/finale.js').catch((e) => console.warn(e.message));
   // the title screen sits over a slow flyover of the first course
   // a save from before the unlock record keeps everything it had: write that record down now, once
   if (saveGrandfathered()) persistSave({});
@@ -335,7 +337,8 @@ export async function startRace(opts = {}) {
   // takes full effect from the next race
   setCrewDetail(App.tier, App.renderer.camera); setLite(App.tier === 'low'); setBevel(App.tier !== 'low');
   if (App.shadow && App.tier === 'low') { App.shadow.setEnabled(false); setShadowDefault(false); }
-  if (App.shadow) App.shadow.skip = TIERS[App.tier].shadowCrowd ? null : /^crowd$/; // Medium: spectators cast no sun shadow
+  // Medium: spectators cast no sun shadow
+  if (App.shadow) App.shadow.skip = TIERS[App.tier].shadowCrowd ? null : /^crowd$/;
   App.builtTier = App.tier;
   const count = o.mode === 'timetrial' ? 1 : (o.count ?? 8);
   if (o.mode === 'battle') App.race = makeBattle(track, { human: o.team, seed: o.seed, classId: o.classId, autoplay: o.autoplay, count: o.count });
@@ -457,7 +460,8 @@ function audioFrame(r, dt, live) {
   tubLoop(me, dt, live && r.phase !== 'done');
   const cam = App.renderer.camera;
   cam.getWorldDirection(SHADOW_DIR);
-  setListener(App.mirror ? SHADOW_DIR.z : -SHADOW_DIR.z, App.mirror ? -SHADOW_DIR.x : SHADOW_DIR.x); // the camera's right on the ground (flipped with the picture)
+  // the camera's right on the ground (flipped with the picture)
+  setListener(App.mirror ? SHADOW_DIR.z : -SHADOW_DIR.z, App.mirror ? -SHADOW_DIR.x : SHADOW_DIR.x);
   rivalLoop(me, r.karts, live && r.phase === 'race', dt);
 }
 
@@ -579,7 +583,8 @@ function onMenu(act, data) {
       break;
     case 'cup': {
       const cup = CUP_BY_ID[data.id];
-      if (!cup || !s.unlocked.cups.includes(cup.id)) break; // a cup that is not open (a stale card, a hand-edited choice) is never raced
+      // a cup that is not open (a stale card, a hand-edited choice) is never raced
+      if (!cup || !s.unlocked.cups.includes(cup.id)) break;
       const tracks = cup.tracks.filter((id) => builtIds().includes(id));
       App.gp = { cup: cup.id, name: cup.name, tracks, round: 0, table: {} };
       setPreview(null);
@@ -589,25 +594,29 @@ function onMenu(act, data) {
     case 'course':
       setPreview(null);
       if (F.mode === 'timetrial') startRace({ mode: 'timetrial', count: 1, track: data.id, team: F.team, classId: 'scald' });
-      else startRace({ mode: 'quick', count: s.settings.raceRivals + 1, laps: s.settings.raceLaps, noItems: s.settings.raceItems === false, track: data.id, team: F.team, classId: F.classId }); // P-N06: the Quick Race setup
+      // P-N06: the Quick Race setup
+      else startRace({ mode: 'quick', count: s.settings.raceRivals + 1, laps: s.settings.raceLaps, noItems: s.settings.raceItems === false, track: data.id, team: F.team, classId: F.classId });
       break;
     case 'nextRace': {
       const g = App.gp;
       g.round++;
-      startRace({ mode: 'gp', track: g.tracks[g.round], team: App.raceOpts.team, classId: App.raceOpts.classId, seed: App.raceOpts.seed + 17, rivals: g.rivals, order: gpRows().map((r) => r.team) }); // S1-19: the grid follows the standings
+      // S1-19: the grid follows the standings
+      startRace({ mode: 'gp', track: g.tracks[g.round], team: App.raceOpts.team, classId: App.raceOpts.classId, seed: App.raceOpts.seed + 17, rivals: g.rivals, order: gpRows().map((r) => r.team) });
       break;
     }
     case 'standingsGo': showStandings(); break;
     case 'trophy': showTrophy(); break;
     case 'locked': menuNote(data.why || 'Locked for now.'); break;
-    case 'raceOpt': { // the laps, items and rivals chips under the Quick Race course list
+    // the laps, items and rivals chips under the Quick Race course list
+    case 'raceOpt': {
       const v = data.v === 'true' ? true : data.v === 'false' ? false : +data.v;
       persistSave({ settings: { [data.k]: v } });
       App.screens.show('courses', { list: builtCourses(), trial: false });
       App.screens.root.querySelector(`[data-act="raceOpt"][data-k="${data.k}"][data-v="${data.v}"]`)?.focus({ preventScroll: true });
       break;
     }
-    case 'mirror': { // the Mirror switch on the course and cup screens
+    // the Mirror switch on the course and cup screens
+    case 'mirror': {
       if (!s.unlocked.mirror) break;
       persistSave({ settings: { mirror: data.v === 'true' } });
       if (App.screens.cur === 'cups') App.screens.show('cups', { built: builtCourses().map((c) => c.id) });
@@ -637,8 +646,10 @@ function onMenu(act, data) {
     }
     case 'resume': togglePause(false); break;
     case 'resetSave': persistSave({ reset: true }); break;
-    case 'restart': startRace({ ...App.raceOpts, seed: App.raceOpts.daily ? App.raceOpts.seed : App.raceOpts.seed + 1 }); break; // the day's race keeps its seed
-    case 'quitCup': { // abandoning a cup needs a second, deliberate press; Back and Esc never reach this button
+    // the day's race keeps its seed
+    case 'restart': startRace({ ...App.raceOpts, seed: App.raceOpts.daily ? App.raceOpts.seed : App.raceOpts.seed + 1 }); break;
+    // abandoning a cup needs a second, deliberate press; Back and Esc never reach this button
+    case 'quitCup': {
       const b = App.screens.root.querySelector('[data-act="quitCup"]');
       if (b && !b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'Quit cup? Press again'; break; }
       App.gp = null; gotoTitle(); break;
@@ -764,8 +775,10 @@ function showTrophy() {
   const unlockedTeam = saved.unlockedTeam, unlockedClass = saved.unlockedClass || null, unlockedCup = saved.unlockedCup || null, unlockedMirror = !!saved.unlockedMirror;
   clearCup(); refreshCup();
   App.screens.show('trophy', { place, cupName: g.name, unlockedTeam, unlockedClass, unlockedCup, unlockedMirror });
-  sfx('trophy', place); // S4-22
-  if (unlockedTeam || unlockedClass || unlockedCup || unlockedMirror) sfx('unlock'); // S5-06: a chime after the fanfare for what the cup opened
+  // S4-22
+  sfx('trophy', place);
+  // S5-06: a chime after the fanfare for what the cup opened
+  if (unlockedTeam || unlockedClass || unlockedCup || unlockedMirror) sfx('unlock');
   App.gp = null;
 }
 
@@ -777,12 +790,15 @@ function playerFeedback(me) {
     // the one argument a cue takes: splash(big), bump, land(speed), boost(kind), charge(stage)
     if (snd) sfx(snd, e.type === 'drained' ? true : e.type === 'wall' || e.type === 'bump' || e.type === 'land' ? e.v : e.type === 'boost' ? e.kind : e.type === 'charge' ? e.stage : undefined);
     if (e.type === 'use') sfx(USE_CUE[e.item] || 'menu');
-    if (e.type === 'incoming') { sfxPan('alert', (App.mirror ? -1 : 1) * e.side * 0.7); App.hud.say('Incoming'); } // S1-14, S5-21: the chevron is the HUD's own
-    haptic(e.type === 'wall' ? (e.v > 3 ? 'wall' : '') : e.type === 'charge' ? (e.stage >= 2 ? 'hot' : 'warm') : e.type); // S5-19: wall, bump, land, boost, fumble; the rest are not felt
+    // S1-14, S5-21: the chevron is the HUD's own
+    if (e.type === 'incoming') { sfxPan('alert', (App.mirror ? -1 : 1) * e.side * 0.7); App.hud.say('Incoming'); }
+    // S5-19: wall, bump, land, boost, fumble; the rest are not felt
+    haptic(e.type === 'wall' ? (e.v > 3 ? 'wall' : '') : e.type === 'charge' ? (e.stage >= 2 ? 'hot' : 'warm') : e.type);
     if (e.type === 'boost') { App.hud.flash(e.kind === 'hot' ? 'HOT STEAM!' : e.kind === 'start' ? 'GREAT START!' : 'WARM STEAM', 'boost', 1); App.cam.punch = e.kind === 'hot' ? 6 : 4; App.cam.shake = Math.max(App.cam.shake, 0.25); }
     else if (e.type === 'falsestart') App.hud.flash('FALSE START! Too early on Push', 'bad', 1.6);
     else if (e.type === 'fumble') { App.hud.flash('Dropped the ' + (e.item || 'item') + '! Circle the tub!', 'bad', 1.6); App.cam.shake = 0.8; App.views[me.id].flash = 1; }
-    else if (e.type === 'pickup' && ITEMS[e.item] && !(App.hud.callT > 0)) App.hud.flash(ITEMS[e.item].name + ': ' + ITEMS[e.item].tip, 'lap', 1.6); // S2-02: say what it is
+    // S2-02: say what it is
+    else if (e.type === 'pickup' && ITEMS[e.item] && !(App.hud.callT > 0)) App.hud.flash(ITEMS[e.item].name + ': ' + ITEMS[e.item].tip, 'lap', 1.6);
     else if (e.type === 'taskFail') App.hud.flash('Judges say no! Dropped the ' + (e.item || 'item') + '. Circle the tub!', 'bad', 1.8);
     else if (e.type === 'wall' && e.v > 7) App.cam.shake = Math.min(1, e.v / 14);
     else if (e.type === 'land' && e.v > 7) App.cam.shake = 0.4;
@@ -812,7 +828,8 @@ function startHint() {
   return `${how} just before SCRUB! for a GREAT START`;
 }
 
-const LOW_WATER = 5; // gallons
+// gallons
+const LOW_WATER = 5;
 // a mirrored picture reverses what the player means by left and right
 function mirrored(i) { if (App.mirror) i.steer = -i.steer; return i; }
 
@@ -830,14 +847,19 @@ function stepOnce() {
   // HUD call-outs and camera shake from sim events; effects get every kart's events for this frame
   for (const kk of r.karts) for (const e of kk.events) App.frameEvents.push({ k: kk, e });
   const me = r.player >= 0 ? r.karts[r.player] : null;
-  if (me) for (const kk of r.karts) if (kk !== me) for (const e of kk.events) rivalEvent(me, kk, e, r.time); // the other tubs are heard too
+  // the other tubs are heard too
+  if (me) for (const kk of r.karts) if (kk !== me) for (const e of kk.events) rivalEvent(me, kk, e, r.time);
   // countdown beeps
   const tPrev = r.time - DT;
   if (r.phase === 'countdown' || (r.phase === 'race' && r.time < DT * 1.5)) {
-    if (r.phase === 'countdown' && tPrev < -COUNTDOWN + DT * 0.5) sfx('ready', 0); // READY
-    if (tPrev < -2.1 && r.time >= -2.1) sfx('ready', 1); // SET
-    if (tPrev < -1.0 && r.time >= -1.0) sfx('ready', 2); // the blank before SCRUB!
-    if (r.phase === 'race' && r.time < DT * 0.5) sfx('go'); // the step the race begins on only (it was two steps, so the cue played twice a frame apart)
+    // READY
+    if (r.phase === 'countdown' && tPrev < -COUNTDOWN + DT * 0.5) sfx('ready', 0);
+    // SET
+    if (tPrev < -2.1 && r.time >= -2.1) sfx('ready', 1);
+    // the blank before SCRUB!
+    if (tPrev < -1.0 && r.time >= -1.0) sfx('ready', 2);
+    // the step the race begins on only (it was two steps, so the cue played twice a frame apart)
+    if (r.phase === 'race' && r.time < DT * 0.5) sfx('go');
   }
   if (me) playerFeedback(me);
   if (me && !App.raceOpts.autoplay && r.phase === 'race') landmarkCaption(me.s);
@@ -885,11 +907,13 @@ function stepOnce() {
 }
 
 // S4-03: name each landmark once, the first time the player's tub passes it
-const LANDMARK_JUMP = 10; // metres: a tub never moves this far in one step, so a bigger jump is a respawn, not a pass
+// metres: a tub never moves this far in one step, so a bigger jump is a respawn, not a pass
+const LANDMARK_JUMP = 10;
 function landmarkCaption(s) {
   const prev = App.lmS;
   App.lmS = s;
-  if (prev == null || s < prev || s - prev > LANDMARK_JUMP) return; // the start line, a respawn or a spin backwards
+  // the start line, a respawn or a spin backwards
+  if (prev == null || s < prev || s - prev > LANDMARK_JUMP) return;
   for (const lm of App.track.json.landmarks || []) {
     if (LANDMARK_NAMES[lm.id] && lm.s != null && lm.s > prev && lm.s <= s && !App.lmSeen.has(lm.id)) { App.lmSeen.add(lm.id); App.hud.landmark(LANDMARK_NAMES[lm.id]); }
   }

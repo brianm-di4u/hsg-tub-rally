@@ -12,7 +12,8 @@ export function makeBattle(track, opts) {
   race.karts.forEach((k, i) => {
     const s = (i / n) * L, c = track.at(s), p = track.point(s, 0);
     k.x = p.x; k.z = p.z; k.y = p.y; k.yaw = Math.atan2(c.tx, c.tz); k.s = s; k.safeS = s; k.lap = 1;
-    k.water.gal = k.water.cap * 0.9; // start a little below full so the fountain matters from the off
+    // start a little below full so the fountain matters from the off
+    k.water.gal = k.water.cap * 0.9;
   });
   race.hitMul = 1.6;
   race.battle = { out: [], secs: BATTLE_SECS };
@@ -24,7 +25,8 @@ function stepBattle(race, track, inputs, dt) {
   const B = race.battle;
   for (const k of race.karts) {
     if (k.out) { k.vf *= Math.max(0, 1 - 3 * dt); continue; }
-    k.rowDist = k.water.gal; // standings: most water first
+    // standings: most water first
+    k.rowDist = k.water.gal;
     if (k.water.gal <= 0.2 && race.phase === 'race') {
       k.out = true; k.finished = true; k.finishT = race.time; k.state = 'run'; k.held = null;
       B.out.push(k.id);

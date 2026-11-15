@@ -30,7 +30,8 @@ export class Fx {
     const g = new THREE.BufferGeometry();
     this.pp = new Float32Array(MAXP * 3); this.pc = new Float32Array(MAXP * 3); this.ps = new Float32Array(MAXP);
     this.pv = new Float32Array(MAXP * 3); this.life = new Float32Array(MAXP); this.maxLife = new Float32Array(MAXP); this.grav = new Float32Array(MAXP);
-    this.ps0 = new Float32Array(MAXP); this.grow = new Float32Array(MAXP); // spawn size; growth per second (steam swells)
+    // spawn size; growth per second (steam swells)
+    this.ps0 = new Float32Array(MAXP); this.grow = new Float32Array(MAXP);
     g.setAttribute('position', new THREE.BufferAttribute(this.pp, 3).setUsage(THREE.DynamicDrawUsage));
     g.setAttribute('color', new THREE.BufferAttribute(this.pc, 3).setUsage(THREE.DynamicDrawUsage));
     g.setAttribute('aSize', new THREE.BufferAttribute(this.ps, 1).setUsage(THREE.DynamicDrawUsage));
@@ -89,7 +90,8 @@ export class Fx {
   }
   // instanced billboards for pickups and tickets (positions fixed; visibility per frame via size)
   setRace(race, track) {
-    this.booths = []; // judge booths placed this race: [x, z] (main.js clears crowds and trees around them)
+    // judge booths placed this race: [x, z] (main.js clears crowds and trees around them)
+    this.booths = [];
     // seeded spray so review captures repeat exactly (a fresh sequence per race)
     this.rand = makeRng(race ? race.seed || 1 : 1).next;
     const T = this.T;
@@ -119,7 +121,8 @@ export class Fx {
       const yaw = Math.atan2(c.tx, c.tz);
       const p = track.point(j.s, side * (w + 3.2));
       this.booths.push([p.x, p.z]);
-      buildProp('judge', g, [p.x, track.heightAt(c, side * (w + 3.2)), p.z], yaw + (side > 0 ? Math.PI / 2 : -Math.PI / 2), 1); // booth front (and its judges) toward the road
+      // booth front (and its judges) toward the road
+      buildProp('judge', g, [p.x, track.heightAt(c, side * (w + 3.2)), p.z], yaw + (side > 0 ? Math.PI / 2 : -Math.PI / 2), 1);
       // the flag before the booth would stand between the chase camera and the judges: only the one after it
       for (const ds of [j.len / 2]) {
         const q = track.point(j.s + ds, side * (w + 0.4)), cc = track.at(j.s + ds);
@@ -130,7 +133,8 @@ export class Fx {
     for (const st of (race.row && race.row.stops) || []) {
       const c = track.at(st.s), yaw = Math.atan2(c.tx, c.tz);
       for (const side of [-1, 1]) for (const ds of [-st.len / 2, st.len / 2]) {
-        if (side < 0 && ds < 0) continue; // the booth side: no flag between the camera and the judges
+        // the booth side: no flag between the camera and the judges
+        if (side < 0 && ds < 0) continue;
         const cc = track.at(st.s + ds), w = side > 0 ? cc.wr : cc.wl, q = track.point(st.s + ds, side * (w + 0.4));
         buildProp('flag', g, [q.x, track.heightAt(cc, side * w), q.z], yaw, 1);
       }
@@ -144,7 +148,8 @@ export class Fx {
       this.booths.push([pj.x, pj.z]);
       buildProp('judge', g, [pj.x, track.heightAt(c, -(c.wl + 3.4)), pj.z], yaw - Math.PI / 2, 1);
     }
-    if (race.row) { // finish line cones across Central at the Exchange Street crosswalk
+    // finish line cones across Central at the Exchange Street crosswalk
+    if (race.row) {
       const c = track.at(race.row.s1), yaw = Math.atan2(c.tx, c.tz);
       for (let d = -c.wl + 1; d <= c.wr - 1; d += 2.4) { const q = track.point(race.row.s1, d); buildProp('cone', g, [q.x, track.heightAt(c, d), q.z], yaw, 1); }
     }
@@ -164,7 +169,8 @@ export class Fx {
       this.pc[k * 3] = col[0]; this.pc[k * 3 + 1] = col[1]; this.pc[k * 3 + 2] = col[2];
       this.ps[k] = this.ps0[k] = size * (0.7 + r() * 0.6); this.life[k] = life * (0.6 + r() * 0.5); this.maxLife[k] = this.life[k]; this.grav[k] = grav;
       this.grow[k] = opts.grow ?? (grav < 0 ? 1.6 : 0);
-      if (age > 0) { // emitted earlier in a long frame: already on its way
+      // emitted earlier in a long frame: already on its way
+      if (age > 0) {
         this.life[k] -= age;
         this.pp[k * 3] += this.pv[k * 3] * age; this.pp[k * 3 + 1] += this.pv[k * 3 + 1] * age - 0.5 * grav * age * age; this.pp[k * 3 + 2] += this.pv[k * 3 + 2] * age;
         this.pv[k * 3 + 1] -= grav * age;
@@ -240,7 +246,8 @@ export class Fx {
     }
     this.emitAge = 0; this.emitShift = null;
     for (const { k, e } of events) {
-      if (e.type === 'hit' || e.type === 'fumble') this.burst(k.x, k.y + 1.1, k.z, reduced ? 4 : 8, [0.62, 0.86, 0.97], { speed: 4.5, up: 5, size: 0.12, life: 0.45 }); // small and brief, so the crew stays in view
+      // small and brief, so the crew stays in view
+      if (e.type === 'hit' || e.type === 'fumble') this.burst(k.x, k.y + 1.1, k.z, reduced ? 4 : 8, [0.62, 0.86, 0.97], { speed: 4.5, up: 5, size: 0.12, life: 0.45 });
       if (e.type === 'boost' && (e.kind === 'hot' || e.kind === 'warm')) { const bf = Math.sin(k.yaw), bz = Math.cos(k.yaw); this.burst(k.x - bf * 0.9, k.y + 0.4, k.z - bz * 0.9, reduced ? 6 : 16, e.kind === 'hot' ? [1, 0.95, 0.9] : [0.97, 0.98, 1], { speed: 2.4, up: 2.2, size: 0.3, life: 0.55, grav: -0.6 }); }
       if (e.type === 'pickup') this.burst(k.x, k.y + 1.6, k.z, 10, [0.9, 0.8, 1], { speed: 2, up: 2, size: 0.18, life: 0.5, grav: 0 });
       if (e.type === 'ticket') this.burst(k.x, k.y + 1.4, k.z, 5, [0.95, 0.76, 0.19], { speed: 1.5, up: 2, size: 0.15, life: 0.4, grav: 2 });

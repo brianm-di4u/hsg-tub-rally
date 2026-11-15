@@ -16,7 +16,8 @@ import { TEAM_BY_ID, TEAMS, DIVISIONS } from '../data/teams.js';
 // part indices
 const PLAYER_GOLD = '#FFC92E';
 const BODY = 0, WHEEL = [1, 2, 3, 4], FLAG = 5, DUCK = 6, CAP_T = 7, CAP_H = 8, CAP_LA = 9, CAP_RA = 10, WATER = 23;
-const ATT = [[11, 12, 13], [14, 15, 16], [17, 18, 19], [20, 21, 22]]; // [torso, left leg, right leg]
+// [torso, left leg, right leg]
+const ATT = [[11, 12, 13], [14, 15, 16], [17, 18, 19], [20, 21, 22]];
 // attendant rest positions (x, z) in kart space: forward is +z, the kart's right is -x
 const ATT_POS = [[0.62, -1.3], [-0.62, -1.3], [0.98, -0.72], [-0.98, -0.72]];
 const ITEM_COL = { towel: '#F4F4F4', mat: '#36AEBF', soap: '#E4ADC8', loofah: '#D09168' };
@@ -147,7 +148,8 @@ function hatGeo(g, style, col, trim, y, D) {
   const C = hex(col), Tm = hex(trim), s = D.seg, s1 = D.head > D.seg ? s + 1 : s, cy = D.cyl, st = D.stud, black = hex(PAL.black), white = hex(PAL.white);
   const stud = (yy, c = C) => { if (st) g.stud([0, yy, 0], 0.07, 0.035, st, c); };
   switch (style) {
-    case 'helmet': // firefighter: dome, long back brim, front shield
+    // firefighter: dome, long back brim, front shield
+    case 'helmet':
       g.rbox([-0.18, y - 0.02, -0.17], [0.18, y + 0.16, 0.17], C, 0.09, s1);
       g.rbox([-0.2, y - 0.03, -0.32], [0.2, y + 0.01, -0.1], C, 0.015, s);
       g.rbox([-0.06, y + 0.0, 0.15], [0.06, y + 0.13, 0.19], Tm, 0.015, s);
@@ -159,12 +161,14 @@ function hatGeo(g, style, col, trim, y, D) {
       g.scyl([0, y - 0.01, 0], 0.27, 0.03, cy, C);
       g.rbox([-0.15, y + 0.02, -0.14], [0.15, y + 0.19, 0.14], C, 0.05, s);
       g.rbox([-0.155, y + 0.02, -0.145], [0.155, y + 0.06, 0.145], Tm, 0.015, s); break;
-    case 'snout': // gator: cap with a long snout and teeth
+    // gator: cap with a long snout and teeth
+    case 'snout':
       g.rbox([-0.17, y - 0.03, -0.16], [0.17, y + 0.12, 0.16], C, 0.07, s1);
       g.rbox([-0.09, y - 0.06, 0.1], [0.09, y + 0.03, 0.44], C, 0.035, s);
       for (const x of [-0.07, 0.07]) g.rbox([x - 0.02, y - 0.09, 0.3], [x + 0.02, y - 0.05, 0.4], white, 0.01, Math.min(1, s));
       for (const x of [-0.05, 0.05]) g.rbox([x - 0.025, y + 0.1, 0.06], [x + 0.025, y + 0.15, 0.11], black, 0.02, Math.min(1, s)); break;
-    case 'peaked': // police cap: crown, black visor, badge
+    // police cap: crown, black visor, badge
+    case 'peaked':
       g.scyl([0, y - 0.02, 0], 0.17, 0.13, cy, C, { r1: 0.19 });
       g.rbox([-0.15, y - 0.01, 0.08], [0.15, y + 0.02, 0.28], black, 0.015, s);
       g.rbox([-0.03, y + 0.04, 0.17], [0.03, y + 0.09, 0.2], hex(PAL.yellow), 0.01, Math.min(1, s));
@@ -179,20 +183,24 @@ function hatGeo(g, style, col, trim, y, D) {
       g.rbox([-0.17, y - 0.03, -0.16], [0.17, y + 0.13, 0.16], C, 0.08, s1);
       g.rbox([-0.14, y - 0.01, 0.1], [0.14, y + 0.02, 0.28], C, 0.015, s);
       stud(y + 0.13, Tm); break;
-    case 'flat-brim': // ranger campaign hat: wide flat brim, pinched crown
+    // ranger campaign hat: wide flat brim, pinched crown
+    case 'flat-brim':
       g.scyl([0, y - 0.01, 0], 0.31, 0.025, cy, C);
       g.scyl([0, y + 0.01, 0], 0.15, 0.19, cy, C, { r1: 0.07 });
       g.scyl([0, y + 0.01, 0], 0.152, 0.035, cy, Tm, { noTop: true }); break;
-    case 'cowboy': // wide brim curling up, creased crown
+    // wide brim curling up, creased crown
+    case 'cowboy':
       g.scyl([0, y - 0.01, 0], 0.32, 0.03, cy, C);
       for (const sx of [-1, 1]) g.rbox([0.24 * sx - 0.07, y + 0.01, -0.12], [0.24 * sx + 0.07, y + 0.08, 0.12], C, 0.03, s);
       g.rbox([-0.14, y + 0.01, -0.13], [0.14, y + 0.21, 0.13], C, 0.06, s);
       g.rbox([-0.03, y + 0.17, -0.13], [0.03, y + 0.22, 0.13], mul(C, 0.8), 0.02, Math.min(1, s)); break;
-    case 'beak': // flamingo: cap with a dark hooked beak
+    // flamingo: cap with a dark hooked beak
+    case 'beak':
       g.rbox([-0.17, y - 0.03, -0.16], [0.17, y + 0.13, 0.16], C, 0.08, s1);
       g.rbox([-0.05, y - 0.04, 0.12], [0.05, y + 0.04, 0.34], hex(PAL.black), 0.025, s);
       g.rbox([-0.04, y - 0.1, 0.28], [0.04, y - 0.02, 0.36], hex(PAL.black), 0.02, Math.min(1, s)); break;
-    case 'headband': // ninja: band round the head, knot tails behind
+    // ninja: band round the head, knot tails behind
+    case 'headband':
       g.scyl([0, y - 0.1, 0], 0.168, 0.07, cy, C, { noTop: true });
       g.rbox([-0.03, y - 0.1, -0.3], [0.03, y - 0.03, -0.16], C, 0.015, s);
       g.rbox([0.02, y - 0.16, -0.32], [0.07, y - 0.09, -0.2], C, 0.015, s); break;
@@ -365,7 +373,8 @@ export class KartView {
     // (a moderate gloss: at 0.95 the sheet mirrored the sky at chase angles and read as an empty white tub)
     // double-sided: the exported sheet faces down, so one-sided it was culled from above and every tub looked empty
     const wm = partMat({ side: THREE.DoubleSide, ...(clearWater || opts.ghost ? { transparent: true, alpha: opts.ghost ? 0.3 : 0.86, depthWrite: false, gloss: 0.55, water: !opts.ghost } : { gloss: 0.55 }) });
-    wm.uniforms.uParts = this.mat.uniforms.uParts; wm.uniforms.uFade = this.mat.uniforms.uFade; // the water steps aside with its tub
+    // the water steps aside with its tub
+    wm.uniforms.uParts = this.mat.uniforms.uParts; wm.uniforms.uFade = this.mat.uniforms.uFade;
     this.water = new THREE.Mesh(near.water, wm);
     this.water.frustumCulled = false;
     this.water.renderOrder = 3;
@@ -374,8 +383,10 @@ export class KartView {
     this.geo = { dispose: () => { this.near.dispose(); this.farGeo.dispose(); this.water.geometry.dispose(); } };
     if (!opts.ghost) { this.mesh.userData.caster = true; this.mesh.userData.depthMat = partDepthMat(THREE, this.mat.uniforms.uParts, MAX_PARTS); this.mesh.userData.depthGeo = this.farGeo; }
     this.wheelA = 0; this.roll = 0; this.pitch = 0; this.flash = 0; this.circleA = 0;
-    this.vPrev = null; this.acc = 0; this.slosh = [0, 0, 0, 0]; // smoothed acceleration; water spring [x, vx, z, vz]
-    this.feet = new Float32Array(12); // world position under each pusher, for FootBlobs
+    // smoothed acceleration; water spring [x, vx, z, vz]
+    this.vPrev = null; this.acc = 0; this.slosh = [0, 0, 0, 0];
+    // world position under each pusher, for FootBlobs
+    this.feet = new Float32Array(12);
     this.tmp = { m: new THREE.Matrix4(), q: new THREE.Quaternion(), e: new THREE.Euler(), v: new THREE.Vector3(), s: new THREE.Vector3(1, 1, 1), body: new THREE.Quaternion(), spin: new THREE.Quaternion(), up: new THREE.Vector3(0, 1, 0) };
     // soft contact shadow under the tub and its crew
     const sg = new THREE.PlaneGeometry(2, 2);
@@ -489,7 +500,8 @@ export class KartView {
       // pushers dig in on a push-off or a boost and straighten up as the tub slows
       let leanF = Math.min(0.5, 0.15 + Math.abs(v) * 0.02) + Math.max(-0.15, Math.min(0.3, this.acc * 0.035)) + (k.boostT > 0 ? 0.12 : 0);
       if (circling) {
-        const a = this.circleA + (i * Math.PI) / 2; // evenly spaced, so no two crew share a spot
+        // evenly spaced, so no two crew share a spot
+        const a = this.circleA + (i * Math.PI) / 2;
         ax = Math.sin(a) * 1.5; az = Math.cos(a) * 1.7;
         face = a + Math.PI / 2; leanF = 0.2;
       }

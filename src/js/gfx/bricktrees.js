@@ -6,7 +6,8 @@ import { Geo, hex } from './geom.js';
 import { worldMat, PAL } from './brickmat.js';
 
 function hash(i, s = 0) { let h = (i * 374761393 + s * 668265263) | 0; h = (h ^ (h >>> 13)) * 1274126177; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; }
-const MARK = [1, 1, 1], SKIN = [1, 0, 1]; // vertex colours the instance replaces (brickmat INST_SLOTS)
+// vertex colours the instance replaces (brickmat INST_SLOTS)
+const MARK = [1, 1, 1], SKIN = [1, 0, 1];
 const Q = Math.PI / 4;
 
 // tree models: [trunk boxes], then canopy layers [cx, cy, cz, half-width, half-height, turn]

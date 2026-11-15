@@ -22,7 +22,8 @@ export const TASKS = {
 };
 // P-N05: a judge task can be failed. The judges wait this long for the player's team (it was 12 s for every task, and then they
 // passed you); a team that runs out of time, or an AI team that flubs it, drops an attendant item and circles the tub (rule 7).
-export const TASK_LIMIT = { timing: 6, mash: 5, alt: 5, hold: 5 }; // seconds; was a free pass after 12 s
+// seconds; was a free pass after 12 s
+export const TASK_LIMIT = { timing: 6, mash: 5, alt: 5, hold: 5 };
 // the chance a rival's team flubs a task, by speed class (was 0: every rival passed every stop)
 export const TASK_FLUB = { splash: 0.25, soak: 0.15, scald: 0.08, boil: 0.04 };
 export const BADGE_TEAMS = ['engine-six', 'bubble-patrol', 'suds-posse'];
@@ -101,7 +102,8 @@ function stepTask(race, k, inp, drv, dt) {
   const T = k.task, def = TASKS[T.id];
   T.t += dt;
   k.vf *= Math.max(0, 1 - 6 * dt);
-  if (drv) { // AI does the task in a time set by difficulty
+  // AI does the task in a time set by difficulty
+  if (drv) {
     const need = { auto: def.secs || 1.6, timing: 1.4, mash: 2.0, alt: 2.4, hold: 1.8 }[def.kind] * (1.25 - drv.cls.aggro * 0.4);
     if (T.t >= need) { if (T.flub) T.failed = true; else T.ok = true; }
   } else {
@@ -111,10 +113,12 @@ function stepTask(race, k, inp, drv, dt) {
     else if (def.kind === 'alt') { const s = inp.steer < -0.5 ? -1 : inp.steer > 0.5 ? 1 : 0; if (s && s !== T.last) { T.n++; T.last = s; } if (T.n >= def.need) T.ok = true; }
     else if (def.kind === 'hold') { T.hold = inp.hop ? T.hold + dt : 0; if (T.hold >= def.secs) T.ok = true; }
     else if (def.kind === 'timing') {
-      T.marker = (Math.sin(T.t * 3.2) + 1) / 2; // 0..1 swing; the tub sits at 0.42–0.58
+      // 0..1 swing; the tub sits at 0.42–0.58
+      T.marker = (Math.sin(T.t * 3.2) + 1) / 2;
       if (inp.item) { if (T.marker > 0.4 && T.marker < 0.6) T.ok = true; else T.t += 0.5; }
     }
-    if (T.t > (TASK_LIMIT[def.kind] ?? 12) && !T.ok) T.failed = true; // the judges run out of patience
+    // the judges run out of patience
+    if (T.t > (TASK_LIMIT[def.kind] ?? 12) && !T.ok) T.failed = true;
   }
   if (T.ok || T.failed) {
     k.stopDone[T.j] = true; k.task = null; k.state = 'run'; k.stateT = 0;
@@ -161,8 +165,10 @@ export function awards(heats, rng) {
   const pick = (f) => list.slice().sort(f)[0]?.team;
   return {
     bestOverall: pick((a, b) => a.best - b.best),
-    mostSpirit: pick((a, b) => b.items - a.items || b.gal - a.gal || a.best - b.best), // spirit: every item kept and the most water carried to the line
-    mostOriginal: list[rng.int(list.length)]?.team, // the judges' taste is a mystery (rule 13)
+    // spirit: every item kept and the most water carried to the line
+    mostSpirit: pick((a, b) => b.items - a.items || b.gal - a.gal || a.best - b.best),
+    // the judges' taste is a mystery (rule 13)
+    mostOriginal: list[rng.int(list.length)]?.team,
     fanAward: pick((a, b) => b.refilled - a.refilled),
   };
 }

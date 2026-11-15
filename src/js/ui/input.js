@@ -79,7 +79,8 @@ export function pollGamepads() {
     const now = { a: b(0), b: b(1), x: b(2), y: b(3), lb: b(4), rb: b(5), lt: b(6), rt: b(7), start: b(9), up: b(12) || p.axes[1] < -0.6, down: b(13) || p.axes[1] > 0.6, left: b(14) || p.axes[0] < -0.6, right: b(15) || p.axes[0] > 0.6 };
     const used = ax !== 0 || Object.values(now).some(Boolean);
     if (used) { any = true; I.last = 'gamepad'; }
-    if (Object.values(now).some(Boolean)) I.padPress = true; // S5-29: a button or a hard stick push is a gesture that can start the sound
+    // S5-29: a button or a hard stick push is a gesture that can start the sound
+    if (Object.values(now).some(Boolean)) I.padPress = true;
     pad.steer = ax || pad.steer; pad.push = pad.push || now.a || now.rt; pad.pushV = Math.max(pad.pushV, now.a ? 1 : rtV); pad.brake = pad.brake || now.b;
     pad.hop = pad.hop || now.rb; pad.back = pad.back || now.y; pad.item = pad.item || now.lb || now.lt || now.x;
     if ((now.lb || now.lt || now.x) && !(prev.lb || prev.lt || prev.x)) I.itemP = true;

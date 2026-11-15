@@ -79,7 +79,8 @@ export function rollItem(rng, place) {
 // S1-14, S5-21: what is coming at a kart. A live object another kart owns counts when it is within `range` metres and heading
 // for the kart: a duck homing on it, or a soap whose line passes within INCOMING_MISS metres of it. Nearest first. along and
 // side are where it is, relative to the kart's heading (side is positive to the right).
-export const INCOMING_RANGE = 25, INCOMING_MISS = 2.5, INCOMING_GAP = 0.7; // m, m, seconds between two warnings to one kart
+// m, m, seconds between two warnings to one kart
+export const INCOMING_RANGE = 25, INCOMING_MISS = 2.5, INCOMING_GAP = 0.7;
 export function incoming(race, k, range = INCOMING_RANGE) {
   const out = [];
   if (!race.items || k.state === 'rescue' || k.finished || k.bubbleT > 0) return out;
@@ -207,7 +208,8 @@ export function useItem(race, track, k, back = false) {
       break;
     }
     case 'loofah':
-      if (k.shield > 0) { // fling one loofah forward
+      // fling one loofah forward
+      if (k.shield > 0) {
         k.shield--;
         spawn(S, { type: 'soap', owner: k.id, x: k.x + fx * 2.4, z: k.z + fz * 2.4, y: k.y + 0.4, vx: fx * (k.vf + 10), vz: fz * (k.vf + 10), s: k.s, bounces: 2, ttl: 4, loofah: true });
         if (k.shield > 0) { ev.keep = true; }
@@ -309,7 +311,8 @@ function aiItem(race, track, k, drv, dt) {
   if (drv.itemDelay > 0) return { use: false, back: false };
   drv.itemHold = (drv.itemHold || 0) + dt;
   const aggro = drv.cls.aggro, item = k.held, karts = race.karts;
-  const hunt = drv.cls.hunt || 0; // Scald and Boil rivals aim at the player: a longer reach and a surer throw
+  // Scald and Boil rivals aim at the player: a longer reach and a surer throw
+  const hunt = drv.cls.hunt || 0;
   const reach = (r, base, extra) => base + (r.o.human ? extra * hunt : 0);
   const fx = Math.sin(k.yaw), fz = Math.cos(k.yaw);
   const rel = (o) => { const dx = o.x - k.x, dz = o.z - k.z; return { along: dx * fx + dz * fz, side: dx * -fz + dz * fx }; };

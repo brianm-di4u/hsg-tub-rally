@@ -11,7 +11,8 @@ const ORD = ['', '1ST', '2ND', '3RD', '4TH', '5TH', '6TH', '7TH', '8TH'];
 const PLACE_FILL = [null, ['#FFF6C8', '#F2C230'], ['#F4F6FA', '#A9B4C2'], ['#FFE1C4', '#C8783C']];
 const ITEM_ICONS = { towel: '#F4F1EA', mat: '#3FA8C0', soap: '#F7B6CE', loofah: '#D9B77A' };
 const ITEM_NAMES = { towel: 'Towel', mat: 'Bath mat', soap: 'Soap', loofah: 'Loofah mitt' };
-const ITEM_LABELS = { towel: 'Towel', mat: 'Mat', soap: 'Soap', loofah: 'Loofah' }; // whole words that fit a 46 px pip
+// whole words that fit a 46 px pip
+const ITEM_LABELS = { towel: 'Towel', mat: 'Mat', soap: 'Soap', loofah: 'Loofah' };
 
 // S1-15: the water gauge leans with the slosh (tilt in radians, at most TILT_MAX either way) and says SPILLING while the
 // spill glow is above SPILL_SHOW; a call-out names the cause when it passes SPILL_CALL, at most SPILL_CALLS a race and
@@ -141,7 +142,8 @@ export class Hud {
       L.place = placeKey;
       if (this.par != null) pixelText(fmtTime(this.par), { scale: 4, canvas: el.place, fill: ['#FFF6C8', '#F2C230'] });
       else pixelText(ORD[me.place] || '', { scale: 7, canvas: el.place, fill: PLACE_FILL[me.place] || ['#FFFFFF', '#9FB3C8'] });
-      el.place.parentNode.classList.toggle('empty', this.par == null && !ORD[me.place]); // no empty tile before places are known
+      // no empty tile before places are known
+      el.place.parentNode.classList.toggle('empty', this.par == null && !ORD[me.place]);
     }
     // water gauge
     const gal = Math.round(me.water.gal * 2) / 2;
@@ -188,8 +190,10 @@ export class Hud {
     else if (def.kind === 'hold') f = tk.hold / def.secs;
     else if (def.kind === 'auto') f = tk.t / def.secs;
     if (def.kind === 'timing') {
-      g.fillStyle = '#3FA8C0'; g.fillRect(W * 0.4, 2, W * 0.2, H - 4); // the tub
-      g.fillStyle = '#F7B6CE'; g.fillRect(W * tk.marker - 6, 3, 12, H - 6); // the soap
+      // the tub
+      g.fillStyle = '#3FA8C0'; g.fillRect(W * 0.4, 2, W * 0.2, H - 4);
+      // the soap
+      g.fillStyle = '#F7B6CE'; g.fillRect(W * tk.marker - 6, 3, 12, H - 6);
       g.strokeStyle = '#2A1A10'; g.lineWidth = 2; g.strokeRect(W * tk.marker - 6, 3, 12, H - 6);
     } else {
       g.fillStyle = '#F2A541'; g.fillRect(2, 2, (W - 4) * Math.min(1, f), H - 4);
@@ -231,7 +235,8 @@ export class Hud {
     const g = this.el.icon.getContext('2d');
     g.clearRect(0, 0, 48, 48);
     this.el.item.classList.toggle('has', !!id);
-    this.el.iname.textContent = id && ITEMS[id] ? ITEMS[id].name : ''; // S2-02
+    // S2-02
+    this.el.iname.textContent = id && ITEMS[id] ? ITEMS[id].name : '';
     if (!id) return;
     drawItemIcon(g, id, 24, 24, 18);
     if (n > 1) { g.fillStyle = '#1A1410'; g.beginPath(); g.roundRect(26, 30, 22, 18, 5); g.fill(); g.fillStyle = '#FFFFFF'; g.font = 'bold 15px system-ui'; g.textAlign = 'center'; g.fillText('×' + n, 37, 44); g.textAlign = 'left'; }

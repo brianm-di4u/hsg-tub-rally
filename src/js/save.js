@@ -16,12 +16,17 @@ export const DEFAULT_SAVE = () => ({
   settings: { sound: true, music: true, ambience: true, volume: 0.6, musicVol: 1, res: 'native', quality: 'auto', autoPush: touchDevice(), steerAssist: false, reducedMotion: null, hudScale: 1, keys: null, mirror: false, seenIntro: false, raceLaps: 3, raceItems: true, raceRivals: 7, vibration: touchDevice() },
   // rec: the unlock record's version. A save that has none was written before wave 2 and keeps everything it could use (see projection)
   unlocked: { teams: [], cups: ['bathhouse'], classes: ['splash', 'soak'], mirror: false, rec: 2 },
-  best: {}, // trackId → the complete winning race record, including its lap
-  trial: {}, // trackId → Time Trial best { race, lap, medal 0..3 } (S3-04): Time Trial runs are on Scald only, so these are comparable
-  ghosts: {}, // trackId → last eligible recorded Time Trial
+  // trackId → the complete winning race record, including its lap
+  best: {},
+  // trackId → Time Trial best { race, lap, medal 0..3 } (S3-04): Time Trial runs are on Scald only, so these are comparable
+  trial: {},
+  // trackId → last eligible recorded Time Trial
+  ghosts: {},
   cups: {},
-  daily: {}, // 'yyyy-mm-dd' → the best Daily Race of that day { track, team, place, time } (the latest DAILY_KEEP days)
-  dailyStreak: { n: 0, last: '' }, // consecutive days with a Daily Race, and the last day played
+  // 'yyyy-mm-dd' → the best Daily Race of that day { track, team, place, time } (the latest DAILY_KEEP days)
+  daily: {},
+  // consecutive days with a Daily Race, and the last day played
+  dailyStreak: { n: 0, last: '' },
   stats: { races: 0, wins: 0, gallonsSpilled: 0, bestStreak: 0 },
   lastTeam: 'engine-six', lastClass: 'soak',
 });
@@ -77,7 +82,8 @@ function projection(raw) {
     if (!Number.isFinite(p) || p < 1) throw new Error('Invalid cup');
   }
   const d = DEFAULT_SAVE();
-  if (raw !== null) d.settings.autoPush = false; // new players only
+  // new players only
+  if (raw !== null) d.settings.autoPush = false;
   const grand = raw !== null && !(object(s.unlocked) && s.unlocked.rec === 2);
   const out = { ...d, ...s, settings: { ...d.settings, ...s.settings }, unlocked: { ...d.unlocked, ...s.unlocked }, stats: { ...d.stats, ...s.stats } };
   // Stored setting values that would break the game (a text volume throws inside the audio setup) fall back to defaults.
@@ -92,13 +98,15 @@ function projection(raw) {
   out.dailyStreak = cleanStreak(s.dailyStreak);
   if (!Number.isFinite(out.stats.bestStreak) || out.stats.bestStreak < 0) out.stats.bestStreak = 0;
   st.mirror = st.mirror === true;
-  st.vibration = typeof st.vibration === 'boolean' ? st.vibration : d.settings.vibration; // S5-19: on for a touch device unless the player turned it off
+  // S5-19: on for a touch device unless the player turned it off
+  st.vibration = typeof st.vibration === 'boolean' ? st.vibration : d.settings.vibration;
   st.steerAssist = st.steerAssist === true;
   st.hudScale = Number.isFinite(st.hudScale) && st.hudScale >= 0.7 && st.hudScale <= 1.4 ? st.hudScale : 1;
   st.keys = cleanKeys(st.keys);
   st.seenIntro = raw !== null && !(object(s.settings) && own(s.settings, 'seenIntro')) ? true : st.seenIntro === true;
   st.volume = Number.isFinite(st.volume) ? Math.min(1, Math.max(0, st.volume)) : d.settings.volume;
-  st.musicVol = Number.isFinite(st.musicVol) ? Math.min(1, Math.max(0.1, st.musicVol)) : d.settings.musicVol; // how loud the music sits under the effects; 1 is the shipped mix
+  // how loud the music sits under the effects; 1 is the shipped mix
+  st.musicVol = Number.isFinite(st.musicVol) ? Math.min(1, Math.max(0.1, st.musicVol)) : d.settings.musicVol;
   // Quick Race setup (P-N06): laps 1, 3 or 5, items on or off, 3 or 7 rivals; anything else is today's race
   if (![1, 3, 5].includes(st.raceLaps)) st.raceLaps = d.settings.raceLaps;
   st.raceItems = st.raceItems !== false;
@@ -122,8 +130,10 @@ export function createSaveWriter({
   let memory = null;
   let settings = {}, selection = {}, races = 0, wins = 0, runs = new Map(), cups = [], trials = [], dailies = [], spilled = 0;
   const raceSeen = new WeakMap(), cupSeen = new WeakMap();
-  let grandfathered = false; // the last read was a save from before the unlock record
-  let problem = null; // why the last read failed: 'blocked' (storage unavailable) or 'damaged' (unreadable value)
+  // the last read was a save from before the unlock record
+  let grandfathered = false;
+  // why the last read failed: 'blocked' (storage unavailable) or 'damaged' (unreadable value)
+  let problem = null;
   const current = () => {
     let raw;
     try { raw = read(); } catch (e) { problem = 'blocked'; return { readable: false, save: null }; }
@@ -221,16 +231,20 @@ export function createSaveWriter({
       if (resolveAwards && !c.info.resolved) {
         c.info.unlockedTeam = c.won ? c.teamOrder.find((id) => !out.unlocked.teams.includes(id)) || null : null;
         c.info.scald = c.won && c.soak;
-        c.info.boil = c.won && c.scald; // a cup won on Scald opens the new class above it
-        c.info.mirror = c.won && c.scald; // and the mirrored courses
-        c.info.ouachita = c.cup === 'bathhouse' && c.place <= 3; // a podium in the Bathhouse Cup opens the Ouachita Cup
+        // a cup won on Scald opens the new class above it
+        c.info.boil = c.won && c.scald;
+        // and the mirrored courses
+        c.info.mirror = c.won && c.scald;
+        // a podium in the Bathhouse Cup opens the Ouachita Cup
+        c.info.ouachita = c.cup === 'bathhouse' && c.place <= 3;
         c.info.resolved = true;
       }
       // A blocked first read leaves the award intent unresolved, independently
       // of App.gp. A failed write retains these exact IDs, never "unlock next".
       if (c.info.resolved) {
         if (c.info.unlockedTeam && !out.unlocked.teams.includes(c.info.unlockedTeam)) out.unlocked.teams.push(c.info.unlockedTeam);
-        if (c.info.scald && !out.unlocked.classes.includes('scald')) { out.unlocked.classes.push('scald'); c.info.unlockedClass = 'scald'; } // the trophy screen announces it
+        // the trophy screen announces it
+        if (c.info.scald && !out.unlocked.classes.includes('scald')) { out.unlocked.classes.push('scald'); c.info.unlockedClass = 'scald'; }
         if (c.info.boil && !out.unlocked.classes.includes('boil')) { out.unlocked.classes.push('boil'); c.info.unlockedClass = 'boil'; }
         if (c.info.mirror && !out.unlocked.mirror) { out.unlocked.mirror = true; c.info.unlockedMirror = true; }
         if (c.info.ouachita && !out.unlocked.cups.includes('ouachita')) { out.unlocked.cups.push('ouachita'); c.info.unlockedCup = 'ouachita'; }

@@ -20,7 +20,8 @@ export class Renderer {
     this.gl.toneMapping = THREE.NoToneMapping;
     this.gl.setPixelRatio(1);
     this.gl.autoClear = true;
-    this.gl.info.autoReset = false; // a frame's counts include the shadow pass
+    // a frame's counts include the shadow pass
+    this.gl.info.autoReset = false;
     this.shadow = null; this.shadowFocus = null;
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(62, 4 / 3, 0.3, 520);

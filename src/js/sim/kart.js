@@ -5,22 +5,34 @@ import { GAL_KG, kartStats } from '../data/teams.js';
 import { makeWater, stepWater, jolt, addWater } from './water.js';
 import { LIMIT } from './track.js';
 
-export const G = 22; // arcade gravity for airtime (m/s²)
+// arcade gravity for airtime (m/s²)
+export const G = 22;
 // Push thrust (S1-04): front-loaded so a stopped tub is back at 90% of top speed in about 4 s (was 5.9 s).
-const A0 = 9.4; // push acceleration at rest for the reference mass (m/s²); was 8.6
-const THRUST_EXP = 2; // how steeply thrust falls away as speed nears the cap; was 1.6
-const M0 = 85 + 80 + 38 * GAL_KG; // a full Stock tub with captain
+// push acceleration at rest for the reference mass (m/s²); was 8.6
+const A0 = 9.4;
+// how steeply thrust falls away as speed nears the cap; was 1.6
+const THRUST_EXP = 2;
+// a full Stock tub with captain
+const M0 = 85 + 80 + 38 * GAL_KG;
 const HOP_V = 3.4;
-const HIT_IMMUNE_T = 1.0; // protected window after the fumble circle ends (s)
-export const WARM_T = 0.85, HOT_T = 1.9; // power-slide charge thresholds (s)
+// protected window after the fumble circle ends (s)
+const HIT_IMMUNE_T = 1.0;
+// power-slide charge thresholds (s)
+export const WARM_T = 0.85, HOT_T = 1.9;
 // Wall contact (S1-01). A touch costs speed once, in proportion to how square it is; staying against a wall
 // only scrapes. Old rule: vt *= 0.93 every tick of contact (soft verge 0.985), which pinned the tub near 1.6 m/s.
-const WALL_LOSS = 0.5; // share of the along-wall speed lost by a square hit; a graze at angle a loses 0.5*sin(a)
-const WALL_SOFT = 0.4; // the soft verge costs this fraction of the hard-wall loss
-const WALL_HOLD = 0.15; // contact closer together than this (s) is one continuing touch, not a new hit
-const WALL_SCRAPE = 2.2; // m/s^2 of friction while sliding along a wall
-const WALL_SWAP_VN = 11; // approach speed into the wall (m/s) above which the attendants fumble the grip (was 9)
-const WALL_ALIGN = 6; // how fast the nose swings along the wall (per s; was 3)
+// share of the along-wall speed lost by a square hit; a graze at angle a loses 0.5*sin(a)
+const WALL_LOSS = 0.5;
+// the soft verge costs this fraction of the hard-wall loss
+const WALL_SOFT = 0.4;
+// contact closer together than this (s) is one continuing touch, not a new hit
+const WALL_HOLD = 0.15;
+// m/s^2 of friction while sliding along a wall
+const WALL_SCRAPE = 2.2;
+// approach speed into the wall (m/s) above which the attendants fumble the grip (was 9)
+const WALL_SWAP_VN = 11;
+// how fast the nose swings along the wall (per s; was 3)
+const WALL_ALIGN = 6;
 
 export const SURF_CAP = { road: 1, curb: 0.93, gravel: 0.66, grass: 0.58, water: 0.7 };
 
@@ -68,7 +80,8 @@ export function stepKart(k, inp, track, dt, env = {}) {
   let cap = st.vTop * (SURF_CAP[surf.type] ?? 1) * (env.capMul ?? 1);
   if (surf.type === 'curb' || surf.type === 'grass' || surf.type === 'gravel' || surf.type === 'water') k.offT += dt; else k.offT = 0;
   if (k.bubbleT > 0) { cap = st.vTop * 1.05; k.bubbleT -= dt; }
-  if (w.gal <= 0.01) cap *= 0.94; // bone dry: attendants slip on a dry tub
+  // bone dry: attendants slip on a dry tub
+  if (w.gal <= 0.01) cap *= 0.94;
   let push = k.state === 'run' && !k.finished ? clamp(inp.push, 0, 1) : 0;
   if (k.state === 'swap') push *= 0.35;
   if (k.boostT > 0) { cap *= 1.32; k.boostT -= dt; push = Math.max(push, 1); }
@@ -109,7 +122,8 @@ export function stepKart(k, inp, track, dt, env = {}) {
   }
   if (k.drift) {
     const dir = k.drift;
-    const s = clamp(k.steer * dir, -1, 1); // -1 = widen, +1 = tighten
+    // -1 = widen, +1 = tighten
+    const s = clamp(k.steer * dir, -1, 1);
     yawTarget = -dir * (1.25 + 0.95 * s) * st.turn * vFac;
     if (grounded) {
       k.driftT += dt;
@@ -156,12 +170,14 @@ export function stepKart(k, inp, track, dt, env = {}) {
     } else {
       const p = track.point(s2.s, side * lim);
       k.x = p.x; k.z = p.z;
-      const c = s2.c, tnx = -c.tz * side, tnz = c.tx * side; // outward normal
+      // outward normal
+      const c = s2.c, tnx = -c.tz * side, tnz = c.tx * side;
       let vn = vx * tnx + vz * tnz;
       let vt = vx * c.tx + vz * c.tz;
       if (vn > 0) {
         const soft = s2.limType === LIMIT.SOFT;
-        const fresh = k.wallHold <= 0; // the first tick of a touch
+        // the first tick of a touch
+        const fresh = k.wallHold <= 0;
         if (!soft && vn > 5.5) {
           k.stats_.walls++; k.wallT = 0.4;
           k.events.push({ type: 'wall', v: vn });

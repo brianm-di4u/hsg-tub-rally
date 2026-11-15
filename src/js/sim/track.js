@@ -86,7 +86,8 @@ export class Track {
   // world point at (s, d) on the road surface
   point(s, d) {
     const c = this.at(s);
-    const rx = -c.tz, rz = c.tx; // right = (-tz, tx) for forward (tx, tz)
+    // right = (-tz, tx) for forward (tx, tz)
+    const rx = -c.tz, rz = c.tx;
     return { x: c.x + rx * d, z: c.z + rz * d, y: this.heightAt(c, d) };
   }
   // height at lateral d for a sample frame c (banked road, then cross-section terrain beyond the edge)

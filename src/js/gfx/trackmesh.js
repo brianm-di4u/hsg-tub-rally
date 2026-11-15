@@ -11,14 +11,19 @@ import { VERGE, LIMIT } from '../sim/track.js';
 import { buildProp, PROP_KIND } from './props.js';
 import { buildBrickFlora, buildGroundDressing } from './bricktrees.js';
 
-const CHUNK = 60; // samples per chunk
+// samples per chunk
+const CHUNK = 60;
 const SURF_TEX = ['asphalt', 'brick', 'concrete', 'dirt', 'dirt', 'concrete'];
 // road surfaces as toy plates: colour, tile size (m) and pattern; dirt reads as a studded tan plate
 const SURF = {
-  asphalt: { col: '#55585A', tile: 8.96, pattern: 'grain', gloss: 0.32 }, // a fine grain, no seams (plate seams read as cracks across the lanes)
-  brick: { col: PAL.reddishBrown, tile: 0.56, pattern: 'tiles', gloss: 0.2 }, // 2 × 2 tiles
-  concrete: { col: PAL.lightGrey, tile: 1.12, pattern: 'tiles', gloss: 0.2 }, // 4 × 4 tiles
-  dirt: { col: '#B97A4A', tile: 1.12, pattern: 'tiles', gloss: 0.2 }, // Ouachita clay: smooth tiles, studs stay off the road
+  // a fine grain, no seams (plate seams read as cracks across the lanes)
+  asphalt: { col: '#55585A', tile: 8.96, pattern: 'grain', gloss: 0.32 },
+  // 2 × 2 tiles
+  brick: { col: PAL.reddishBrown, tile: 0.56, pattern: 'tiles', gloss: 0.2 },
+  // 4 × 4 tiles
+  concrete: { col: PAL.lightGrey, tile: 1.12, pattern: 'tiles', gloss: 0.2 },
+  // Ouachita clay: smooth tiles, studs stay off the road
+  dirt: { col: '#B97A4A', tile: 1.12, pattern: 'tiles', gloss: 0.2 },
 };
 const SURF_TINT = [[1, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 1], [0.8, 0.9, 1], [0.95, 0.95, 0.95]];
 
@@ -80,7 +85,8 @@ export function buildTrackWorld(THREE, track, env = {}) {
     // --- road: 4 lateral strips
     const sf = a.surf ? a.surf[i] : 0;
     const texName = SURF_TEX[sf] || 'asphalt', SF = SURF[texName];
-    const uScale = sf === 1 ? 2.5 : 5; // metres per uv unit
+    // metres per uv unit
+    const uScale = sf === 1 ? 2.5 : 5;
     const road = geoFor('road:' + texName, () => mat({ pattern: SF.pattern, uvScale: uScale, tile: SF.tile, gloss: SF.gloss }), ch);
     const tint = SURF_TINT[sf] || [1, 1, 1], rc = hex(SF.col);
     const ds0 = [-c0.wl, -c0.wl / 2, 0, c0.wr / 2, c0.wr], ds1 = [-c1.wl, -c1.wl / 2, 0, c1.wr / 2, c1.wr];
@@ -203,7 +209,8 @@ export function buildTrackWorld(THREE, track, env = {}) {
     const sp = track.locate(p.x, p.z, p.s);
     const y = track.heightAt(track.at(sp.s), sp.d) + (Math.abs(sp.d) > track.at(sp.s).wl ? 0 : 0);
     if (kind === 'board') {
-      if ((env.boards ?? 1) < 1 && hash(Math.round(p.x * 7 + p.z * 3), 9) > env.boards) continue; // Low tier thins the billboards
+      // Low tier thins the billboards
+      if ((env.boards ?? 1) < 1 && hash(Math.round(p.x * 7 + p.z * 3), 9) > env.boards) continue;
       (boards[p.type] ||= []).push({ x: p.x, y, z: p.z, sc: p.sc || 1, yaw: p.yaw });
     } else {
       const ch = Math.floor(sp.s / step / CHUNK);
@@ -265,7 +272,8 @@ function lightPools(THREE, list, track) {
   const x = c.getContext('2d'), gr = x.createRadialGradient(32, 32, 0, 32, 32, 32);
   gr.addColorStop(0, 'rgba(255,214,140,0.62)'); gr.addColorStop(0.45, 'rgba(255,196,118,0.34)'); gr.addColorStop(0.75, 'rgba(255,180,100,0.12)'); gr.addColorStop(1, 'rgba(255,170,90,0)');
   x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
-  const pos = [], uv = [], R = 8.5; // wide enough to reach across the near lane from the sidewalk
+  // wide enough to reach across the near lane from the sidewalk
+  const pos = [], uv = [], R = 8.5;
   for (const [lx, py, lz] of list) {
     // centred 3 m out from the lamp toward the road, so the light lands in the lane the pack drives
     const L = track.locate(lx, lz), c = track.at(L.s), toward = L.d > 0 ? -1 : 1, px = lx - c.tz * toward * 3, pz = lz + c.tx * toward * 3;

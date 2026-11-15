@@ -10,7 +10,8 @@ import { stepItems, makeItemState } from './items.js';
 export const DT = 1 / 60;
 // How much of a class's rival pace (CLASSES.ai against Soak's) also scales the rivals' top speed (S3-01). Soak is exactly 1.
 const AI_CAP_SHARE = 0.6;
-export const COUNTDOWN = 3.2; // seconds: Ready (0..1.1) Set (1.1..2.2) SCRUB! at 3.2? see phaseLabel
+// seconds: Ready (0..1.1) Set (1.1..2.2) SCRUB! at 3.2? see phaseLabel
+export const COUNTDOWN = 3.2;
 
 export function gridPoses(track, n) {
   const out = [];
@@ -44,7 +45,8 @@ export function makeRace(track, opts = {}) {
     const seated = opts.order.filter((id, i) => ids.includes(id) && opts.order.indexOf(id) === i);
     order = seated.concat(order.filter((id) => !seated.includes(id)));
   }
-  if (opts.player && opts.slot != null) { order = order.filter((id) => id !== opts.player); order.splice(Math.min(Math.max(0, opts.slot), order.length), 0, opts.player); } // the balance tool seats its bot
+  // the balance tool seats its bot
+  if (opts.player && opts.slot != null) { order = order.filter((id) => id !== opts.player); order.splice(Math.min(Math.max(0, opts.slot), order.length), 0, opts.player); }
   const poses = gridPoses(track, order.length);
   const karts = order.map((id, i) => makeKart(i, id, classId, poses[i], { human: id === opts.player }));
   const drivers = karts.map((k) => (k.human && !opts.autoplay ? null : makeDriver(k, classId, rng.ai, k.human ? 1.02 : 0.94 + rng.ai.next() * 0.1)));
@@ -88,7 +90,8 @@ export function stepRace(race, track, inputs, dt = DT) {
         const t0 = race.pushAtGo[i];
         if (k.whim) { k.boostT = 1.4; k.boostKind = 'whim'; k.events.push({ type: 'boost', kind: 'whim' }); }
         else if (t0 != null && t0 > -0.45) { k.boostT = 0.9 * (k.stats.startBoost ?? 1); k.boostKind = 'start'; k.events.push({ type: 'boost', kind: 'start' }); }
-        else if (t0 != null && t0 < -1.6) { k.state = 'swap'; k.stateT = 0.7; if (k.human) k.events.push({ type: 'falsestart' }); } // S2-04: pushing from READY costs 0.7 s of slow going, and the player is told
+        // S2-04: pushing from READY costs 0.7 s of slow going, and the player is told
+        else if (t0 != null && t0 < -1.6) { k.state = 'swap'; k.stateT = 0.7; if (k.human) k.events.push({ type: 'falsestart' }); }
         else if (!k.human && race.drivers[i] && race.rng.ai.next() < 0.45 * race.drivers[i].cls.aggro) { k.boostT = 0.7 * (k.stats.startBoost ?? 1); k.boostKind = 'start'; }
       });
     }
@@ -110,7 +113,8 @@ export function stepRace(race, track, inputs, dt = DT) {
       const gap = ref - progressOf(track, k);
       const fade = raceFrac > 0.7 ? Math.max(0, 1 - (raceFrac - 0.7) / 0.3) : 1;
       capMul = 1 + Math.max(-1, Math.min(1, gap / 70)) * drv.cls.rubber * fade;
-      capMul *= 1 + AI_CAP_SHARE * (drv.cls.ai / CLASSES.soak.ai - 1); // rivals in a harder class also get a faster top end, not only a faster line
+      // rivals in a harder class also get a faster top end, not only a faster line
+      capMul *= 1 + AI_CAP_SHARE * (drv.cls.ai / CLASSES.soak.ai - 1);
       inp = driveAI(k, drv, track, { capMul, race }, dt);
     }
     inp = inp || { steer: 0, push: 0, brake: false, hop: false };
@@ -189,7 +193,8 @@ export function finishRace(race, track) {
   race.results = est.map(({ k, t }, i) => ({
     place: i + 1, kart: k.id, team: k.team, human: k.human, time: t, estimated: !k.finished,
     gal: Math.round(k.water.gal * 10) / 10, items: Object.values(k.items).filter(Boolean).length,
-    lost: Object.keys(k.items).filter((id) => !k.items[id]), dry: k.water.gal < MIN_FINISH_GAL, // S2-09: what a missed Clean Finish needs said
+    // S2-09: what a missed Clean Finish needs said
+    lost: Object.keys(k.items).filter((id) => !k.items[id]), dry: k.water.gal < MIN_FINISH_GAL,
     clean: k.finished ? !!k.clean : k.water.gal >= MIN_FINISH_GAL && Object.values(k.items).every(Boolean),
     points: POINTS[i] ?? 0, tickets: k.tickets, bestLap: k.lapTimes.length ? Math.min(...k.lapTimes) : null,
   }));
