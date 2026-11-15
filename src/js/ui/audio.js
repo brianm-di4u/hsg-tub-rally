@@ -64,9 +64,9 @@ const newKit = (c, o = {}) => makeAudioKit(c, musicLP, { seed: KIT_SEED, ambOut:
 // Run fn with the module's audio graph pointed at another context (an offline one), then restore the live one.
 // Everything inside fn is synchronous, so the live timers cannot interleave.
 function withContext(c, vol, fn) {
-  const saved = { rivalVoices, slide, rumble, ctx, rev, comp, master, sfxBus, ambBus, musicLP, noiseBuf };
-  ctx = c; slide = null; rumble = null; rivalVoices = null; bindBuses(makeBuses(c, vol));
-  try { return fn(); } finally { ({ rivalVoices, slide, rumble, ctx, rev, comp, master, sfxBus, ambBus, musicLP, noiseBuf } = saved); }
+  const saved = { rivalVoices, slide, rumble, tub, ctx, rev, comp, master, sfxBus, ambBus, musicLP, noiseBuf };
+  ctx = c; slide = null; rumble = null; tub = null; rivalVoices = null; bindBuses(makeBuses(c, vol));
+  try { return fn(); } finally { ({ rivalVoices, slide, rumble, tub, ctx, rev, comp, master, sfxBus, ambBus, musicLP, noiseBuf } = saved); }
 }
 
 export function initAudio(settings) {
@@ -128,7 +128,7 @@ export function resumeAudio() {
   if (ctx.state !== 'running') ctx.resume().catch(() => {});
 }
 export function audioState() {
-  return { started: state.started, on: state.on, music: state.music, musicVol: state.musicVol, ambience: state.ambience, muffled: state.muffle, theme: state.theme, scene: state.scene, intensity: state.intensity, ctx: ctx ? ctx.state : 'none', ducks: state.ducks, rivals: { ...rivalInfo, voices: rivalInfo.voices.slice() }, slide: { ...slideInfo }, cues: state.cues.slice(),
+  return { started: state.started, on: state.on, music: state.music, musicVol: state.musicVol, ambience: state.ambience, muffled: state.muffle, theme: state.theme, scene: state.scene, intensity: state.intensity, ctx: ctx ? ctx.state : 'none', ducks: state.ducks, rivals: { ...rivalInfo, voices: rivalInfo.voices.slice() }, slide: { ...slideInfo }, tub: { ...tubInfo }, cues: state.cues.slice(),
     amb: { crowd: +state.crowd.toFixed(3), wind: +state.wind.toFixed(3), swells: state.swells }, kit: kit ? { ...kit.levels(), info: kit.music.info() } : null,
     mix: ctx ? { master: +master.gain.value.toFixed(3), sfx: sfxBus.gain.value, musicLP: Math.round(musicLP.frequency.value), limiter: { threshold: comp.threshold.value, ratio: comp.ratio.value } } : null };
 }
@@ -286,7 +286,7 @@ export function sfx(name, ...a) {
 
 // Continuous tub sounds, driven every frame by the player's tub: footsteps tick faster with speed, a rumble
 // rises with speed, slosh follows spilling.
-let footT = 0, rumble = null, slide = null;
+let footT = 0, rumble = null, slide = null, tub = null;
 // Power-slide voice: a tone and a hiss that climb with the charge, so Warm and Hot can be heard coming.
 const SLIDE_LEVEL = 0.13;           // output level of the whole voice (cues sit well above it)
 const SLIDE_HZ = 260, SLIDE_OCT = 1.75; // tone: 260 Hz uncharged, 875 Hz fully charged (the Hot tick is 1320 Hz)
@@ -304,6 +304,25 @@ function slideUpdate(k, active, when, record) {
   slide.g.gain.setTargetAtTime(on ? SLIDE_LEVEL : 0, when, 0.05);
   if (on) { slide.o.frequency.setTargetAtTime(hz, when, 0.04); slide.nf.frequency.setTargetAtTime(900 + 2200 * c, when, 0.06); }
   if (record) { slideInfo.on = on; slideInfo.charge = +c.toFixed(3); slideInfo.hz = Math.round(on ? hz : 0); }
+}
+// S5-18: two more continuous voices, so the tub is heard doing what it does: a whoosh while a boost lasts (it dies away over the
+// last BOOST_TAIL seconds) and the water, a low wash that follows how full the tub is and how hard it is slopping. In the air
+// the rumble, the feet and the water all stop (the landing thud is a cue).
+const BOOST_LEVEL = 0.1, SLOSH_LEVEL = 0.15, BOOST_TAIL = 0.4;
+const tubInfo = { air: false, boost: 0, slosh: 0 };
+function tubUpdate(k, active, when, record) {
+  if (!tub) {
+    const mk = (type, freq, q) => { const n = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain(); n.buffer = noiseBuf; n.loop = true; f.type = type; f.frequency.value = freq; f.Q.value = q; g.gain.value = 0; n.connect(f); f.connect(g); g.connect(sfxBus); n.start(0, Math.random()); return { f, g }; };
+    tub = { boost: mk('bandpass', 700, 0.8), slosh: mk('lowpass', 300, 0.7) };
+  }
+  const run = !!(active && k && k.state !== 'judge'), v = run ? Math.abs(k.vf) : 0, air = !!(run && k.air);
+  const boost = run ? clamp01(k.boostT / BOOST_TAIL) : 0;
+  const fill = run && k.water ? clamp01(k.water.gal / (k.water.cap || 1)) : 0;
+  const slosh = run && !air ? fill * clamp01(0.2 + 1.5 * (k.water.spillFx || 0)) * clamp01(v / 6) : 0;
+  tub.boost.g.gain.setTargetAtTime(BOOST_LEVEL * boost, when, 0.06); tub.boost.f.frequency.setTargetAtTime(600 + 45 * v, when, 0.1);
+  tub.slosh.g.gain.setTargetAtTime(SLOSH_LEVEL * slosh, when, 0.12); tub.slosh.f.frequency.setTargetAtTime(220 + 140 * fill + 300 * (run ? k.water.spillFx || 0 : 0), when, 0.15);
+  if (record) { tubInfo.air = air; tubInfo.boost = +boost.toFixed(3); tubInfo.slosh = +slosh.toFixed(3); }
+  return air;
 }
 // ---- ambience: one bed per place (scores.js SCENES). The crowd bed rises with speed, a swell on a lap or a pass and
 // the last lap; the wind bed rises with speed. amb.set() moves each bed's level.
@@ -335,10 +354,11 @@ export function tubLoop(k, dt, active) {
     rumble = { s, f, g };
   }
   const v = active && k ? Math.abs(k.vf) : 0;
-  rumble.g.gain.setTargetAtTime(Math.min(0.12, v * 0.006), ctx.currentTime, 0.08);
+  const air = tubUpdate(k, active, ctx.currentTime, true);
+  rumble.g.gain.setTargetAtTime(air ? 0 : Math.min(0.12, v * 0.006), ctx.currentTime, air ? 0.03 : 0.08);
   rumble.f.frequency.setTargetAtTime(160 + v * 18, ctx.currentTime, 0.1);
   slideUpdate(k, active, ctx.currentTime, true);
-  if (!active || !k || v < 0.8 || k.state === 'judge') return;
+  if (!active || !k || v < 0.8 || k.state === 'judge' || air) return;
   footT -= dt;
   if (footT <= 0) { footT = Math.max(0.07, 0.34 - v * 0.012); noise(0.035, { vol: 0.05, freq: 500 + Math.random() * 300, q: 1.5 }); }
   if (k.water.spillFx > 0.25 && Math.random() < 0.06) sfx('splash');
@@ -476,6 +496,11 @@ export function audioRender(name, seconds = 10, wantWav = false, args = [], vol 
       const track = [];
       for (let t = 0; t < seconds; t += 0.05) { const k = { drift: 1, state: 'run', air: false, vf: 15, charge: (t / seconds) * HOT_T * 1.05 }; slideUpdate(k, true, t, false); track.push([+t.toFixed(2), +(k.charge / HOT_T).toFixed(3), Math.round(SLIDE_HZ * 2 ** (SLIDE_OCT * clamp01(k.charge / HOT_T)))]); }
       return { track };
+    }
+    if (name === 'loop:tub') { // the boost and water voices held for the whole render; args[0] is the kart's state: { vf, boostT, air, gal, cap, spillFx }
+      const a = { vf: 15, boostT: 0, air: false, gal: 30, cap: 42, spillFx: 0, ...(args[0] || {}) };
+      tubUpdate({ state: 'run', vf: a.vf, boostT: a.boostT, air: a.air, water: { gal: a.gal, cap: a.cap, spillFx: a.spillFx } }, true, 0, false);
+      return null;
     }
     if (name.startsWith('loop:rivals:')) { // one rival held at a pan and a distance, running: 'loop:rivals:-0.7:8'
       const [, , pan, dist] = name.split(':'); rivalUpdate([{ id: 1, dist: +dist, pan: +pan, speed: 18 }], 0, false);

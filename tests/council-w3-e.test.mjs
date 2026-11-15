@@ -328,4 +328,43 @@ export const tests = [
       }
     },
   },
+  // ---------------------------------------------------------------- S5-18
+  {
+    name: 'council E S5-18: the boost whoosh and the water wash are continuous voices that follow the boost, the spill and how full the tub is, and are silent in the air',
+    viewports: ['desktop'],
+    async run(t) {
+      await t.waitIdle(8000);
+      const level = async (a, vol) => { const r = await render(t, 'loop:tub', 6, false, [a], vol); return { peak: r.peak, rms: r.secs[5] }; }; // steady state: the last second
+      const cruise = await level({}), boost = await level({ boostT: 1 }), slosh = await level({ spillFx: 1 }), calm = await level({ spillFx: 0.3 });
+      const empty = await level({ gal: 2, spillFx: 0.3 }), air = await level({ air: true, boostT: 0, spillFx: 1 }), both = await level({ boostT: 1, spillFx: 1 });
+      t.expect(boost.rms > cruise.rms * 6, 'a boost is clearly louder than cruising: ' + boost.rms + ' against ' + cruise.rms);
+      t.expect(slosh.rms > calm.rms * 1.5 && calm.rms > cruise.rms * 3, 'the wash grows with the spill: ' + [cruise.rms, calm.rms, slosh.rms]);
+      t.expect(empty.rms < calm.rms / 5, 'a nearly empty tub has almost no wash: ' + empty.rms + ' against ' + calm.rms);
+      t.expect(air.peak === 0, 'nothing in the air: ' + air.peak);
+      t.expect(boost.peak < 0.13 && slosh.peak < 0.13 && both.peak < 0.2, 'both voices sit under the cues: ' + [boost.peak, slosh.peak, both.peak]);
+      t.expect((await level({ boostT: 1, spillFx: 1 }, 1)).peak < 0.95, 'and do not clip at the maximum volume');
+    },
+  },
+  {
+    name: 'council E S5-18: in a race the voices follow the tub: a boost, a jump, an empty tub',
+    viewports: ['desktop'],
+    async run(t) {
+      await profile(t);
+      await unlock(t);
+      await t.game('newGame', { seed: 12, paused: true });
+      await t.game('act', 'skipCountdown');
+      const frame = async (patch) => {
+        // one evaluate: the game's own frame also runs the voices (paused, so silent) and would overwrite what we read
+        return t.page.evaluate((p) => { const g = window.__game, r = window.TR_APP.App.race, k = r.karts[r.player]; Object.assign(k, p.k); Object.assign(k.water, p.w); g.act('audioFrame', 1 / 60); return g.getState().audio.tub; }, patch);
+      };
+      let a = await frame({ k: { vf: 14, air: false, boostT: 0 }, w: { gal: 30, spillFx: 0.2 } });
+      t.expect(!a.air && a.boost === 0 && a.slosh > 0.1, 'cruising with water: wash only ' + JSON.stringify(a));
+      a = await frame({ k: { boostT: 0.8 }, w: {} });
+      t.expect(a.boost === 1, 'a boost: the whoosh is on ' + JSON.stringify(a));
+      a = await frame({ k: { boostT: 0.1, air: true }, w: { spillFx: 1 } });
+      t.expect(a.air && a.slosh === 0 && a.boost > 0 && a.boost < 0.5, 'in the air the wash stops and the whoosh is dying away ' + JSON.stringify(a));
+      a = await frame({ k: { boostT: 0, air: false }, w: { gal: 0.5 } });
+      t.expect(!a.air && a.boost === 0 && a.slosh < 0.05, 'an empty tub hardly washes ' + JSON.stringify(a));
+    },
+  },
 ];
