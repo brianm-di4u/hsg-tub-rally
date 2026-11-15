@@ -8,6 +8,8 @@ function dampAngle(cur, target, lambda, dt) {
   return target - d * Math.exp(-lambda * dt);
 }
 
+// was 0 (no lift)
+export const CROWD_LIFT = 0.8;
 export class ChaseCam {
   constructor(cam) {
     this.cam = cam;
@@ -24,7 +26,9 @@ export class ChaseCam {
     // above the crews in front of them
     const turn = Math.min(1, Math.abs(k.yawRate || 0) * 0.8);
     const dist = 6.3 + Math.min(1.5, v * 0.06) + (k.boostT > 0 ? 0.8 : 0) + portrait * 1.6 - turn * 0.3;
-    const height = 2.9 + Math.min(0.6, v * 0.02) + portrait * 1.6 + turn * 0.9;
+    // S1-22: with three or more tubs close ahead (the back of the grid) the camera is 0.8 m higher, so the road shows over them
+    this.lift = damp(this.lift || 0, opts.crowded ? CROWD_LIFT : 0, 2.5, dt);
+    const height = 2.9 + Math.min(0.6, v * 0.02) + portrait * 1.6 + turn * 0.9 + this.lift;
     const snapped = !this.init;
     if (snapped) { this.yaw = targetYaw; this.dist = dist; this.height = height; this.x = pose.x; this.y = pose.y; this.z = pose.z; this.liftY = undefined; this.init = true; }
     this.yaw = dampAngle(this.yaw, targetYaw, opts.lookBack ? 30 : 5.5, dt);

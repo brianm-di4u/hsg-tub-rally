@@ -985,6 +985,11 @@ function frameStep(t) {
 let SHADOW_DIR = null;
 function lerpAngle(a, b, t) { const d = Math.atan2(Math.sin(b - a), Math.cos(b - a)); return a + d * t; }
 
+// S1-22: three or more rival tubs close ahead of the player's: within 10 m, or within 25 m while the grid is still packed (the first 6 s)
+function crowded(r) {
+  const me = r.karts[r.player], L = App.track.length, reach = r.time < 6 ? 25 : 10;
+  return !!me && r.karts.filter((o) => o !== me && ((o.s - me.s + L) % L) < reach).length >= 3;
+}
 function drawRace(r, alpha, dt) {
   const tr = App.track;
   r.karts.forEach((k, i) => {
@@ -1014,7 +1019,7 @@ function drawRace(r, alpha, dt) {
   const lookBack = INPUT.back || (INPUT.pad && INPUT.pad.back);
   if (App.camPose) {
     App.cam.update(App.camPose.k, App.camPose.pose, dt || 1 / 60, {
-      fxDt: dt, lookBack, time: App.time, reducedMotion: App.reducedMotion, baseFov: App.renderer.baseFov, portrait: App.renderer.size.h > App.renderer.size.w,
+      crowded: crowded(r), fxDt: dt, lookBack, time: App.time, reducedMotion: App.reducedMotion, baseFov: App.renderer.baseFov, portrait: App.renderer.size.h > App.renderer.size.w,
       groundAt: (x, z) => tr.surface(x, z, App.camPose.k.s).h,
     });
   }

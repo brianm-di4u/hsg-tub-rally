@@ -2,6 +2,7 @@
 // what each speed class changes (S2-19), team voices (S4-04), the Goat Rock road (S4-06), the Vapors (S4-07) and local hooks (S4-08).
 import fs from 'node:fs';
 import { DEFAULT_SAVE } from '../src/js/save.js';
+import { ChaseCam, CROWD_LIFT } from '../src/js/gfx/camera.js';
 
 const SHOTS = '../_council/hsg-tub-rally/wave-3/shots';
 const KEY = 'hsg-tub-rally-v1';
@@ -87,6 +88,47 @@ export const tests = [
       await t.game('newGame', { track: 'bathhouse-row', seed: 3 }); await t.waitFrames(5);
       g = await sides();
       t.expect(g.steer < g.w / 2 && g.btns > g.w / 2, 'standard: the pad is on the left and the buttons on the right: ' + JSON.stringify(g));
+    },
+  },
+  // ---------------------------------------------------------------- S1-22
+  {
+    name: 'council F S1-22: the chase camera rises 0.8 m behind a crowd of tubs and settles back on open road',
+    node: true,
+    async run(t) {
+      const rig = () => { const cam = { position: { set(x, y, z) { this.y = y; } }, lookAt() {}, rotateX() {}, rotateZ() {}, fov: 62, updateProjectionMatrix() {} }; return { cam, c: new ChaseCam(cam) }; };
+      const run = (crowdedAt) => {
+        const { cam, c } = rig(), k = { vf: 10, drift: 0, yawRate: 0, boostT: 0, air: false }, ys = [];
+        for (let i = 0; i < 300; i++) { c.update(k, { x: 0, y: 0, z: 0, yaw: 0 }, 1 / 60, { crowded: crowdedAt(i / 60), time: i / 60 }); ys.push(cam.position.y); }
+        return ys;
+      };
+      const open = run(() => false), crowd = run(() => true), leave = run((s) => s < 2);
+      t.equal(CROWD_LIFT, 0.8, 'the lift is 0.8 m');
+      t.expect(Math.abs(crowd[299] - open[299] - CROWD_LIFT) < 0.02, 'crowded settles 0.8 m above open road: ' + (crowd[299] - open[299]).toFixed(3));
+      t.expect(Math.abs(leave[299] - open[299]) < 0.02, 'it comes back down once the road is open: ' + (leave[299] - open[299]).toFixed(3));
+      const jump = Math.max(...crowd.map((y, i) => (i ? Math.abs(y - crowd[i - 1]) : 0)));
+      t.expect(jump < 0.05, 'the rise is smooth, never more than ' + jump.toFixed(3) + ' m in a frame');
+    },
+  },
+  {
+    name: 'council F S1-22: at the back of the grid the real camera is higher than on open road',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await t.waitIdle(8000);
+      const above = () => t.page.evaluate(() => { const g = window.__game, s = g.getState(), me = s.race.karts[s.race.player], c = g.act('camDebug'); return c.cam[1] - me.y; });
+      await t.game('newGame', { mode: 'quick', count: 8, track: 'bathhouse-row', seed: 5 });
+      await t.game('act', 'skipCountdown');
+      const ahead = await t.page.evaluate(() => { const s = window.__game.getState(), me = s.race.karts[s.race.player], L = s.track.length; return s.race.karts.filter((o) => o !== me && ((o.s - me.s + L) % L) < 25).length; });
+      t.expect(ahead >= 3, 'the player starts behind at least three tubs within 25 m: ' + ahead);
+      // the camera's height over the tub: its peak in the first seconds, with the tubs ahead, against where it rests on open road
+      const h = () => t.page.evaluate(() => { const g = window.__game, s = g.getState(); return g.act('camDebug').cam[1] - s.race.karts[s.race.player].y; });
+      let peak = 0;
+      for (let i = 0; i < 20; i++) { await t.waitFrames(10); peak = Math.max(peak, await h()); if (i === 6) await shot(t, 'S1-22', 'grid-back'); }
+      await t.game('act', 'teleport', 300, 0);
+      let last = -1, open = 0;
+      for (let i = 0; i < 60; i++) { await t.waitFrames(15); open = await h(); if (Math.abs(open - last) < 0.01) break; last = open; }
+      t.expect(Math.abs(open - last) < 0.01, 'the camera settled on the open road: ' + open.toFixed(3));
+      t.expect(peak - open >= 0.5, 'higher behind the crowd (' + peak.toFixed(2) + ' m) than on open road (' + open.toFixed(2) + ' m)');
+      
     },
   },
 ];
