@@ -251,4 +251,81 @@ export const tests = [
       }
     },
   },
+  // ---------------------------------------------------------------- S5-06
+  {
+    name: 'council E S5-06: a new record on the results card plays the record jingle, and a run that sets none does not',
+    viewports: ['desktop'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.page.evaluate((k) => localStorage.removeItem(k), KEY);
+      await t.reload(); await unlock(t);
+      const run = async () => {
+        await t.game('newGame', { track: 'bathhouse-row', team: 'steam-rangers', mode: 'timetrial', classId: 'scald', count: 1, paused: true, autoplay: true, seed: 4 });
+        await t.game('act', 'skipCountdown');
+        const n = (await t.state()).audio.cues.length;
+        await t.stepUntil((st) => st.race && st.race.phase === 'done', { max: 60 * 400, chunk: 600, label: 'race finished' });
+        await t.page.waitForFunction(() => document.body.dataset.screen === 'results', null, { timeout: 8000 });
+        await t.waitFrames(3);
+        return { cues: (await t.state()).audio.cues, n };
+      };
+      let r = await run();
+      t.expect(r.cues.slice(r.n).includes('record'), 'the first run is a new best and plays the jingle: ' + r.cues.slice(r.n));
+      await t.game('scene', 'title'); await t.waitFrames(3);
+      r = await run();
+      t.expect(!r.cues.slice(r.n).includes('record'), 'the same run again beats nothing and stays quiet: ' + r.cues.slice(r.n));
+    },
+  },
+  {
+    name: 'council E S5-06: the trophy chimes when the cup opens something new, and not when it opens nothing',
+    viewports: ['desktop'],
+    async run(t) {
+      const trophy = async (place) => {
+        await t.waitIdle(8000);
+        await setSave(t, { ...DEFAULT_SAVE(), settings: { ...DEFAULT_SAVE().settings, seenIntro: true } });
+        await t.reload(); await unlock(t);
+        await t.game('scene', 'title'); await t.waitFrames(3);
+        await t.game('act', 'menu', 'gp'); await t.game('act', 'menu', 'teamOk'); await t.game('act', 'menu', 'cls', { id: 'soak' }); await t.waitFrames(3);
+        await t.game('act', 'menu', 'cup', { id: 'bathhouse' });
+        await t.waitIdle(15000);
+        const field = await t.state();
+        const teams = field.race.karts.map((k) => k.team), me = teams[field.race.player];
+        await t.page.evaluate(([p, ids, who]) => {
+          const order = ids.filter((x) => x !== who);
+          order.splice(p - 1, 0, who);
+          window.TR_APP.App.gp.table = Object.fromEntries(order.map((id, i) => [id, { team: id, points: 90 - i * 10, clean: 0, human: id === who, bribes: 0 }]));
+        }, [place, teams, me]);
+        const n = (await t.state()).audio.cues.length;
+        await t.game('act', 'menu', 'trophy');
+        await t.page.waitForFunction(() => document.body.dataset.screen === 'trophy', null, { timeout: 5000 });
+        await t.waitFrames(3);
+        return { cues: (await t.state()).audio.cues.slice(n), notes: await t.page.locator('.panel .unlock').count() };
+      };
+      let r = await trophy(1);
+      t.expect(r.notes >= 1, 'a gold cup on a new profile opens something: ' + r.notes);
+      t.expect(r.cues.includes('trophy:1') && r.cues.includes('unlock'), 'the fanfare and then the chime: ' + r.cues);
+      t.expect(r.cues.indexOf('trophy:1') < r.cues.indexOf('unlock'), 'in that order');
+      await shot(t, 'S5-06', 'trophy-unlock');
+      await t.checkLayout({ allowScrollY: true });
+      r = await trophy(8);
+      t.equal(r.notes, 0, 'last place opens nothing');
+      t.expect(r.cues.includes('trophy:8') && !r.cues.includes('unlock'), 'so there is no chime: ' + r.cues);
+    },
+  },
+  {
+    name: 'council E S5-06: the record jingle and the unlock chime sit in the cue range (median of 9) and stay under 0.95 at the maximum volume',
+    viewports: ['desktop'],
+    async run(t) {
+      await t.waitIdle(8000);
+      for (const c of ['record', 'unlock']) {
+        const p = [];
+        for (let i = 0; i < 9; i++) p.push((await render(t, 'cue:' + c, 3)).peak);
+        const med = median(p);
+        t.expect(med >= 0.2 && med <= 0.45, c + ' median peak ' + med + ': ' + p.join(', '));
+        t.expect(p.filter((x) => x < 0.2 / 1.19 || x > 0.45 * 1.19).length <= 1, c + ' has more than one repeat 1.5 dB outside: ' + p.join(', '));
+        const loud = [];
+        for (let i = 0; i < 20; i++) loud.push((await render(t, 'cue:' + c, 3, false, [], 1)).peak);
+        t.expect(Math.max(...loud) < 0.95, c + ' at the maximum volume peaks ' + Math.max(...loud));
+      }
+    },
+  },
 ];

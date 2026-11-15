@@ -765,6 +765,7 @@ function showTrophy() {
   clearCup(); refreshCup();
   App.screens.show('trophy', { place, cupName: g.name, unlockedTeam, unlockedClass, unlockedCup, unlockedMirror });
   sfx('trophy', place); // S4-22
+  if (unlockedTeam || unlockedClass || unlockedCup || unlockedMirror) sfx('unlock'); // S5-06: a chime after the fanfare for what the cup opened
   App.gp = null;
 }
 
@@ -878,7 +879,7 @@ function stepOnce() {
     if (App.trialResult && App.trialResult.medalNew) sfx('cheer');
     if (r.mode === 'gp') recordGp(r);
     if (r.mode === 'row') { setTimeout(() => { if (App.race === r) onHeatDone(r); }, window.__TEST__ ? 0 : 1200); return; }
-    setTimeout(() => { if (App.race === r) App.screens.show('results', { results: r.results, laps: r.laps, trackName: App.track.name, gp: r.mode === 'gp', newRecord: App.newRecord, mode: r.mode, trial: App.trialResult, daily: App.dailyResult, fact: nextFact(), custom: custom && r.mode === 'quick' }); }, window.__TEST__ ? 0 : App.skipped ? 300 : 1500);
+    setTimeout(() => { if (App.race === r) App.screens.show('results', { results: r.results, laps: r.laps, trackName: App.track.name, gp: r.mode === 'gp', newRecord: App.newRecord, mode: r.mode, trial: App.trialResult, daily: App.dailyResult, fact: nextFact(), custom: custom && r.mode === 'quick' }); if (App.newRecord || (App.trialResult && App.trialResult.medalNew)) sfx('record'); }, window.__TEST__ ? 0 : App.skipped ? 300 : 1500);
   }
   if (r.phase !== 'done') App._resultsShown = false;
 }

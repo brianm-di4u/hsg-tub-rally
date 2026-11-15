@@ -28,8 +28,8 @@ const SOFT_CLIP = (() => {
 })();
 const DUCK_DB = 6, DUCK_MS = 300; // music dips this much under the big cues
 // Per-cue output trim, found with audioRender so every gameplay cue peaks 0.25 to 0.45 at the shipped volume.
-const CUE_TRIM = { quack: 3.48, splash: 13.2, steam: 7.8, snap: 4.727, whistle: 2.303, cheer: 7.3, bump: 6.03, pickup: 3.096, ticket: 4.856, boost: 6.7, hit: 4.2, ready: 6.581, go: 4.4, menu: 16.265, tick: 11, confirm: 3.6, trophy: 2.2, lap: 2.55, finish: 2.2, finalLap: 3.66, charge: 8.188, land: 6.03, swish: 10.293, alert: 2.91, low: 3.42, dry: 5.42, fall: 10.3 };
-const DUCKS = { boost: 1, hit: 1, finish: 1.9, trophy: 1.9 };
+const CUE_TRIM = { quack: 3.48, splash: 13.2, steam: 7.8, snap: 4.727, whistle: 2.303, cheer: 7.3, bump: 6.03, pickup: 3.096, ticket: 4.856, boost: 6.7, hit: 4.2, ready: 6.581, go: 4.4, menu: 16.265, tick: 11, confirm: 3.6, trophy: 2.2, lap: 2.55, finish: 2.2, finalLap: 3.66, charge: 8.188, land: 6.03, swish: 10.293, record: 2.35, unlock: 3.0, alert: 2.91, low: 3.42, dry: 5.42, fall: 10.3 };
+const DUCKS = { boost: 1, hit: 1, finish: 1.9, trophy: 1.9, record: 1 };
 const SWELLS = { lap: 0.5, finalLap: 0.8, finish: 1 }; // the crowd roars on a lap, the last lap and the finish
 const state = { cues: [], ducks: 0, on: true, music: true, ambience: true, vol: 0.6, musicVol: 1, started: false, theme: null, scene: null, intensity: 0, muffle: false, hidden: false, swell: 0, swells: 0, crowd: 0, wind: 0 };
 
@@ -185,6 +185,7 @@ function noise(dur, { vol = 0.2, at = 0, type = 'bandpass', freq = 1200, q = 1, 
 // underneath and a short reverb tail. Impact cues take the speed of the hit (m/s) and scale with it.
 const READY_HZ = [392, 494, 587]; // was 440 for both beeps
 const GO_HZ = 1175;               // was 880: the octave above the last beep
+const UNLOCK_AT = 1.5; // s after the trophy fanfare starts: the gold one is over by then
 export const SFX = {
   quack() { const b = 520 * 2 ** (((Math.random() * 2 - 1) * 90) / 1200); tone(b, 0.09, { type: 'sawtooth', vol: 0.14, slide: 0.7, formants: [700, 1200], det: 9, rev: 0.12 }); tone(b * 0.9, 0.11, { type: 'sawtooth', vol: 0.14, slide: 0.65, at: 0.1, formants: [650, 1150], det: 9, rev: 0.12 }); },
   splash(big = false) {
@@ -255,6 +256,10 @@ export const SFX = {
   swish() { noise(0.38, { vol: 0.14, freq: 500, q: 0.9, sweep: 5 }); noise(0.3, { vol: 0.06, type: 'highpass', freq: 3000, at: 0.05 }); },
   // something is coming at the player (S1-14, S5-21): a rising two-tone alert, quicker and higher than any pickup
   alert() { [660, 988].forEach((f, i) => { tone(f, 0.1, { type: 'square', vol: 0.09, at: i * 0.1, filter: 2800, det: 7 }); tone(f * 2, 0.08, { type: 'sine', vol: 0.04, at: i * 0.1 }); }); },
+  // S5-06: a new record on the results card (four rising bell notes and a sparkle), and a chime for what a cup unlocked that
+  // starts after the trophy fanfare has finished
+  record() { [784, 988, 1319, 1568].forEach((f, i) => { tone(f, 0.3, { type: 'sine', vol: 0.1, at: i * 0.09, det: 6, rev: 0.3 }); tone(f * 2, 0.18, { type: 'sine', vol: 0.04, at: i * 0.09 }); }); noise(0.3, { vol: 0.04, type: 'highpass', freq: 6000, at: 0.3 }); },
+  unlock() { [523, 659, 784, 1047].forEach((f, i) => { tone(f, 0.5, { type: 'triangle', vol: 0.09, at: UNLOCK_AT + i * 0.1, det: 6, rev: 0.3 }); tone(f * 3, 0.3, { type: 'sine', vol: 0.025, at: UNLOCK_AT + i * 0.1 }); }); },
   // the water is nearly gone (5 gallons): two quick ticks; and gone: a hollow thunk of an empty tub
   low() { [0, 0.13].forEach((at) => { tone(784, 0.05, { type: 'triangle', vol: 0.1, at, det: 6 }); noise(0.03, { vol: 0.05, at, freq: 2400, q: 1.5 }); }); },
   dry() { tone(150, 0.3, { type: 'sine', vol: 0.22, slide: 0.45 }); tone(300, 0.14, { type: 'triangle', vol: 0.08, slide: 0.6, filter: 700, det: 8 }); noise(0.1, { vol: 0.07, type: 'lowpass', freq: 500 }); },
