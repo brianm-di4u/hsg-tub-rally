@@ -24,7 +24,7 @@ export function installHooks(App, api) {
         phase: r.phase, time: +r.time.toFixed(3), laps: r.laps, mode: r.mode, classId: r.classId, player: r.player, seed: r.seed,
         karts: r.karts.map((k) => ({ id: k.id, team: k.team, human: k.human, lap: k.lap, place: k.place, cp: k.cpNext,
           s: +k.s.toFixed(2), d: +k.d.toFixed(2), x: +k.x.toFixed(2), y: +k.y.toFixed(2), z: +k.z.toFixed(2), yaw: +k.yaw.toFixed(3),
-          vf: +k.vf.toFixed(2), gal: +k.water.gal.toFixed(2), cap: k.water.cap, items: { ...k.items }, state: k.state, drift: k.drift,
+          vf: +k.vf.toFixed(2), gal: +k.water.gal.toFixed(2), spill: +k.water.spillFx.toFixed(2), tilt: +k.water.tf.toFixed(3), cap: k.water.cap, items: { ...k.items }, state: k.state, drift: k.drift,
           stage: k.stage, boostT: +k.boostT.toFixed(2), boostKind: k.boostKind, air: k.air, held: k.held, tickets: k.tickets, shield: k.shield, bribes: k.bribes, finished: k.finished, finishT: k.finishT, surf: k.surfType, lapTimes: k.lapTimes })),
         results: r.results,
         items: { bubbles: r.items.bubbles.length, live: r.items.live.map((o) => ({ type: o.type, owner: o.owner })), judges: r.items.judges },
@@ -50,6 +50,8 @@ export function installHooks(App, api) {
           if (s.kart.tickets != null) k.tickets = s.kart.tickets;
           if (s.kart.held !== undefined) { k.held = s.kart.held; k.heldN = s.kart.held === 'jet3' ? 3 : s.kart.held ? 1 : 0; }
           if (s.kart.vf != null) k.vf = s.kart.vf;
+          if (s.kart.spill != null) k.water.spillFx = s.kart.spill;
+          if (s.kart.tilt != null) k.water.tf = s.kart.tilt;
         }
       }
       return summary();

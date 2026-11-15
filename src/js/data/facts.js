@@ -47,6 +47,18 @@ export const FACTS = {
   ],
 };
 
+// S4-03: what the corner caption calls a landmark when the player drives past it (the ids in data/tracks/*.json). Names only,
+// each one already in research/town-content.md or in a fact above.
+export const LANDMARK_NAMES = {
+  superior: 'Superior · Bathhouse Row', hale: 'Hale · Bathhouse Row', maurice: 'Maurice · Bathhouse Row', fordyce: 'Fordyce · Bathhouse Row',
+  quapaw: 'Quapaw · Bathhouse Row', ozark: 'Ozark · Bathhouse Row', buckstaff: 'Buckstaff · Bathhouse Row', lamar: 'Lamar · Bathhouse Row',
+  admin: 'Administration Building', arlington: 'The Arlington', 'army-navy': 'Former Army-Navy Hospital', vapors: 'The Vapors',
+  tower: 'Hot Springs Mountain Tower', pagoda: 'The Pagoda overlook', 'goat-rock': 'Goat Rock', shelter: 'Picnic overlook shelter',
+};
+
+// S2-03: the Water Fight's goal, shown where a course's fact would be (the countdown and the pause menu) and in How to Play.
+export const BATTLE_GOAL = { t: 'Last tub with water wins. Drain rivals with items, and refill at the fountain.' };
+
 export function factFor(id, n = 0) {
   const list = FACTS[id] || FACTS.event;
   return list[n % list.length];

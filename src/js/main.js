@@ -33,7 +33,7 @@ import { Screens } from './ui/screens.js';
 import { loadSave, writeSave, resetSave, saveProblem, saveGrandfathered, storeCup, loadCup, clearCup } from './save.js';
 import { initAudio, setAudio, sfx, tubLoop, rivalLoop, rivalEvent, setListener, USE_CUE, playTheme, playScene, setIntensity, audioState, setMuffle, suspendAudio, resumeAudio } from './ui/audio.js';
 import { dateKey, dailyPlan, liveStreak } from './daily.js';
-import { factAt } from './data/facts.js';
+import { factAt, LANDMARK_NAMES, BATTLE_GOAL } from './data/facts.js';
 import { installHooks } from './hooks.js';
 
 export const App = {
@@ -355,7 +355,8 @@ export async function startRace(opts = {}) {
   playTheme(o.mode === 'row' || o.mode === 'battle' ? 'march' : (trackData(o.track) || {}).env?.music || ((TRACK_BY_ID[o.track] || {}).cup === 'ouachita' ? 'grass' : 'rag'));
   document.body.classList.add('racing');
   App.hud.root.classList.add('on');
-  App.hud.last = {}; App.hud.fact = o.autoplay ? '' : nextFact().t;
+  App.hud.last = {}; App.hud.fact = o.autoplay ? '' : o.mode === 'battle' ? BATTLE_GOAL.t : nextFact().t;
+  App.hud.lmT = 0; App.hud.el.lm.classList.remove('show'); App.lmSeen = new Set(); App.lmS = null;
   if (window.TR_TEACH) { if (tips && window.TR_TEACH.api) window.TR_TEACH.tipStart(App.hud, () => persistSave({ settings: { seenIntro: true } })); else window.TR_TEACH.tipStop(); }
   return App.race;
 }
@@ -432,7 +433,7 @@ function resumeCountdown(dt) {
 function togglePause(force) {
   if (App.scene !== 'race' || !App.race || App.race.phase === 'done') return;
   App.paused = force ?? !App.paused;
-  if (App.paused) { App.resumeT = 0; App.pauseFact = nextFact(); App.screens.show('pause', { fact: App.pauseFact }); } else { App.resumeT = RESUME_HOLD; App.resumeN = 0; App.screens.hide(); }
+  if (App.paused) { App.resumeT = 0; App.pauseFact = App.raceOpts && App.raceOpts.mode === 'battle' ? BATTLE_GOAL : nextFact(); App.screens.show('pause', { fact: App.pauseFact }); } else { App.resumeT = RESUME_HOLD; App.resumeN = 0; App.screens.hide(); }
 }
 
 // courses that are built (data present) in registry order, with card info
@@ -589,7 +590,7 @@ function onMenu(act, data) {
     case 'quit': App.gp = null; gotoTitle(); break;
     case 'set': {
       let v = data.v;
-      if (v === 'true') v = true; else if (v === 'false') v = false; else if (data.k === 'hudScale' || data.k === 'volume') v = +v;
+      if (v === 'true') v = true; else if (v === 'false') v = false; else if (data.k === 'hudScale' || data.k === 'volume' || data.k === 'musicVol') v = +v;
       persistSave({ settings: { [data.k]: v } });
       App.screens.show('settings');
       break;
@@ -720,6 +721,7 @@ function playerFeedback(me) {
     if (e.type === 'use') sfx(USE_CUE[e.item] || 'menu');
     if (e.type === 'boost') { App.hud.flash(e.kind === 'hot' ? 'HOT STEAM!' : e.kind === 'start' ? 'GREAT START!' : 'WARM STEAM', 'boost', 1); App.cam.punch = e.kind === 'hot' ? 6 : 4; App.cam.shake = Math.max(App.cam.shake, 0.25); }
     else if (e.type === 'fumble') { App.hud.flash('Dropped the ' + (e.item || 'item') + '! Circle the tub!', 'bad', 1.6); App.cam.shake = 0.8; App.views[me.id].flash = 1; }
+    else if (e.type === 'taskFail') App.hud.flash('Judges say no! Dropped the ' + (e.item || 'item') + '. Circle the tub!', 'bad', 1.8);
     else if (e.type === 'wall' && e.v > 7) App.cam.shake = Math.min(1, e.v / 14);
     else if (e.type === 'land' && e.v > 7) App.cam.shake = 0.4;
     else if (e.type === 'hit') { App.cam.shake = 0.7; App.cam.punch = 3; }
@@ -763,6 +765,7 @@ function stepOnce() {
     if (r.phase === 'race' && r.time <= DT * 1.01) sfx('go');
   }
   if (me) playerFeedback(me);
+  if (me && !App.raceOpts.autoplay && r.phase === 'race') landmarkCaption(me.s);
   if (me && window.TR_TEACH) { const i = inputs[r.player]; window.TR_TEACH.tipStep({ race: r, me, steer: i.steer, hop: i.hop, brake: i.brake, dev: INPUT.last, auto: INPUT.autoPush, binds: getBindings() }); }
   for (const e of r.events) {
     if (me && e.kart === me.id && e.type === 'lap') { if (e.lap === r.laps) setIntensity(1); if (e.lap > r.laps) sfx('finish', r.finishOrder.indexOf(me.id) + 1 || me.place); else sfx(e.lap === r.laps ? 'finalLap' : 'lap'); }
@@ -785,13 +788,13 @@ function stepOnce() {
     }
     // Time Trial runs of the par length are scored against the par ghost's medal times
     const trial = record && r.mode === 'timetrial' && r.classId === 'scald' && r.laps === PAR_LAPS && parOf(record.track)
-      ? { track: record.track, race: record.value.race, lap: record.value.lap, medal: medalFor(record.track, record.finishT) } : null;
+      ? { track: record.track, race: record.value.race, lap: record.value.lap, medal: medalFor(record.track, record.finishT), ghost: record.ghost } : null;
     // the Daily Race is its own board: its fixed field and short length never touch a course's best time
     const daily = App.raceOpts && App.raceOpts.daily && me && me.finished ? (() => { const h = r.results.find((x) => x.human); return h ? { date: App.raceOpts.daily, track: App.track.id, team: me.team, place: h.place, time: +h.time.toFixed(3) } : null; })() : null;
     if (daily) record = null;
     const saved = persistSave({ race: { token: r, won: !!(r.results[0] && r.results[0].human), record, trial, daily, spilled: me ? me.water.spilled : 0 } });
     App.newRecord = !!saved.recordAccepted && (saved.hadBest || r.mode === 'timetrial');
-    App.trialResult = trial ? { ...trial, medalNew: !!saved.medalNew, trialBest: !!saved.trialBest, lapBest: !!saved.lapBest, times: medalTimes(trial.track), parLap: parOf(trial.track).lap } : null;
+    App.trialResult = trial ? { ...trial, ghost: undefined, medalNew: !!saved.medalNew, trialBest: !!saved.trialBest, lapBest: !!saved.lapBest, times: medalTimes(trial.track), parLap: parOf(trial.track).lap } : null;
     App.dailyResult = daily ? { ...daily, streak: saved.streak, streakBest: !!saved.streakBest, first: !!saved.dailyFirst, better: !!saved.dailyBest } : null;
     if (App.trialResult && App.trialResult.medalNew) sfx('cheer');
     if (r.mode === 'gp') recordGp(r);
@@ -799,6 +802,17 @@ function stepOnce() {
     setTimeout(() => { if (App.race === r) App.screens.show('results', { results: r.results, laps: r.laps, trackName: App.track.name, gp: r.mode === 'gp', newRecord: App.newRecord, mode: r.mode, trial: App.trialResult, daily: App.dailyResult, fact: nextFact() }); }, window.__TEST__ ? 0 : 1500);
   }
   if (r.phase !== 'done') App._resultsShown = false;
+}
+
+// S4-03: name each landmark once, the first time the player's tub passes it
+const LANDMARK_JUMP = 10; // metres: a tub never moves this far in one step, so a bigger jump is a respawn, not a pass
+function landmarkCaption(s) {
+  const prev = App.lmS;
+  App.lmS = s;
+  if (prev == null || s < prev || s - prev > LANDMARK_JUMP) return; // the start line, a respawn or a spin backwards
+  for (const lm of App.track.json.landmarks || []) {
+    if (LANDMARK_NAMES[lm.id] && lm.s != null && lm.s > prev && lm.s <= s && !App.lmSeen.has(lm.id)) { App.lmSeen.add(lm.id); App.hud.landmark(LANDMARK_NAMES[lm.id]); }
+  }
 }
 
 // One exception in a frame must not freeze the picture: report it (once per message), then still draw.

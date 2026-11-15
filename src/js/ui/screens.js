@@ -186,6 +186,9 @@ const TEMPLATES = {
           <li>Your tub starts full. Hard turns, slides, landings and hits slosh water out. Crowds' water blasters, refill buckets, fountains and creek fords top you up.</li>
           <li>More water is heavier: steadier, but slower to get going.</li>
           <li>Cross the line with <b>10 gallons or more</b> and all four attendant items for a <b>Clean Finish</b> bonus point.</li></ul></section>
+        <section><h3>Water Fight</h3><ul>
+          <li>Eight tubs circle the plaza fountain. Item hits spill more water here, and a dry tub is out.</li>
+          <li>Refill only at the fountain. The last tub with water wins, or the fullest when the 150 second clock ends.</li></ul></section>
         <section><h3>The real rules</h3><ul>
           <li>Inspired by Hot Springs' World Championship Running of the Tubs (since 2006): a captain rides and steers, four bath attendants push, each carrying a towel, bath mat, soap or loofah mitt.</li>
           <li>Get hit and an attendant drops their item: everyone stops and runs once around the tub, just like rule 7.</li></ul></section>
@@ -231,8 +234,9 @@ const TEMPLATES = {
   courses: (app, { list, trial }) => `
     <div class="panel courses" role="dialog" aria-label="Choose a course">
       <canvas data-pixel="CHOOSE A COURSE" data-scale="4"></canvas>
+      ${trial ? `<p class="sub trial-note">Time Trial runs at ${CLASSES.scald.name} speed with no items.</p>` : ''}
       ${mirrorRow(app)}
-      <div class="card-row">${list.map((t, i) => { const best = app.save.best[t.id], tt = (app.save.trial || {})[t.id], mt = medalTimes(t.id); return `<button type="button" class="ccard postcard" data-act="course" data-id="${t.id}" ${i === 0 ? 'autofocus' : ''}><b>${t.name}</b><small>${t.blurb || ''}</small><i class="fact">${factFor(t.id).t}</i><em>${Math.round(t.length || 0)} m lap${(window.TR_INFO || {})[t.id] && window.TR_INFO[t.id].real ? ` · real streets ${(window.TR_INFO[t.id].real / 1000).toFixed(1)} km, compressed` : ''}${trial ? '' : best ? ` · best ${fmtTime(best.race)}${best.lap ? ` · lap ${fmtTime(best.lap)}` : ''}` : ''}</em>${trial ? `<span class="tt">${tt ? `${medalChip(tt.medal)} <span>Best ${fmtTime(tt.race)}${tt.lap ? ` · lap ${fmtTime(tt.lap)}` : ''}</span>` : '<span>No time set yet</span>'}${mt ? `<span class="tgt">Gold ${fmtTime(mt.gold)} · Silver ${fmtTime(mt.silver)} · Bronze ${fmtTime(mt.bronze)}</span>` : ''}</span>` : ''}</button>`; }).join('')}</div>
+      <div class="card-row">${list.map((t, i) => { const best = app.save.best[t.id], tt = (app.save.trial || {})[t.id], mt = medalTimes(t.id); return `<button type="button" class="ccard postcard" data-act="course" data-id="${t.id}" ${i === 0 ? 'autofocus' : ''}><b>${t.name}</b><small>${t.blurb || ''}</small><i class="fact">${factFor(t.id).t}</i><em>${Math.round(t.length || 0)} m lap${(window.TR_INFO || {})[t.id] && window.TR_INFO[t.id].real ? ` · real streets ${(window.TR_INFO[t.id].real / 1000).toFixed(1)} km, compressed` : ''}${trial ? '' : best ? ` · best ${fmtTime(best.race)}${best.lap ? ` · lap ${fmtTime(best.lap)}` : ''}${CLASSES[best.cls] ? ` (${CLASSES[best.cls].name})` : ''}` : ''}</em>${trial ? `<span class="tt">${tt ? `${medalChip(tt.medal)} <span>Best ${fmtTime(tt.race)}${tt.lap ? ` · lap ${fmtTime(tt.lap)}` : ''}</span>` : '<span>No time set yet</span>'}${mt ? `<span class="tgt">Gold ${fmtTime(mt.gold)} · Silver ${fmtTime(mt.silver)} · Bronze ${fmtTime(mt.bronze)}</span>` : ''}</span>` : ''}</button>`; }).join('')}</div>
       <nav class="menu row">${btn('back', 'Back', 'data-back')}</nav>
     </div>`,
   standings: (app, { rows, round, rounds, cupName, final }) => `
@@ -261,7 +265,7 @@ const TEMPLATES = {
       <div class="help-cols">
         <section><h3>The rules (from the real event)</h3><ul>
           <li>Captain rides and steers; four bath attendants push, each holding a towel, bath mat, soap or loofah mitt.</li>
-          <li>Stop at every <b>blue feather flag</b> and do the judges' task.</li>
+          <li>Stop at every <b>blue feather flag</b> and do the judges' task. Take too long and you drop an item and circle the tub.</li>
           <li>Cross the line with <b>10 gallons or more</b> and all four items, or you are <b>disqualified</b>.</li>
           <li>The judges may give one team a head start on a whim.</li></ul></section>
         <section><h3>${DIVISIONS[TEAM_BY_ID[team].div].name} division bracket</h3><ul class="bracket">
@@ -324,7 +328,9 @@ const TEMPLATES = {
       <div class="set-row two"><span>Sound</span>${opt('sound', 'true', 'On', String(s.sound))}${opt('sound', 'false', 'Off', String(s.sound))}</div>
       <div class="set-row two"><span>Volume</span>${[['0.3', 'Quiet'], ['0.6', 'Normal'], ['1', 'Loud']].map(([v, l]) => opt('volume', v, l, s.volume < 0.45 ? '0.3' : s.volume < 0.8 ? '0.6' : '1')).join('')}</div>
       <div class="set-row two"><span>Music</span>${opt('music', 'true', 'On', String(s.music))}${opt('music', 'false', 'Off', String(s.music))}</div>
+      <div class="set-row two"><span>Music level</span>${[['0.4', 'Low'], ['0.7', 'Medium'], ['1', 'Normal']].map(([v, l]) => opt('musicVol', v, l, s.musicVol < 0.55 ? '0.4' : s.musicVol < 0.85 ? '0.7' : '1')).join('')}</div>
       <div class="set-row two"><span>Ambience</span>${opt('ambience', 'true', 'On', String(s.ambience))}${opt('ambience', 'false', 'Off', String(s.ambience))}</div>
+      ${s.sound === false && (s.music !== false || s.ambience !== false) ? '<p class="set-note" role="status">Sound is Off, so Music and Ambience are silent too.</p>' : ''}
       <div class="set-row two"><span>Motion</span>${opt('reducedMotion', 'false', 'Full', String(s.reducedMotion))}${opt('reducedMotion', 'true', 'Reduced', String(s.reducedMotion))}</div>
       <div class="set-row two"><span>Race tips</span>${opt('seenIntro', 'false', 'Show', String(s.seenIntro))}${opt('seenIntro', 'true', 'Hide', String(s.seenIntro))}</div>
       <div class="set-row two"><span>Controls</span><button type="button" class="chip" data-act="controls">Change keys</button></div>

@@ -31,7 +31,7 @@ const DUCK_DB = 6, DUCK_MS = 300; // music dips this much under the big cues
 const CUE_TRIM = { quack: 3.48, splash: 13.2, steam: 7.8, snap: 4.727, whistle: 2.303, cheer: 7.3, bump: 6.03, pickup: 3.096, ticket: 4.856, boost: 6.7, hit: 4.2, ready: 6.581, go: 4.4, menu: 16.265, lap: 2.55, finish: 2.2, finalLap: 3.66, charge: 8.188, land: 6.03, swish: 10.293 };
 const DUCKS = { boost: 1, hit: 1, finish: 1.9 };
 const SWELLS = { lap: 0.5, finalLap: 0.8, finish: 1 }; // the crowd roars on a lap, the last lap and the finish
-const state = { cues: [], ducks: 0, on: true, music: true, ambience: true, vol: 0.6, started: false, theme: null, scene: null, intensity: 0, muffle: false, hidden: false, swell: 0, swells: 0, crowd: 0, wind: 0 };
+const state = { cues: [], ducks: 0, on: true, music: true, ambience: true, vol: 0.6, musicVol: 1, started: false, theme: null, scene: null, intensity: 0, muffle: false, hidden: false, swell: 0, swells: 0, crowd: 0, wind: 0 };
 
 const OPEN_HZ = 5200; // was 22000: a gentle low-pass keeps the tune under the cues
 const FADE_MUSIC = 1.6, FADE_AMB = 2.5; // seconds to crossfade between pieces and between places
@@ -70,7 +70,7 @@ function withContext(c, vol, fn) {
 }
 
 export function initAudio(settings) {
-  state.on = settings.sound !== false; state.music = settings.music !== false; state.ambience = settings.ambience !== false; state.vol = settings.volume ?? 0.6;
+  state.on = settings.sound !== false; state.music = settings.music !== false; state.ambience = settings.ambience !== false; state.vol = settings.volume ?? 0.6; state.musicVol = settings.musicVol ?? 1;
   const start = () => {
     if (!state.started) unlock();
     // iPad Safari can suspend an existing context while backgrounded. Resume it
@@ -92,7 +92,7 @@ function unlock() {
     ctx = new AC();
     bindBuses(makeBuses(ctx, state.vol));
     master.gain.value = state.on ? state.vol * MASTER_K : 0;
-    kit = newKit(ctx, { music: state.music ? MUSIC_BUS : 0, ambience: state.ambience ? AMBIENCE_BUS : 0 }); applyHold(); kit.music.intensity(state.intensity);
+    kit = newKit(ctx, { music: state.music ? MUSIC_BUS * state.musicVol : 0, ambience: state.ambience ? AMBIENCE_BUS : 0 }); applyHold(); kit.music.intensity(state.intensity);
     // a silent one-frame buffer on the gesture finishes the iOS unlock
     const silent = ctx.createBufferSource(); silent.buffer = ctx.createBuffer(1, 1, 22050); silent.connect(ctx.destination); silent.start(0);
     kit.start();
@@ -102,11 +102,11 @@ function unlock() {
 }
 
 // Music and ambience each have their own switch; the Sound switch (the master) silences everything.
-function applyLevels() { if (!kit) return; kit.music.level(state.music ? MUSIC_BUS : 0); kit.amb.level(state.ambience ? AMBIENCE_BUS : 0); }
+function applyLevels() { if (!kit) return; kit.music.level(state.music ? MUSIC_BUS * state.musicVol : 0); kit.amb.level(state.ambience ? AMBIENCE_BUS : 0); }
 // Under the pause card and while the page is hidden both buses fade out and nothing new is scheduled.
 function applyHold() { if (!kit) return; if (state.muffle || state.hidden) kit.hold(); else if (kit.held) kit.release(); }
 export function setAudio(settings) {
-  state.on = settings.sound !== false; state.music = settings.music !== false; state.ambience = settings.ambience !== false; state.vol = settings.volume ?? state.vol;
+  state.on = settings.sound !== false; state.music = settings.music !== false; state.ambience = settings.ambience !== false; state.vol = settings.volume ?? state.vol; state.musicVol = settings.musicVol ?? state.musicVol;
   if (!ctx) return;
   master.gain.setTargetAtTime(state.on ? state.vol * MASTER_K : 0, ctx.currentTime, 0.05);
   applyLevels();
@@ -124,7 +124,7 @@ export function resumeAudio() {
   if (ctx.state !== 'running') ctx.resume().catch(() => {});
 }
 export function audioState() {
-  return { started: state.started, on: state.on, music: state.music, ambience: state.ambience, muffled: state.muffle, theme: state.theme, scene: state.scene, intensity: state.intensity, ctx: ctx ? ctx.state : 'none', ducks: state.ducks, rivals: { ...rivalInfo, voices: rivalInfo.voices.slice() }, slide: { ...slideInfo }, cues: state.cues.slice(),
+  return { started: state.started, on: state.on, music: state.music, musicVol: state.musicVol, ambience: state.ambience, muffled: state.muffle, theme: state.theme, scene: state.scene, intensity: state.intensity, ctx: ctx ? ctx.state : 'none', ducks: state.ducks, rivals: { ...rivalInfo, voices: rivalInfo.voices.slice() }, slide: { ...slideInfo }, cues: state.cues.slice(),
     amb: { crowd: +state.crowd.toFixed(3), wind: +state.wind.toFixed(3), swells: state.swells }, kit: kit ? { ...kit.levels(), info: kit.music.info() } : null,
     mix: ctx ? { master: +master.gain.value.toFixed(3), sfx: sfxBus.gain.value, musicLP: Math.round(musicLP.frequency.value), limiter: { threshold: comp.threshold.value, ratio: comp.ratio.value } } : null };
 }

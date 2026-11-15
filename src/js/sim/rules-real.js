@@ -9,6 +9,7 @@
 //  - Finish with ≥ 10 gallons and all four items, or be disqualified (rules 8–9). Bath tickets are bribes
 //    (rule 17); the judges may hand out a head start on a whim (rule 18).
 import { makeRace } from './race.js';
+import { fumble } from './kart.js';
 import { MIN_FINISH_GAL } from './water.js';
 import { TEAMS } from '../data/teams.js';
 
@@ -19,6 +20,11 @@ export const TASKS = {
   pushups: { name: 'Push-ups', how: 'Alternate LEFT and RIGHT six times', kind: 'alt', need: 6 },
   yodel: { name: 'Yodeling', how: 'Hold HOP for a long yodel', kind: 'hold', secs: 1.3 },
 };
+// P-N05: a judge task can be failed. The judges wait this long for the player's team (it was 12 s for every task, and then they
+// passed you); a team that runs out of time, or an AI team that flubs it, drops an attendant item and circles the tub (rule 7).
+export const TASK_LIMIT = { timing: 6, mash: 5, alt: 5, hold: 5 }; // seconds; was a free pass after 12 s
+// the chance a rival's team flubs a task, by speed class (was 0: every rival passed every stop)
+export const TASK_FLUB = { splash: 0.25, soak: 0.15, scald: 0.08, boil: 0.04 };
 export const BADGE_TEAMS = ['engine-six', 'bubble-patrol', 'suds-posse'];
 
 // The run on the Bathhouse Row course: start in front of the Arlington, finish at the Exchange St crosswalk.
@@ -73,7 +79,7 @@ export function stepRow(race, track, inputs, dt) {
       if (k.stopDone[j]) continue;
       const ds = track.ds(st.s, k.s);
       if (ds >= -st.len / 2 && ds <= st.len / 2 && !k.task) {
-        k.task = { j, id: st.task, t: 0, n: 0, last: null, hold: 0, ok: false, marker: 0 };
+        k.task = { j, id: st.task, t: 0, n: 0, last: null, hold: 0, ok: false, marker: 0, flub: !!race.drivers[i] && TASKS[st.task].kind !== 'auto' && race.rng.race.chance(TASK_FLUB[race.drivers[i].cls.id] ?? 0) };
         k.state = 'judge'; k.stateT = 99; k.drift = 0; k.boostT = 0;
         k.events.push({ type: 'judge', task: st.task });
       }
@@ -97,7 +103,7 @@ function stepTask(race, k, inp, drv, dt) {
   k.vf *= Math.max(0, 1 - 6 * dt);
   if (drv) { // AI does the task in a time set by difficulty
     const need = { auto: def.secs || 1.6, timing: 1.4, mash: 2.0, alt: 2.4, hold: 1.8 }[def.kind] * (1.25 - drv.cls.aggro * 0.4);
-    if (T.t >= need) T.ok = true;
+    if (T.t >= need) { if (T.flub) T.failed = true; else T.ok = true; }
   } else {
     inp = inp || {};
     if (def.kind === 'auto') { if (T.t >= def.secs) T.ok = true; }
@@ -108,11 +114,15 @@ function stepTask(race, k, inp, drv, dt) {
       T.marker = (Math.sin(T.t * 3.2) + 1) / 2; // 0..1 swing; the tub sits at 0.42–0.58
       if (inp.item) { if (T.marker > 0.4 && T.marker < 0.6) T.ok = true; else T.t += 0.5; }
     }
-    if (T.t > 12) T.ok = true; // the judges give up waiting
+    if (T.t > (TASK_LIMIT[def.kind] ?? 12) && !T.ok) T.failed = true; // the judges run out of patience
   }
-  if (T.ok) {
+  if (T.ok || T.failed) {
     k.stopDone[T.j] = true; k.task = null; k.state = 'run'; k.stateT = 0;
-    k.events.push({ type: 'taskDone', task: T.id });
+    if (T.failed) {
+      race.row.fails = (race.row.fails || 0) + 1;
+      fumble(k, race.rng.items, 3);
+      k.events.push({ type: 'taskFail', task: T.id, item: k.dropped });
+    } else k.events.push({ type: 'taskDone', task: T.id });
   }
 }
 

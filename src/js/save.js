@@ -13,7 +13,7 @@ const touchDevice = () => { try { return !!window.matchMedia('(pointer: coarse)'
 export const DEFAULT_SAVE = () => ({
   v: 1,
   // seenIntro: first-run tips shown (S2-01); older saves count as seen
-  settings: { sound: true, music: true, ambience: true, volume: 0.6, res: 'native', quality: 'auto', autoPush: touchDevice(), steerAssist: false, reducedMotion: null, hudScale: 1, keys: null, mirror: false, seenIntro: false },
+  settings: { sound: true, music: true, ambience: true, volume: 0.6, musicVol: 1, res: 'native', quality: 'auto', autoPush: touchDevice(), steerAssist: false, reducedMotion: null, hudScale: 1, keys: null, mirror: false, seenIntro: false },
   // rec: the unlock record's version. A save that has none was written before wave 2 and keeps everything it could use (see projection)
   unlocked: { teams: [], cups: ['bathhouse'], classes: ['splash', 'soak'], mirror: false, rec: 2 },
   best: {}, // trackId → the complete winning race record, including its lap
@@ -97,6 +97,7 @@ function projection(raw) {
   st.keys = cleanKeys(st.keys);
   st.seenIntro = raw !== null && !(object(s.settings) && own(s.settings, 'seenIntro')) ? true : st.seenIntro === true;
   st.volume = Number.isFinite(st.volume) ? Math.min(1, Math.max(0, st.volume)) : d.settings.volume;
+  st.musicVol = Number.isFinite(st.musicVol) ? Math.min(1, Math.max(0.1, st.musicVol)) : d.settings.musicVol; // how loud the music sits under the effects; 1 is the shipped mix
   if (!['authentic', 'crisp', 'native'].includes(st.res)) st.res = d.settings.res;
   if (!['auto', 'low', 'medium', 'high'].includes(st.quality)) st.quality = d.settings.quality;
   // Apply the existing migration before this action's explicit resolution choice.
@@ -203,7 +204,10 @@ export function createSaveWriter({
     for (const c of trials) {
       const old = out.trial[c.track];
       const medal = Number.isInteger(c.medal) ? Math.min(3, Math.max(0, c.medal)) : 0;
-      c.info.trialBest = !old || c.race < old.race; c.info.lapBest = Number.isFinite(c.lap) && (!old || !old.lap || c.lap < old.lap);
+      c.info.trialBest = !old || c.race < old.race;
+      // the ghost you race follows your Time Trial best, even when a Quick Race has set a faster time on the same course
+      if (c.info.trialBest && object(c.ghost)) out.ghosts[c.track] = copy(c.ghost);
+      c.info.lapBest = Number.isFinite(c.lap) && (!old || !old.lap || c.lap < old.lap);
       c.info.medal = medal; c.info.medalNew = !!old ? medal > old.medal : medal > 0;
       out.trial[c.track] = { race: old ? Math.min(old.race, c.race) : c.race, lap: Number.isFinite(c.lap) ? (old && old.lap ? Math.min(old.lap, c.lap) : c.lap) : (old ? old.lap : null), medal: old ? Math.max(old.medal, medal) : medal };
     }

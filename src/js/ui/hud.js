@@ -12,6 +12,18 @@ const ITEM_ICONS = { towel: '#F4F1EA', mat: '#3FA8C0', soap: '#F7B6CE', loofah: 
 const ITEM_NAMES = { towel: 'Towel', mat: 'Bath mat', soap: 'Soap', loofah: 'Loofah mitt' };
 const ITEM_LABELS = { towel: 'Towel', mat: 'Mat', soap: 'Soap', loofah: 'Loofah' }; // whole words that fit a 46 px pip
 
+// S1-15: the water gauge leans with the slosh (tilt in radians, at most TILT_MAX either way) and says SPILLING while the
+// spill glow is above SPILL_SHOW; a call-out names the cause when it passes SPILL_CALL, at most SPILL_CALLS a race and
+// SPILL_GAP seconds apart, and never over another call-out.
+const TILT_MAX = 0.25, TILT_SLOPE = 1, SPILL_SHOW = 0.2, SPILL_CALL = 0.5, SPILL_CALLS = 2, SPILL_GAP = 10;
+
+// What was spilling the water: a slide, a landing, or the turns and bumps of plain driving.
+export function spillHint(k) {
+  if (k.drift) return 'Slides spill water. Ease off to keep it.';
+  if (k.air) return 'Big jumps spill water. Land softly.';
+  return 'Hard turns and bumps spill water.';
+}
+
 export function fmtTime(t) {
   if (t == null || !isFinite(t)) return '-:--.--';
   t = Math.max(0, t);
@@ -28,11 +40,11 @@ export class Hud {
       <div class="hud-item" aria-hidden="true"><div class="bubble"><canvas class="item-icon" width="48" height="48"></canvas></div><div class="tickets"><span class="tk-ico"></span><b class="tk-n">0</b><small class="tk-l">tickets</small></div></div>
       <div class="hud-bl"><canvas class="hud-water" width="150" height="96" aria-hidden="true"></canvas><div class="hud-pips" aria-hidden="true"></div></div>
       <canvas class="hud-map" width="150" height="150" aria-hidden="true"></canvas>
-      <div class="hud-center"><canvas class="hud-count" aria-hidden="true"></canvas><div class="hud-call" role="status" aria-live="polite"></div><p class="hud-fact" aria-hidden="true"></p></div>
+      <div class="hud-center"><canvas class="hud-count" aria-hidden="true"></canvas><div class="hud-call" role="status" aria-live="polite"></div><p class="hud-fact" aria-hidden="true"></p><p class="hud-lm" aria-hidden="true"></p></div>
       <div class="hud-task" role="status" aria-live="assertive"><b class="t-name"></b><span class="t-how"></span><canvas class="t-meter" width="220" height="26" aria-hidden="true"></canvas></div>
       <div class="sr-only" aria-live="polite" id="hud-sr"></div>`;
     const q = (s) => root.querySelector(s);
-    this.el = { lap: q('.hud-lap'), time: q('.hud-time'), timeC: q('.hud-timec'), place: q('.hud-place'), water: q('.hud-water'), pips: q('.hud-pips'), map: q('.hud-map'), count: q('.hud-count'), call: q('.hud-call'), fact: q('.hud-fact'), icon: q('.item-icon'), tk: q('.tk-n'), tkL: q('.tk-l'), parL: q('.hud-par'), sr: q('#hud-sr'), item: q('.hud-item'), task: q('.hud-task'), tname: q('.t-name'), thow: q('.t-how'), tmeter: q('.t-meter') };
+    this.el = { lap: q('.hud-lap'), time: q('.hud-time'), timeC: q('.hud-timec'), place: q('.hud-place'), water: q('.hud-water'), pips: q('.hud-pips'), map: q('.hud-map'), count: q('.hud-count'), call: q('.hud-call'), fact: q('.hud-fact'), lm: q('.hud-lm'), icon: q('.item-icon'), tk: q('.tk-n'), tkL: q('.tk-l'), parL: q('.hud-par'), sr: q('#hud-sr'), item: q('.hud-item'), task: q('.hud-task'), tname: q('.t-name'), thow: q('.t-how'), tmeter: q('.t-meter') };
     this.el.pips.innerHTML = Object.keys(ITEM_ICONS).map((k) => `<span class="pip pip-${k}" title="${ITEM_NAMES[k]}"><i></i><em>${ITEM_LABELS[k]}</em></span>`).join('');
     this.last = {};
     this.callT = 0;
@@ -78,6 +90,12 @@ export class Hud {
     this.callT = secs;
     this.el.sr.textContent = text;
   }
+  // S4-03: a quiet caption for a landmark the tub has just passed
+  landmark(text, secs = 2.6) {
+    this.el.lm.textContent = text;
+    this.el.lm.classList.add('show');
+    this.lmT = secs;
+  }
   update(race, track, me, dt) {
     const L = this.last, el = this.el;
     // countdown / go
@@ -89,7 +107,7 @@ export class Hud {
       if (ct) el.sr.textContent = ct;
     }
     // S2-25: a local fact under READY and SET, unless a first-run tip is already talking
-    const factOn = !!this.fact && (race.phase === 'countdown' || race.time < 0.9) && !this.root.querySelector('.hud-tip:not([hidden])');
+    const factOn = !!this.fact && (race.phase === 'countdown' || race.time < (race.battle ? 6 : 0.9)) && !this.root.querySelector('.hud-tip:not([hidden])');
     if (factOn !== L.factOn || (factOn && el.fact.textContent !== this.fact)) { L.factOn = factOn; el.fact.textContent = this.fact; el.fact.classList.toggle('show', factOn); }
     if (!me) return;
     // lap
@@ -109,7 +127,13 @@ export class Hud {
     }
     // water gauge
     const gal = Math.round(me.water.gal * 2) / 2;
-    if (gal !== L.gal || me.water.cap !== L.cap) { L.gal = gal; L.cap = me.water.cap; this.drawWater(me.water); }
+    // S1-15: the surface tilts with the slosh, and a spill says what caused it
+    const tilt = Math.round(Math.max(-TILT_MAX, Math.min(TILT_MAX, me.water.tf)) * 40), spilling = me.water.spillFx > SPILL_SHOW;
+    if (gal !== L.gal || me.water.cap !== L.cap || tilt !== L.tilt || spilling !== L.spilling) { L.gal = gal; L.cap = me.water.cap; L.tilt = tilt; L.spilling = spilling; this.drawWater(me.water, tilt / 40, spilling); }
+    if (me.water.spillFx > SPILL_CALL && !(this.callT > 0) && (L.spillN || 0) < SPILL_CALLS && race.time - (L.spillAt ?? -99) >= SPILL_GAP && race.phase === 'race' && !race.battle) {
+      L.spillN = (L.spillN || 0) + 1; L.spillAt = race.time;
+      this.flash(spillHint(me), 'bad', 2);
+    }
     // attendant items
     const held = Object.entries(me.items).map(([k, v]) => (v ? 1 : 0)).join('');
     if (held !== L.held) {
@@ -134,6 +158,7 @@ export class Hud {
     }
     if (tk) this.drawTask(tk);
     // call-outs
+    if (this.lmT > 0) { this.lmT -= dt; if (this.lmT <= 0) el.lm.classList.remove('show'); }
     if (this.callT > 0) { this.callT -= dt; if (this.callT <= 0) el.call.className = 'hud-call'; }
   }
   drawTask(tk) {
@@ -153,7 +178,7 @@ export class Hud {
     }
     g.strokeStyle = '#FFF6C8'; g.lineWidth = 2; g.strokeRect(1, 1, W - 2, H - 2);
   }
-  drawWater(w) {
+  drawWater(w, tilt = 0, spilling = false) {
     const c = this.el.water, g = c.getContext('2d'), W = c.width, H = c.height;
     g.clearRect(0, 0, W, H);
     const fill = w.cap ? w.gal / w.cap : 0;
@@ -166,7 +191,9 @@ export class Hud {
     g.clip();
     const wy = bot - (bot - top) * fill;
     g.fillStyle = fill < MIN_FINISH_GAL / w.cap ? '#E2574C' : '#3FA8C0';
-    g.fillRect(0, wy, W, H);
+    // the surface leans with the slosh: water banks up behind the tub when it accelerates (tf < 0)
+    const lean = -tilt * TILT_SLOPE * (W / 2);
+    g.beginPath(); g.moveTo(0, wy - lean); g.lineTo(W, wy + lean); g.lineTo(W, H); g.lineTo(0, H); g.closePath(); g.fill();
     // stripes on the water (pattern cue, not colour alone)
     g.fillStyle = 'rgba(255,255,255,0.28)'; for (let x = -20; x < W; x += 12) { g.beginPath(); g.moveTo(x, wy); g.lineTo(x + 6, wy); g.lineTo(x + 6 - 30, bot + 10); g.lineTo(x - 30, bot + 10); g.fill(); }
     // 10-gallon line
@@ -178,6 +205,7 @@ export class Hud {
     g.fillStyle = '#2A1A10'; g.beginPath(); g.roundRect(x1 - 30, ly - 9, 24, 18, 4); g.fill();
     g.fillStyle = '#FFF6C8'; g.font = 'bold 14px system-ui, sans-serif'; g.textAlign = 'center'; g.fillText('10', x1 - 18, ly + 5); g.textAlign = 'left';
     for (const fx of [x0 + 22, x1 - 22]) { g.fillStyle = '#C9A24A'; g.fillRect(fx - 4, bot, 8, 7); }
+    if (spilling) { g.fillStyle = '#FF9A8C'; g.font = 'bold 12px system-ui, sans-serif'; g.textAlign = 'center'; g.fillText('SPILLING', W / 2, 14); }
     g.fillStyle = '#FFFFFF'; g.font = 'bold 15px system-ui, sans-serif'; g.textAlign = 'center';
     g.fillText(`${w.gal.toFixed(0)} GAL`, W / 2, H - 6); g.textAlign = 'left';
   }
