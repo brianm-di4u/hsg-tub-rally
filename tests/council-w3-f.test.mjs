@@ -200,4 +200,22 @@ export const tests = [
       t.equal(await line(), 'Sgt. Penny Suds (you): “Pull over, citizen!”', 'your own captain speaks when you win');
     },
   },
+  // ---------------------------------------------------------------- S4-06
+  {
+    name: 'council F S4-06: Goat Rock & Gulpha Gorge is paved like Mountain Drive, with clay tiles only at its creek fords',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await t.waitIdle(8000);
+      const roads = () => t.page.evaluate(() => { const out = {}; window.TR_APP.App.world.traverse((o) => { const m = /^road:(\w+)#/.exec(o.name || ''); if (m && o.geometry) out[m[1]] = (out[m[1]] || 0) + (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; }); return out; });
+      await t.game('newGame', { mode: 'timetrial', count: 1, track: 'goat-rock-gulpha', seed: 3 }); await t.waitFrames(5);
+      const g = await roads();
+      t.expect(g.asphalt > 0 && (g.dirt || 0) < 0.25 * g.asphalt, 'Goat Rock: almost all asphalt, a little clay at the fords: ' + JSON.stringify(g));
+      t.expect((g.dirt || 0) > 0, 'the clay tiles are still there at the fords: ' + JSON.stringify(g));
+      await t.game('act', 'teleport', 200, 0); await t.waitFrames(30);
+      await shot(t, 'S4-06', 'goat-rock-road');
+      await t.game('newGame', { mode: 'timetrial', count: 1, track: 'west-mountain', seed: 3 }); await t.waitFrames(5);
+      const w = await roads();
+      t.expect((w.dirt || 0) > 0.15 * w.asphalt, 'West Mountain keeps its own clay stretch: ' + JSON.stringify(w));
+    },
+  },
 ];

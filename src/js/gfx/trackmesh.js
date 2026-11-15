@@ -34,6 +34,7 @@ export function buildTrackWorld(THREE, track, env = {}) {
   group.name = 'world';
   const n = track.n, step = track.step, a = track.a;
   const nChunks = Math.ceil(n / CHUNK);
+  const fords = (track.zones || []).filter((z) => z.type === 'ford');
   // material buckets: key → { mat, geos[chunk] }
   const buckets = {};
   const bucket = (key, makeMat) => {
@@ -83,7 +84,8 @@ export function buildTrackWorld(THREE, track, env = {}) {
     const c0 = frameAt(i), c1 = j === 0 ? track.at(track.length - 1e-6) : frameAt(j);
     const s0 = i * step, s1 = s0 + step;
     // --- road: 4 lateral strips
-    const sf = a.surf ? a.surf[i] : 0;
+    // S4-06: Goat Rock's park road is paved like Mountain Drive; its clay tiles stay within 14 m of a creek ford
+    const sf = a.surf ? (a.surf[i] === 3 && track.id === 'goat-rock-gulpha' && !fords.some((z) => s0 > z.s0 - 14 && s0 < z.s1 + 14) ? 0 : a.surf[i]) : 0;
     const texName = SURF_TEX[sf] || 'asphalt', SF = SURF[texName];
     // metres per uv unit
     const uScale = sf === 1 ? 2.5 : 5;
