@@ -94,7 +94,7 @@ const FRAG_COMMON = `
   #ifdef BEVEL
     varying vec4 vEdge;
   #endif
-  #ifdef WATERY
+  #if defined(WATERY) || defined(CHASE)
     uniform float uTime;
   #endif
 
@@ -320,6 +320,10 @@ const FRAG_MAIN = `
     #endif
     #ifdef EMISSIVE
       vec3 c = albedo;
+      // S4-07: bulbs chase along a neon band: a bright pulse runs along it every 2.4 m
+      #ifdef CHASE
+        c *= 0.78 + 0.22 * step(0.0, sin((vWorld.x + vWorld.z) * 2.6 - uTime * 5.0));
+      #endif
     #else
       vec3 c = plastic(albedo, N, V, gloss, ao, sh) + lit * 0.06;
     #endif
@@ -373,6 +377,7 @@ function base(opts, vertMain, extraV = '', extraUniforms = {}, extraF = '') {
   if (opts.alphaTest) defines.ALPHA_TEST = '';
   if (opts.flatTint) defines.FLAT_TINT = '';
   if (opts.emissive) defines.EMISSIVE = '';
+  if (opts.chase) defines.CHASE = '';
   if (opts.water) defines.WATERY = '';
   if (opts.roof) defines.ROOF = '';
   if (opts.shadows ?? S.shadowsDefault) defines.USE_SHADOW = '';

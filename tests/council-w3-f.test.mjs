@@ -218,4 +218,34 @@ export const tests = [
       t.expect((w.dirt || 0) > 0.15 * w.asphalt, 'West Mountain keeps its own clay stretch: ' + JSON.stringify(w));
     },
   },
+  // ---------------------------------------------------------------- S4-07
+  {
+    name: 'council F S4-07: the neon bands on Park Avenue Nights run a chase of bright bulbs, and the bands elsewhere are unchanged',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.game('newGame', { mode: 'timetrial', count: 1, track: 'park-avenue', seed: 3 }); await t.waitFrames(5);
+      const neon = await t.page.evaluate(() => { const A = window.TR_APP.App, out = []; A.world.traverse((o) => { if (/^neon#/.test(o.name || '')) { o.geometry.computeBoundingSphere(); const c = o.geometry.boundingSphere.center; out.push({ chase: !!(o.material.defines && 'CHASE' in o.material.defines), c: [c.x, c.y, c.z] }); } }); return out; });
+      t.expect(neon.length > 0 && neon.every((n) => n.chase), 'every neon band has the chase: ' + neon.length);
+      // frozen clocks: the same frame twice is identical on the neon, half a chase period later it is not
+      const frame = async (ms) => { await t.game('act', 'clock', ms); await t.waitFrames(3); return (await t.page.screenshot()).toString('base64'); };
+      await t.game('act', 'camAt', [neon[0].c[0] + 8, neon[0].c[1] + 2, neon[0].c[2] + 8], [neon[0].c[0], neon[0].c[1], neon[0].c[2]]);
+      await t.waitFrames(3);
+      const a = await frame(1000), a2 = await frame(1000), b = await frame(1630);
+      const diff = (x, y) => t.page.evaluate(async ([p, q]) => {
+        const img = (d) => new Promise((ok) => { const i = new Image(); i.onload = () => ok(i); i.src = 'data:image/png;base64,' + d; });
+        const [I, J] = await Promise.all([img(p), img(q)]), c = document.createElement('canvas'); c.width = I.width; c.height = I.height;
+        const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(I, 0, 0); const A = x.getImageData(0, 0, c.width, c.height).data; x.drawImage(J, 0, 0); const B = x.getImageData(0, 0, c.width, c.height).data;
+        let n = 0, sum = 0;
+        for (let k = 0; k < A.length; k += 4) { const mx = Math.max(A[k], A[k + 1], A[k + 2]), mn = Math.min(A[k], A[k + 1], A[k + 2]); if (mx > 150 && mx - mn > 90) { n++; sum += Math.abs(A[k] - B[k]) + Math.abs(A[k + 1] - B[k + 1]) + Math.abs(A[k + 2] - B[k + 2]); } }
+        return { n, mean: n ? sum / n : 0 };
+      }, [x, y]);
+      const same = await diff(a, a2), moved = await diff(a, b);
+      t.expect(moved.n > 200, 'neon-coloured pixels are in view: ' + moved.n);
+      t.expect(same.mean < 1, 'the same instant draws the same neon: ' + same.mean.toFixed(2));
+      t.expect(moved.mean > 8, 'a moment later the bulbs have moved: ' + moved.mean.toFixed(2));
+      await shot(t, 'S4-07', 'neon');
+      await t.game('act', 'clock', null);
+    },
+  },
 ];

@@ -194,7 +194,7 @@ export function buildTrackWorld(THREE, track, env = {}) {
     buildBlock(geoFor, ch, b, mat, env.kit);
     if (env.neon && b.style !== 'bathhouse') {
       // a glowing band across the front at shop-sign height (generic colour strips; no lettering or logos)
-      const geo = geoFor('neon', () => worldMat({ emissive: true }), ch);
+      const geo = geoFor('neon', () => worldMat({ emissive: true, chase: true }), ch);
       const fi = b.front ?? 0, A = b.fp[fi], B = b.fp[(fi + 1) % b.fp.length];
       const len = Math.hypot(B[0] - A[0], B[1] - A[1]);
       if (len > 4) {
