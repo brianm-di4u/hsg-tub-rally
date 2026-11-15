@@ -93,6 +93,8 @@ body.racing.touch-on .touch { display: block; position: fixed; inset: 0; z-index
 .t-steer { position: absolute; left: 0; top: 30%; bottom: 0; width: 50%; pointer-events: auto; touch-action: none; }
 .t-steer em { position: absolute; left: 50%; bottom: 190px; transform: translateX(-50%); font: 700 12px var(--font-ui); color: rgba(255,255,255,0.55); font-style: normal; }
 .t-steer-knob { position: absolute; left: calc(50% - 36px + var(--steer, 0) * 60px); bottom: 210px; width: 72px; height: 24px; border-radius: 12px; background: rgba(255,255,255,0.25); border: 2px solid rgba(255,255,255,0.5); }
+body.lefty .t-steer { left: auto; right: 0; }
+body.lefty .t-btns { right: auto; left: max(10px, env(safe-area-inset-left)); }
 .t-btns { position: absolute; right: 10px; bottom: 170px; display: grid; grid-template-columns: 76px 76px; gap: 10px; pointer-events: auto; }
 .tb { width: 76px; height: 64px; border-radius: 16px; border: 3px solid var(--ink); font: 800 15px var(--font-ui); color: #fff; background: rgba(30,78,121,0.75); touch-action: none; }
 .tb.on { transform: translateY(2px); filter: brightness(1.3); }

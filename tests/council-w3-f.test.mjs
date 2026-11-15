@@ -61,4 +61,32 @@ export const tests = [
       t.expect(live.draws >= live.ticks - 2, 'every frame is drawn when motion is on: ' + JSON.stringify(live));
     },
   },
+  // ---------------------------------------------------------------- S2-17
+  {
+    name: 'council F S2-17: Touch layout Mirrored puts the steering pad on the right and the buttons on the left, and it is kept',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await freshProfile(t);
+      await t.game('scene', 'settings'); await t.waitFrames(3);
+      const chip = (v) => `.settings [data-k="lefty"][data-v="${v}"]`;
+      t.equal(await t.page.getAttribute(chip('false'), 'aria-pressed'), 'true', 'Standard is the default');
+      await t.page.focus(chip('true')); await t.page.keyboard.press('Enter'); await t.waitFrames(3);
+      t.equal(await t.page.getAttribute(chip('true'), 'aria-pressed'), 'true', 'Mirrored can be picked from the keyboard');
+      await shot(t, 'S2-17', 'settings');
+      await t.checkLayout({ allowScrollY: true });
+      await t.reload(); await t.waitIdle(8000);
+      t.equal(await t.page.evaluate(() => window.__game.getState().settings.lefty), true, 'the choice survives a reload');
+      if (t.viewport !== 'mobile') return;
+      const sides = () => t.page.evaluate(() => { const c = (e) => { const r = document.querySelector(e).getBoundingClientRect(); return r.left + r.width / 2; }; return { steer: c('#touch-steer'), btns: c('.t-btns'), w: innerWidth }; });
+      await t.game('newGame', { track: 'bathhouse-row', seed: 3 }); await t.waitFrames(5);
+      let g = await sides();
+      t.expect(g.steer > g.w / 2 && g.btns < g.w / 2, 'mirrored: the pad is on the right and the buttons on the left: ' + JSON.stringify(g));
+      await shot(t, 'S2-17', 'mirrored');
+      await t.checkLayout({ allowScrollY: true });
+      await freshProfile(t);
+      await t.game('newGame', { track: 'bathhouse-row', seed: 3 }); await t.waitFrames(5);
+      g = await sides();
+      t.expect(g.steer < g.w / 2 && g.btns > g.w / 2, 'standard: the pad is on the left and the buttons on the right: ' + JSON.stringify(g));
+    },
+  },
 ];

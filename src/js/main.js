@@ -143,6 +143,7 @@ function initTouchMode() {
 
 function applyInputSettings(s) {
   INPUT.autoPush = !!s.autoPush; INPUT.steerAssist = !!s.steerAssist;
+  document.body.classList.toggle('lefty', !!s.lefty);
   setBindings(s.keys);
   document.documentElement.style.setProperty('--hud-user', s.hudScale || 1);
 }
