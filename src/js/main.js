@@ -538,7 +538,8 @@ function onMenu(act, data) {
       else App.screens.show('courses', { list: builtCourses(), trial: F.mode === 'timetrial' });
       break;
     }
-    case 'help': App.screens.show('help'); break;
+    case 'help': App.screens.app.helpAll = false; App.screens.show('help'); break;
+    case 'helpAll': App.screens.app.helpAll = !App.screens.app.helpAll; App.screens.show('help'); App.screens.root.querySelector('[data-act="helpAll"]')?.focus({ preventScroll: true }); break;
     case 'credits': App.screens.show('credits'); break;
     case 'controls': ensureTeach().then(() => { if (window.TR_TEACH && window.TR_TEACH.api) controlsScreen(); }); break;
     case 'rebind': App.capture = data.a; controlsScreen({ capture: data.a }); break;

@@ -90,6 +90,8 @@ canvas[data-pixel], .hud canvas { image-rendering: pixelated; }
 .clean { color: #0f2a18; background: #9BE29B; border-radius: 4px; padding: 1px 4px; font-size: 11px; margin-left: 4px; }
 .help-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; text-align: left; }
 .help-cols h3 { margin: 0 0 6px; color: var(--gold); font: 900 18px var(--font-deco); }
+.help-cols h4 { margin: 10px 0 4px; font: 800 15px var(--font-ui); color: var(--steam); }
+.help-cols .help-more { margin-top: 8px; }
 .help-cols ul { margin: 0; padding-left: 18px; line-height: 1.45; font-size: 15px; }
 kbd { display: inline-block; padding: 0 5px; border: 2px solid var(--ink); border-radius: 5px; background: var(--dogwood); color: var(--ink); font: 700 12px var(--font-ui); }
 .set-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; width: 100%; }

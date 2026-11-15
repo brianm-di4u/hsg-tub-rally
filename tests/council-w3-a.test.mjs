@@ -59,3 +59,71 @@ export const tests = [
     },
   },
 ];
+
+// ---------------------------------------------------------------- S2-11, S2-12
+const helpText = (t) => t.page.evaluate(() => ({ h: document.querySelector('.panel.help h3')?.textContent, text: document.querySelector('.panel.help')?.innerText || '', more: document.querySelector('[data-act="helpAll"]')?.getAttribute('aria-expanded') }));
+tests.push(
+  {
+    name: 'council A S2-11: How to Play leads with the controls of the device in use and folds the others away',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.game('scene', 'help');
+      await t.waitFrames(2);
+      let h = await helpText(t);
+      const mine = t.viewport === 'mobile' ? 'Touch' : 'Keyboard';
+      t.equal(h.h, 'Drive: ' + mine, 'the first section is for this device');
+      t.equal(h.more, 'false', 'the other controls start folded');
+      if (t.viewport === 'mobile') {
+        t.expect(/Hold Brake while you tap it to throw it backwards/.test(h.text), 'touch players are told how to throw backwards');
+        t.expect(/Hold Push/.test(h.text) && /Pause is at the top right/.test(h.text), 'and that Push is a hold and where Pause is');
+        t.expect(!/Esc pause/.test(h.text), 'the keyboard line is folded away');
+      } else t.expect(/hold ↓ to aim back/.test(h.text) && !/Hold Push/.test(h.text), 'keyboard lines shown, touch lines folded');
+      await shot(t, 'S2-11', 'help-folded');
+      await t.page.locator('[data-act="helpAll"]').click();
+      await t.waitFrames(2);
+      h = await helpText(t);
+      t.equal(h.more, 'true', 'the other controls open on request');
+      t.expect(/Hold Push/.test(h.text) && /Esc pause/.test(h.text) && /Start pause/.test(h.text), 'all three devices are described once opened');
+      await shot(t, 'S2-11', 'help-open');
+      await t.checkLayout({ allowScrollY: true });
+    },
+  },
+  {
+    name: 'council A S2-11: a gamepad in use puts the gamepad controls first',
+    viewports: ['desktop'],
+    initScript: () => {
+      const pad = { index: 0, connected: true, mapping: 'standard', axes: [0, 0, 0, 0], buttons: Array.from({ length: 17 }, (_, i) => ({ pressed: i === 5, value: i === 5 ? 1 : 0 })) };
+      navigator.getGamepads = () => [pad];
+    },
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.waitFrames(5);
+      await t.game('scene', 'help');
+      await t.waitFrames(2);
+      const h = await helpText(t);
+      t.equal(h.h, 'Drive: Gamepad', 'gamepad first');
+      t.expect(/hold B to throw it backwards/.test(h.text), 'and it says how to throw backwards');
+    },
+  },
+  {
+    name: 'council A S2-12: the pause menu opens How to Play and Back returns to the pause menu with the race still paused',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await startRace(t);
+      await t.page.keyboard.press('Escape');
+      await t.waitFrames(3);
+      t.expect(await t.page.locator('.panel.pause [data-act="help"]').count() === 1, 'the pause menu has a How to play button');
+      await shot(t, 'S2-12', 'pause-menu');
+      const steps0 = (await t.state()).steps;
+      await t.page.locator('.panel.pause [data-act="help"]').click();
+      await t.waitFrames(3);
+      let s = await t.state();
+      t.expect(s.screen === 'help' && s.paused, 'the help panel opens over the paused race');
+      await t.page.locator('.panel.help [data-act="back"]').click();
+      await t.waitFrames(3);
+      s = await t.state();
+      t.expect(s.screen === 'pause' && s.paused && s.steps === steps0, 'Back returns to the pause menu, race still frozen');
+    },
+  },
+);

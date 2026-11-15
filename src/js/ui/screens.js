@@ -8,6 +8,7 @@ import { factFor } from '../data/facts.js';
 import { MEDAL_NAMES, medalTimes } from '../sim/medals.js';
 import { addDays } from '../daily.js';
 import { TRACK_BY_ID } from '../data/tracks.js';
+import { I as INPUT } from './input.js';
 
 export class Screens {
   constructor(root, app) {
@@ -75,6 +76,31 @@ function trialLines(t) {
         <p>Fastest lap ${fmtTime(t.lap)}${t.lapBest ? ' <b class="clean">NEW</b>' : ''} · staff ghost ${fmtTime(m.gold)}, best lap ${fmtTime(t.parLap)}</p></div>`;
 }
 
+// How to Play (S2-11): the controls of the device the player is using come first, the others fold away
+const CONTROLS = {
+  keyboard: { name: 'Keyboard', lines: [
+    '<kbd>↑</kbd>/<kbd>W</kbd> push · <kbd>↓</kbd>/<kbd>S</kbd> brake · <kbd>←</kbd><kbd>→</kbd> steer',
+    '<kbd>Shift</kbd>/<kbd>Space</kbd> hop. Hold it while steering into a turn to <b>power slide</b>; let go for a steam boost (Warm, then Hot).',
+    '<kbd>X</kbd>/<kbd>J</kbd> use item (hold <kbd>↓</kbd> to aim back) · <kbd>C</kbd> look back · <kbd>Esc</kbd> pause'] },
+  touch: { name: 'Touch', lines: [
+    'Drag anywhere on the left half of the screen to steer.',
+    'Hold <b>Push</b> to run (Auto-push in Settings does it for you). Hold <b>Brake</b> to slow down.',
+    'Hold <b>Hop</b> while steering into a turn to <b>power slide</b>; let go for a steam boost (Warm, then Hot).',
+    'Tap <b>Item</b> to use your item. Hold <b>Brake</b> while you tap it to throw it backwards. <b>Pause</b> is at the top right.'] },
+  gamepad: { name: 'Gamepad', lines: [
+    'Stick or D-pad steer · A or RT push · B brake',
+    'RB hop. Hold it while steering into a turn to <b>power slide</b>; let go for a steam boost (Warm, then Hot).',
+    'LB, LT or X use item (hold B to throw it backwards) · Y look back · Start pause'] },
+};
+function driveHelp(open) {
+  const first = CONTROLS[INPUT.last] ? INPUT.last : 'keyboard';
+  const list = (k) => `<ul>${CONTROLS[k].lines.map((l) => `<li>${l}</li>`).join('')}</ul>`;
+  const others = Object.keys(CONTROLS).filter((k) => k !== first), label = others.map((k) => CONTROLS[k].name).join(' and ') + ' controls';
+  return `<section><h3>Drive: ${CONTROLS[first].name}</h3>${list(first)}
+          <button type="button" class="chip help-more" data-act="helpAll" aria-expanded="${!!open}">${open ? 'Hide' : 'Show'} ${label}</button>
+          ${open ? others.map((k) => `<h4>${CONTROLS[k].name}</h4>${list(k)}`).join('') : ''}</section>`;
+}
+
 const TEMPLATES = {
   title: (app) => `
     <div class="title-wrap">
@@ -99,7 +125,7 @@ const TEMPLATES = {
     <div class="panel pause" role="dialog" aria-label="Paused">
       <canvas data-pixel="PAUSED" data-scale="6"></canvas>
       <p class="sub">Goal: finish first, with 10 gallons or more.</p>
-      <nav class="menu">${btn('resume', 'Resume', 'autofocus data-back')}${btn('restart', 'Restart race')}${btn('settings', 'Settings')}${btn('quit', 'Quit to title')}</nav>
+      <nav class="menu">${btn('resume', 'Resume', 'autofocus data-back')}${btn('restart', 'Restart race')}${btn('help', 'How to play')}${btn('settings', 'Settings')}${btn('quit', 'Quit to title')}</nav>
     </div>`,
   results: (app, { results, laps, trackName, gp, newRecord, mode, trial, daily }) => `
     <div class="panel results" role="dialog" aria-label="Race results">
@@ -148,16 +174,12 @@ const TEMPLATES = {
       <nav class="menu row">${btn('back', 'Back', 'autofocus data-back')}</nav>
     </div>`;
   },
-  help: () => `
+  help: (app) => `
     <div class="panel help" role="dialog" aria-label="How to play">
       <canvas data-pixel="HOW TO PLAY" data-scale="5"></canvas>
       <p class="sub">Goal: cross the line first, with 10 gallons or more. Slide through turns for steam boosts.</p>
       <div class="help-cols">
-        <section><h3>Drive</h3><ul>
-          <li><kbd>↑</kbd>/<kbd>W</kbd> push · <kbd>↓</kbd>/<kbd>S</kbd> brake · <kbd>←</kbd><kbd>→</kbd> steer</li>
-          <li><kbd>Shift</kbd>/<kbd>Space</kbd> hop. Hold it while steering into a turn to <b>power slide</b>; let go for a steam boost (Warm, then Hot).</li>
-          <li><kbd>X</kbd>/<kbd>J</kbd> use item (hold <kbd>↓</kbd> to aim back) · <kbd>C</kbd> look back · <kbd>Esc</kbd> pause</li>
-          <li>Gamepad: A push, B brake, R hop, Z/LB item, Y look back. Touch: drag on the left half to steer.</li></ul></section>
+        ${driveHelp(app.helpAll)}
         <section><h3>Keep your water</h3><ul>
           <li>Your tub starts full. Hard turns, slides, landings and hits slosh water out. Crowds' water blasters, refill buckets, fountains and creek fords top you up.</li>
           <li>More water is heavier: steadier, but slower to get going.</li>
