@@ -12,6 +12,13 @@ import { MEDAL_NAMES, medalTimes } from '../sim/medals.js';
 import { addDays } from '../daily.js';
 import { TRACK_BY_ID } from '../data/tracks.js';
 import { I as INPUT } from './input.js';
+import { sfx } from './audio.js';
+
+// S4-22: what a pressed button sounds like: a chirp up, down for Back, and the dull tick of a locked card
+function menuSound(b) {
+  if (b.dataset.act === 'locked') sfx('tick');
+  else sfx('confirm', b.dataset.act === 'back');
+}
 
 export class Screens {
   constructor(root, app) {
@@ -27,7 +34,7 @@ export class Screens {
     this.root.className = 'screens ' + (html ? 'on scr-' + name : '');
     document.body.dataset.screen = name;
     this.root.querySelectorAll('canvas[data-pixel]').forEach((c) => pixelText(c.dataset.pixel, { scale: +c.dataset.scale || 6, canvas: c, fill: (c.dataset.fill || '#FFF6C8,#F2A541').split(',') }));
-    this.root.querySelectorAll('[data-act]').forEach((b) => b.addEventListener('click', () => this.app.onMenu(b.dataset.act, b.dataset)));
+    this.root.querySelectorAll('[data-act]').forEach((b) => b.addEventListener('click', () => { menuSound(b); this.app.onMenu(b.dataset.act, b.dataset); }));
     const first = this.root.querySelector('[autofocus], button');
     if (first) first.focus({ preventScroll: true });
     this.trans = 0.25;
@@ -45,6 +52,7 @@ export class Screens {
     else if (m.cancel) { const back = this.root.querySelector('[data-back]'); if (back) back.click(); return true; }
     else return false;
     btns[Math.max(0, i)].focus();
+    sfx('tick'); // S4-22: focus moved by arrow key or d-pad
     return true;
   }
 }

@@ -28,8 +28,8 @@ const SOFT_CLIP = (() => {
 })();
 const DUCK_DB = 6, DUCK_MS = 300; // music dips this much under the big cues
 // Per-cue output trim, found with audioRender so every gameplay cue peaks 0.25 to 0.45 at the shipped volume.
-const CUE_TRIM = { quack: 3.48, splash: 13.2, steam: 7.8, snap: 4.727, whistle: 2.303, cheer: 7.3, bump: 6.03, pickup: 3.096, ticket: 4.856, boost: 6.7, hit: 4.2, ready: 6.581, go: 4.4, menu: 16.265, lap: 2.55, finish: 2.2, finalLap: 3.66, charge: 8.188, land: 6.03, swish: 10.293 };
-const DUCKS = { boost: 1, hit: 1, finish: 1.9 };
+const CUE_TRIM = { quack: 3.48, splash: 13.2, steam: 7.8, snap: 4.727, whistle: 2.303, cheer: 7.3, bump: 6.03, pickup: 3.096, ticket: 4.856, boost: 6.7, hit: 4.2, ready: 6.581, go: 4.4, menu: 16.265, tick: 11, confirm: 3.6, trophy: 2.2, lap: 2.55, finish: 2.2, finalLap: 3.66, charge: 8.188, land: 6.03, swish: 10.293 };
+const DUCKS = { boost: 1, hit: 1, finish: 1.9, trophy: 1.9 };
 const SWELLS = { lap: 0.5, finalLap: 0.8, finish: 1 }; // the crowd roars on a lap, the last lap and the finish
 const state = { cues: [], ducks: 0, on: true, music: true, ambience: true, vol: 0.6, musicVol: 1, started: false, theme: null, scene: null, intensity: 0, muffle: false, hidden: false, swell: 0, swells: 0, crowd: 0, wind: 0 };
 
@@ -179,6 +179,8 @@ function noise(dur, { vol = 0.2, at = 0, type = 'bandpass', freq = 1200, q = 1, 
 
 // Cues are layers: a transient (noise or a short click), a body (detuned tones) and, where it suits, a low thump
 // underneath and a short reverb tail. Impact cues take the speed of the hit (m/s) and scale with it.
+const READY_HZ = [392, 494, 587]; // was 440 for both beeps
+const GO_HZ = 1175;               // was 880: the octave above the last beep
 export const SFX = {
   quack() { const b = 520 * 2 ** (((Math.random() * 2 - 1) * 90) / 1200); tone(b, 0.09, { type: 'sawtooth', vol: 0.14, slide: 0.7, formants: [700, 1200], det: 9, rev: 0.12 }); tone(b * 0.9, 0.11, { type: 'sawtooth', vol: 0.14, slide: 0.65, at: 0.1, formants: [650, 1150], det: 9, rev: 0.12 }); },
   splash(big = false) {
@@ -207,9 +209,26 @@ export const SFX = {
     if (hot) { tone(440, 0.55, { type: 'sawtooth', vol: 0.05, slide: 2, filter: 1800, det: 9 }); noise(0.5, { vol: 0.08, type: 'highpass', freq: 4000, sweep: 1.5 }); }
   },
   hit() { this.splash(true); tone(300, 0.2, { type: 'square', vol: 0.08, slide: 0.5, filter: 900, det: 8 }); tone(60, 0.28, { type: 'sine', vol: 0.3, slide: 0.6 }); },
-  ready() { tone(440, 0.18, { type: 'square', vol: 0.1, filter: 2000, det: 7 }); tone(880, 0.12, { type: 'sine', vol: 0.05 }); },
-  go() { tone(880, 0.5, { type: 'square', vol: 0.12, filter: 2400, det: 7, rev: 0.2 }); tone(1320, 0.5, { type: 'triangle', vol: 0.06, det: 7 }); tone(110, 0.3, { type: 'sine', vol: 0.14, slide: 0.7 }); },
+  // the countdown (S5-09): three beeps that climb with the words READY, SET and the blank before SCRUB! (stage 0, 1, 2: G, B and D),
+  // then go an octave above the last. Before, READY was silent and both beeps were 440 Hz.
+  ready(stage = 0) { const f = READY_HZ[stage] || READY_HZ[0]; tone(f, 0.18, { type: 'square', vol: 0.1, filter: 2000, det: 7 }); tone(f * 2, 0.12, { type: 'sine', vol: 0.05 }); },
+  go() { tone(GO_HZ, 0.5, { type: 'square', vol: 0.12, filter: 2400, det: 7, rev: 0.2 }); tone(GO_HZ * 1.5, 0.5, { type: 'triangle', vol: 0.06, det: 7 }); tone(110, 0.3, { type: 'sine', vol: 0.14, slide: 0.7 }); },
   menu() { tone(990, 0.04, { type: 'square', vol: 0.06, filter: 3000 }); },
+  // the menus (S4-22): a short tick when focus moves, a two-note chirp when a button is pressed (rising, or falling for Back),
+  // and a trophy fanfare. They sit with 'menu', under the gameplay cues (UI_CUES in the tests).
+  tick() { tone(1320, 0.035, { type: 'square', vol: 0.05, filter: 3200, det: 6 }); },
+  confirm(back = false) {
+    const [a, b] = back ? [740, 520] : [660, 990];
+    tone(a, 0.05, { type: 'square', vol: 0.06, filter: 3000, det: 6 }); tone(b, 0.09, { type: 'square', vol: 0.06, at: 0.055, filter: 3000, det: 6 }); tone(b * 2, 0.07, { type: 'sine', vol: 0.02, at: 0.055 });
+  },
+  // the cup ceremony: gold gets the full fanfare and a cheer, silver and bronze a shorter one, the rest a low-key two notes
+  trophy(place = 1) {
+    if (place >= 1 && place <= 3) {
+      const notes = place === 1 ? [392, 523, 659, 784, 1047] : [392, 523, 659, 784];
+      notes.forEach((f, i) => { const at = i * 0.14 + (i === notes.length - 1 ? 0.06 : 0), d = i === notes.length - 1 ? 0.7 : 0.2; tone(f, d, { type: 'square', vol: 0.09, at, filter: 2600, det: 7, rev: 0.25 }); tone(f / 2, d, { type: 'triangle', vol: 0.05, at }); });
+      if (place === 1) this.cheer();
+    } else [440, 523].forEach((f, i) => tone(f, 0.3, { type: 'triangle', vol: 0.09, at: i * 0.2, filter: 2200, det: 7, rev: 0.2 }));
+  },
   lap() { [523, 659, 784].forEach((f, i) => { tone(f, 0.12, { type: 'square', vol: 0.08, at: i * 0.08, filter: 2500, det: 7, rev: 0.1 }); tone(f * 2, 0.1, { type: 'sine', vol: 0.03, at: i * 0.08 }); }); },
   finalLap() { [587, 784, 988, 1175].forEach((f, i) => { tone(f, 0.16, { type: 'sawtooth', vol: 0.07, at: i * 0.09, filter: 2600, det: 8, rev: 0.25 }); tone(f / 2, 0.16, { type: 'triangle', vol: 0.06, at: i * 0.09 }); }); },
   // place: podium (1 to 3) gets the full arpeggio and a cheer, the others a shorter minor one

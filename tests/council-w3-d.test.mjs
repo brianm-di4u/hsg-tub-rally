@@ -17,6 +17,20 @@ const shot = async (t, id, what) => { await t.shot(`w3d-${id}-${what}`); fs.mkdi
 const setSave = (t, s) => t.page.evaluate(([k, v]) => localStorage.setItem(k, JSON.stringify(v)), [KEY, s]);
 const freshProfile = async (t) => { await t.waitIdle(8000); await setSave(t, { ...DEFAULT_SAVE(), settings: { ...DEFAULT_SAVE().settings, seenIntro: true } }); await t.reload(); await t.waitIdle(8000); };
 const IDS = TEAMS.map((x) => x.id);
+// spectral centroid (Hz) of the mono mix of a base64 16-bit stereo WAV between two times, by a plain FFT (as in council-w2-a)
+function centroid(b64, from, rate = 22050) {
+  const b = Buffer.from(b64, 'base64'), N = 4096, start = Math.floor(from * rate), re = new Float64Array(N), im = new Float64Array(N);
+  for (let i = 0; i < N; i++) { const j = start + i; const v = j * 4 + 46 < b.length ? (b.readInt16LE(44 + j * 4) + b.readInt16LE(46 + j * 4)) / 65536 : 0; re[i] = v * (0.5 - 0.5 * Math.cos((2 * Math.PI * i) / N)); }
+  for (let i = 1, j = 0; i < N; i++) { let bit = N >> 1; for (; j & bit; bit >>= 1) j ^= bit; j ^= bit; if (i < j) { [re[i], re[j]] = [re[j], re[i]]; } }
+  for (let len = 2; len <= N; len <<= 1) {
+    const ang = (-2 * Math.PI) / len, wr = Math.cos(ang), wi = Math.sin(ang);
+    for (let i = 0; i < N; i += len) { let cr = 1, ci = 0; for (let k = 0; k < len / 2; k++) { const a = i + k, c = a + len / 2, xr = re[c] * cr - im[c] * ci, xi = re[c] * ci + im[c] * cr; re[c] = re[a] - xr; im[c] = im[a] - xi; re[a] += xr; im[a] += xi; const t = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = t; } }
+  }
+  let num = 0, den = 0; for (let i = 1; i < N / 2; i++) { const m = Math.hypot(re[i], im[i]); num += m * ((i * rate) / N); den += m; }
+  return num / (den || 1);
+}
+const render = (t, name, secs, wav, args) => t.page.evaluate(([n, s, w, a]) => window.__game.audioRender(n, s, w, a), [name, secs, !!wav, args || []]);
+const unlock = async (t) => { await t.waitIdle(8000); await t.page.keyboard.press('Shift'); await t.page.waitForFunction(() => window.__game.getState().audio.ctx === 'running', null, { timeout: 5000 }); };
 const text = (t, sel) => t.page.evaluate((s) => Array.from(document.querySelectorAll(s)).map((e) => e.textContent.replace(/\s+/g, ' ').trim()).join(' | '), sel);
 
 export const tests = [
@@ -226,6 +240,112 @@ export const tests = [
       t.equal(soft['bridge-street'], 1, 'so does another: ' + JSON.stringify(soft));
       t.expect(soft['park-avenue'] > 1.5 && soft['park-avenue'] < soft['sunset-ridge'], 'dusk is widened, sunset more: ' + JSON.stringify(soft));
       t.expect(soft['sunset-ridge'] <= 2.5 + 1e-9, 'and never past the stated top: ' + JSON.stringify(soft));
+    },
+  },
+  // ---------------------------------------------------------------- S5-09
+  {
+    name: 'council D S5-09: the countdown beeps on READY, SET and the blank, rising, and go sits an octave above the last',
+    viewports: ['desktop'],
+    async run(t) {
+      await freshProfile(t);
+      await unlock(t);
+      await t.game('newGame', { track: 'bathhouse-row', team: 'engine-six', classId: 'soak', laps: 1, seed: 5, paused: true });
+      const to = async (secs) => { const now = (await t.state()).race.time; await t.game('step', Math.max(1, Math.ceil((secs - now) * 60))); await t.waitFrames(1); };
+      const beeps = async () => (await t.state()).audio.cues.filter((c) => /^(ready|go)/.test(c)).join(' ');
+      await to(-3.1);
+      t.equal(await beeps(), 'ready:0', 'READY has its beep as it comes up');
+      await to(-2.0);
+      t.equal(await beeps(), 'ready:0 ready:1', 'SET has the next');
+      await to(-0.9);
+      t.equal(await beeps(), 'ready:0 ready:1 ready:2', 'the blank before SCRUB! has the third');
+      await to(0.05);
+      t.equal(await beeps(), 'ready:0 ready:1 ready:2 go', 'then go');
+      // the pitches climb: the brightness of each cue, rendered, rises through the three beeps and go is above the last
+      const c = [];
+      for (const [name, args] of [['cue:ready', [0]], ['cue:ready', [1]], ['cue:ready', [2]], ['cue:go', []]]) c.push(centroid((await render(t, name, 0.5, true, args)).wav, 0.06));
+      t.expect(c[1] > c[0] * 1.05 && c[2] > c[1] * 1.05 && c[3] > c[2] * 1.05, 'centroids rise: ' + c.map(Math.round).join(', '));
+    },
+  },
+  // ---------------------------------------------------------------- S4-22
+  {
+    name: 'council D S4-22: arrow keys tick, a pressed button chirps (Back falls), a locked card ticks, the trophy plays a fanfare, and Sound off silences all of it',
+    viewports: ['desktop'],
+    async run(t) {
+      await freshProfile(t);
+      await unlock(t);
+      await t.game('scene', 'title'); await t.waitFrames(3);
+      const cues = async () => (await t.state()).audio.cues;
+      const since = async (n) => (await cues()).slice(n);
+      let n = (await cues()).length;
+      await t.page.keyboard.press('ArrowDown');
+      await t.waitFrames(2);
+      t.expect((await since(n)).includes('tick'), 'moving focus ticks: ' + (await since(n)));
+      n = (await cues()).length;
+      await t.page.keyboard.press('Enter');
+      await t.page.waitForFunction(() => document.body.dataset.screen && document.body.dataset.screen !== 'title', null, { timeout: 4000 });
+      t.expect((await since(n)).includes('confirm:false'), 'a pressed button chirps: ' + (await since(n)));
+      n = (await cues()).length;
+      await t.page.click('[data-act="back"], [data-back]');
+      await t.waitFrames(2);
+      t.expect((await since(n)).includes('confirm:true'), 'Back chirps downward: ' + (await since(n)));
+      // a locked card
+      await t.game('scene', 'title'); await t.waitFrames(2);
+      await t.game('act', 'menu', 'gp'); await t.game('act', 'menu', 'teamOk'); await t.game('act', 'menu', 'cls', { id: 'soak' }); await t.waitFrames(3);
+      n = (await cues()).length;
+      await t.page.click('.ccard[data-act="locked"]', { force: true }); // aria-disabled, but it answers a press
+      await t.waitFrames(2);
+      t.expect((await since(n)).includes('tick') && !(await since(n)).some((c) => c.startsWith('confirm')), 'a locked card only ticks: ' + (await since(n)));
+      // the trophy: gold gets the full fanfare
+      await t.game('act', 'menu', 'cup', { id: 'bathhouse' });
+      await t.waitIdle(15000);
+      const field = await t.state();
+      const teams = field.race.karts.map((k) => k.team), me = teams[field.race.player];
+      const placeIt = (place) => t.page.evaluate(([p, ids, who]) => {
+        const order = ids.filter((x) => x !== who);
+        order.splice(p - 1, 0, who);
+        window.TR_APP.App.gp.table = Object.fromEntries(order.map((id, i) => [id, { team: id, points: 90 - i * 10, clean: 0, human: id === who, bribes: 0 }]));
+      }, [place, teams, me]);
+      await placeIt(1);
+      n = (await cues()).length;
+      await t.game('act', 'menu', 'trophy');
+      await t.waitFrames(3);
+      t.expect((await since(n)).includes('trophy:1'), 'the trophy screen plays the gold fanfare: ' + (await since(n)));
+      t.equal(await t.page.evaluate(() => document.body.dataset.screen), 'trophy', 'and the trophy is up');
+      // Sound off: nothing at all
+      await t.page.evaluate(() => { const k = 'hsg-tub-rally-v1', s = JSON.parse(localStorage.getItem(k)); s.settings.sound = false; localStorage.setItem(k, JSON.stringify(s)); });
+      await t.reload(); await unlock(t);
+      await t.game('scene', 'title'); await t.waitFrames(3);
+      n = (await cues()).length;
+      await t.page.keyboard.press('ArrowDown'); await t.page.keyboard.press('Enter');
+      await t.page.waitForFunction(() => document.body.dataset.screen && document.body.dataset.screen !== 'title', null, { timeout: 4000 });
+      t.equal((await since(n)).length, 0, 'with Sound off the menus are silent: ' + (await since(n)));
+    },
+  },
+  {
+    name: 'council D S4-22: the menu cues sit under the gameplay cues, the trophy is a ceremony cue, and nothing clips at the maximum volume',
+    viewports: ['desktop'],
+    async run(t) {
+      await t.waitIdle(8000);
+      const peaks = async (name, args, vol) => {
+        const out = [];
+        for (let i = 0; i < 7; i++) out.push((await t.page.evaluate(([n, a, v]) => window.__game.audioRender(n, 2, false, a, v), [name, args, vol])).peak);
+        return out.sort((a, b) => a - b);
+      };
+      // the median is judged; a single repeat may be 1.5 dB outside (the cues differ by 1 to 2 dB from repeat to repeat on purpose)
+      const outside = (p, lo, hi) => p.filter((x) => x < lo / 1.19 || x > hi * 1.19).length;
+      for (const [c, args, lo, hi] of [['tick', [], 0.12, 0.3], ['confirm', [false], 0.12, 0.3], ['confirm', [true], 0.12, 0.3], ['trophy', [1], 0.2, 0.45], ['trophy', [2], 0.2, 0.45], ['trophy', [4], 0.2, 0.45]]) {
+        const p = await peaks('cue:' + c, args);
+        const med = p[3];
+        t.expect(med >= lo && med <= hi, c + ' ' + JSON.stringify(args) + ' median peak ' + med + ' (want ' + lo + ' to ' + hi + '): ' + p.join(', '));
+        t.expect(outside(p, lo, hi) <= 1, c + ' ' + JSON.stringify(args) + ' has more than one repeat 1.5 dB outside: ' + p.join(', '));
+      }
+      // at the maximum volume (all controls up) the loudest of the new cues, 20 repeats, stays under 0.95
+      for (const [c, args] of [['trophy', [1]], ['confirm', [false]]]) {
+        const p = await peaks('cue:' + c, args, 1);
+        let more = [];
+        for (let i = 0; i < 13; i++) more.push((await t.page.evaluate(([n, a]) => window.__game.audioRender(n, 2, false, a, 1), ['cue:' + c, args])).peak);
+        t.expect(Math.max(...p, ...more) < 0.95, c + ' at the maximum volume peaks ' + Math.max(...p, ...more));
+      }
     },
   },
 ];

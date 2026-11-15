@@ -29,7 +29,7 @@ export const tests = [
       const list = await t.game('audioList');
       const out = {};
       for (const c of list.cues) {
-        const [lo, hi] = c === 'menu' ? [0.12, 0.3] : [0.2, 0.45], peaks = [];
+        const [lo, hi] = ['menu', 'tick', 'confirm'].includes(c) ? [0.12, 0.3] : [0.2, 0.45], peaks = []; // the menu cues sit under the gameplay cues (wave 3, S4-22)
         for (let i = 0; i < 6; i++) { const r = await render(t, 'cue:' + c, 2); peaks.push(r.peak); if (!i) out[c] = strip(r); }
         out[c].peaks = peaks;
         t.expect(peaks.every((x) => x >= lo && x <= hi), `cue ${c} peaks ${peaks.join(', ')} (want ${lo} to ${hi})`);

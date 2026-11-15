@@ -17,7 +17,7 @@ import { loadPackTextures } from './gfx/textures.js';
 import { loadModel, cloneModel, hasModel } from './gfx/models.js';
 import { Track } from './sim/track.js';
 import { landmarkPose } from './sim/landmarks.js';
-import { makeRace, stepRace, finishRace, DT } from './sim/race.js';
+import { makeRace, stepRace, finishRace, DT, COUNTDOWN } from './sim/race.js';
 import { ITEMS } from './sim/items.js';
 import { assistSteer } from './sim/ai.js';
 import { makeRecorder, record, packGhost, unpackGhost, unpackPar, ghostPose } from './sim/ghost.js';
@@ -761,6 +761,7 @@ function showTrophy() {
   const unlockedTeam = saved.unlockedTeam, unlockedClass = saved.unlockedClass || null, unlockedCup = saved.unlockedCup || null, unlockedMirror = !!saved.unlockedMirror;
   clearCup(); refreshCup();
   App.screens.show('trophy', { place, cupName: g.name, unlockedTeam, unlockedClass, unlockedCup, unlockedMirror });
+  sfx('trophy', place); // S4-22
   App.gp = null;
 }
 
@@ -826,9 +827,10 @@ function stepOnce() {
   // countdown beeps
   const tPrev = r.time - DT;
   if (r.phase === 'countdown' || (r.phase === 'race' && r.time < DT * 1.5)) {
-    if (tPrev < -2.1 && r.time >= -2.1) sfx('ready');
-    if (tPrev < -1.0 && r.time >= -1.0) sfx('ready');
-    if (r.phase === 'race' && r.time <= DT * 1.01) sfx('go');
+    if (r.phase === 'countdown' && tPrev < -COUNTDOWN + DT * 0.5) sfx('ready', 0); // READY
+    if (tPrev < -2.1 && r.time >= -2.1) sfx('ready', 1); // SET
+    if (tPrev < -1.0 && r.time >= -1.0) sfx('ready', 2); // the blank before SCRUB!
+    if (r.phase === 'race' && r.time < DT * 0.5) sfx('go'); // the step the race begins on only (it was two steps, so the cue played twice a frame apart)
   }
   if (me) playerFeedback(me);
   if (me && !App.raceOpts.autoplay && r.phase === 'race') landmarkCaption(me.s);
