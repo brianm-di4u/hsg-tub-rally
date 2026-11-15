@@ -541,6 +541,9 @@ body.clock-frozen *, body.clock-frozen *::before, body.clock-frozen *::after { t
 /* S2-09: why a Clean Finish was or was not earned */
 .clean-note { margin: 0; font-size: 14px; font-weight: 700; color: var(--mist); text-align: center; text-wrap: balance; }
 .clean-note .clean { margin: 0 4px 0 0; }
+/* S3-15: how a cup is scored */
+.cup-rules { margin: 0; font-size: 14px; line-height: 1.4; color: var(--mist); text-align: center; text-wrap: balance; max-width: 40em; }
+.cup-rules .clean { margin: 0 2px; }
 /* S2-02: items in How to Play, and the name under the held item */
 .help-cols .item-list { list-style: none; padding: 0; }
 .item-list li { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; line-height: 1.3; }

@@ -4,6 +4,7 @@ import { pixelText } from './pixelfont.js';
 import { fmtTime, drawItemIcon } from './hud.js';
 import { ITEMS } from '../sim/items.js';
 import { MIN_FINISH_GAL } from '../sim/water.js';
+import { POINTS } from '../sim/race.js';
 import { TEAM_BY_ID, TEAMS, DIVISIONS, CLASSES, kartStats } from '../data/teams.js';
 import { CUPS, CUP_BY_ID, TROPHY } from '../data/cups.js';
 import { factFor } from '../data/facts.js';
@@ -127,6 +128,27 @@ const itemsHelp = () => `<section><h3>Items and tickets</h3>
           <ul class="item-list">${Object.entries(ITEMS).map(([id, it]) => `<li><img alt="" width="28" height="28" src="${itemIconUrl(id)}"><span><b>${it.name}</b> ${it.tip}</span></li>`).join('')}</ul>
           <p class="help-lead">Collect bath tickets. Drive through a judge's lane with three for a head start.</p></section>`;
 
+// S3-08: the rubber band, in words. Its strength is each class's `rubber` (teams.js); a test keeps the order below true to it.
+const rivalsHelp = () => `<section><h3>Rival tubs</h3><ul>
+          <li>A rival far ahead of you eases off a little, and one far behind speeds up, so the race stays close. It fades away over the last third.</li>
+          <li>${CLASSES.splash.name} does this most, ${CLASSES.soak.name} a bit less, ${CLASSES.scald.name} hardly at all and ${CLASSES.boil.name} not at all.</li></ul></section>`;
+
+// S3-15: how a cup is scored, where the choices are made (cup card, standings) and not only in a tooltip
+const CLEAN_RULE = `10+ gallons and all four items`;
+const cupPoints = () => `<p class="cup-rules"><b>Points each race:</b> ${POINTS.map((p, i) => `${ord(i + 1)} ${p}`).join(', ')}. A <b class="clean">CLEAN</b> finish (${MIN_FINISH_GAL}+ gallons and all four items) is one more. Tickets break a tie. Win a cup to unlock new teams and speed classes.</p>`;
+// where the player stands after a cup race: a Faucet trophy goes to the top three after the last race
+const pts = (n) => `${n} ${n === 1 ? 'point' : 'points'}`;
+function cupStanding(rows, round, rounds) {
+  const me = rows.findIndex((r) => r.human), left = rounds - round;
+  if (me < 0 || !left) return '';
+  const state = me === 0 ? (rows[1] ? `You lead by ${pts(rows[0].points - rows[1].points)}.` : 'You lead.') : `You are ${pts(rows[0].points - rows[me].points)} behind the leader.`;
+  const podium = me > 2 && rows[2] ? ` Third place has ${rows[2].points}.` : '';
+  return `<p class="clean-note" role="status">${state}${podium} ${left} ${left === 1 ? 'race' : 'races'} to go: the top three win a Faucet trophy.</p>`;
+}
+
+// the CLEAN badge in a rival's row, explained in text (it was a tooltip, which touch never shows)
+const cleanLegend = (results) => (results || []).some((r) => r.clean && !r.human) && !(results || []).some((r) => r.clean && r.human) ? `<p class="clean-note"><b class="clean">CLEAN</b> = ${CLEAN_RULE}, one more point.</p>` : '';
+
 // P-N06: Quick Race setup under the course list: laps, items, rivals
 const RACE_LAPS = [1, 3, 5], RACE_RIVALS = [3, 7];
 function raceOptsRow(app) {
@@ -168,9 +190,9 @@ const TEMPLATES = {
       <canvas data-pixel="${app.banner || 'RESULTS'}" data-scale="6"></canvas>
       <p class="sub">${mode === 'battle' ? `${trackName} · Water Fight: last tub with water wins` : `${trackName || ''} · ${laps} ${laps === 1 ? 'lap' : 'laps'}`}${newRecord ? ' · <b class="clean">NEW RECORD</b>' : ''}${custom ? ' · custom setup, not kept as a record' : ''}</p>
       <table class="rtable"><thead><tr><th>#</th><th>Team</th><th>Time</th><th>Water</th><th>Pts</th></tr></thead><tbody>
-      ${(results || []).map((r) => `<tr class="${r.human ? 'me' : ''}"><td>${r.place}</td><td><span class="sw" style="background:${TEAM_BY_ID[r.team].colors.tub}"></span>${TEAM_BY_ID[r.team].name}${r.human ? ' (you)' : ''}</td><td>${r.estimated ? '~' : ''}${fmtTime(r.time)}</td><td>${r.gal.toFixed(0)} gal${r.clean ? ' <b class="clean" title="Clean Finish: 10+ gallons and all four items">CLEAN</b>' : ''}</td><td>${r.points}</td></tr>`).join('')}
+      ${(results || []).map((r) => `<tr class="${r.human ? 'me' : ''}"><td>${r.place}</td><td><span class="sw" style="background:${TEAM_BY_ID[r.team].colors.tub}"></span>${TEAM_BY_ID[r.team].name}${r.human ? ' (you)' : ''}</td><td>${r.estimated ? '~' : ''}${fmtTime(r.time)}</td><td>${r.gal.toFixed(0)} gal${r.clean ? ' <b class="clean">CLEAN</b>' : ''}</td><td>${r.points}</td></tr>`).join('')}
       </tbody></table>
-      ${mode === 'battle' ? '' : cleanLine((results || []).find((r) => r.human))}
+      ${mode === 'battle' ? '' : cleanLine((results || []).find((r) => r.human))}${cleanLegend(results)}
       ${trial ? trialLines(trial) : ''}${daily ? dailyLines(daily) : ''}
       ${fact ? `<p class="fact-line">${fact.t}</p>` : ''}
       <nav class="menu row">${gp ? btn('standingsGo', 'Standings', 'autofocus') : btn('restart', mode === 'timetrial' ? 'Try again' : 'Race again', 'autofocus')}${gp ? btn('quitCup', 'Quit cup') : btn('quit', 'Title', 'data-back')}</nav>
@@ -223,6 +245,7 @@ const TEMPLATES = {
           <li>More water is heavier: steadier, but slower to get going.</li>
           <li>Cross the line with <b>10 gallons or more</b> and all four attendant items for a <b>Clean Finish</b> bonus point.</li></ul></section>
         ${itemsHelp()}
+        ${rivalsHelp()}
         <section><h3>Water Fight</h3><ul>
           <li>Eight tubs circle the plaza fountain. Item hits spill more water here, and a dry tub is out.</li>
           <li>Refill only at the fountain. The last tub with water wins, or the fullest when the 150 second clock ends.</li></ul></section>
@@ -267,6 +290,7 @@ const TEMPLATES = {
       <canvas data-pixel="CHOOSE A CUP" data-scale="4"></canvas>
       ${mirrorRow(app)}
       <div class="card-row">${CUPS.map((c, i) => { const n = c.tracks.filter((id) => built.includes(id)).length, open = app.save.unlocked.cups.includes(c.id); return `<button type="button" class="ccard" data-act="${n && open ? 'cup' : 'locked'}" data-id="${c.id}" ${i === 0 ? 'autofocus' : ''} ${open ? (n ? '' : 'data-why="Its courses are coming soon."') : `data-why="${c.unlock || 'Win a cup'} to unlock the ${c.name}." aria-disabled="true"`}><b>${c.name}</b><small>${c.blurb}</small><em>${!open ? `Locked: ${c.unlock || 'win a cup'}` : n ? `${n} of 4 courses ready` : 'courses coming soon'}</em></button>`; }).join('')}</div>
+      ${cupPoints()}
       <nav class="menu row">${btn('back', 'Back', 'data-back')}</nav>
     </div>`,
   courses: (app, { list, trial }) => `
@@ -285,6 +309,8 @@ const TEMPLATES = {
       <table class="rtable"><thead><tr><th>#</th><th>Team</th><th>Pts</th><th>Clean</th></tr></thead><tbody>
       ${rows.map((r, i) => `<tr class="${r.human ? 'me' : ''}"><td>${i + 1}</td><td><span class="sw" style="background:${TEAM_BY_ID[r.team].colors.tub}"></span>${TEAM_BY_ID[r.team].name}${r.human ? ' (you)' : ''}</td><td>${r.points}</td><td>${r.clean}</td></tr>`).join('')}
       </tbody></table>
+      ${cupStanding(rows, round, rounds)}
+      <p class="cup-rules"><b class="clean">CLEAN</b> = ${CLEAN_RULE}: one more point. Tickets break a tie.</p>
       <nav class="menu row">${final ? btn('trophy', 'Trophy ceremony', 'autofocus') : btn('nextRace', 'Next race', 'autofocus')}${btn('quitCup', 'Quit cup')}</nav>
     </div>`,
   trophy: (app, { place, cupName, unlockedTeam, unlockedClass, unlockedCup, unlockedMirror }) => `
