@@ -208,4 +208,24 @@ export const tests = [
       t.expect(!/FALSE START/.test(auto.call), 'Auto-push is not a false start: ' + auto.call);
     },
   },
+  // ---------------------------------------------------------------- S4-09
+  {
+    name: 'council D S4-09: the sun-shadow filter widens for the low sun of Park Avenue Nights and Sunset Ridge, and nowhere else',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await freshProfile(t);
+      const soft = {};
+      for (const id of ['bathhouse-row', 'bridge-street', 'park-avenue', 'sunset-ridge']) {
+        await t.game('newGame', { track: id, team: 'engine-six', classId: 'soak', laps: 1, seed: 5, paused: true });
+        await t.game('act', 'skipCountdown'); await t.waitFrames(3);
+        const s = await t.state();
+        soft[id] = s.render.shadowSoft;
+        if (id === 'park-avenue' || id === 'sunset-ridge') { await t.game('step', 240); await t.waitFrames(4); await shot(t, 'S4-09', id); }
+      }
+      t.equal(soft['bathhouse-row'], 1, 'a daylight course keeps the filter it had: ' + JSON.stringify(soft));
+      t.equal(soft['bridge-street'], 1, 'so does another: ' + JSON.stringify(soft));
+      t.expect(soft['park-avenue'] > 1.5 && soft['park-avenue'] < soft['sunset-ridge'], 'dusk is widened, sunset more: ' + JSON.stringify(soft));
+      t.expect(soft['sunset-ridge'] <= 2.5 + 1e-9, 'and never past the stated top: ' + JSON.stringify(soft));
+    },
+  },
 ];

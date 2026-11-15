@@ -53,7 +53,7 @@ function shared() {
   if (!S.hemiSky) {
     S.hemiSky = { value: new THREE.Color('#BFD9F2') };
     S.hemiGround = { value: new THREE.Color('#7E8F5A') };
-    S.shadow = { uShadowMap: { value: null }, uShadowMatrix: { value: new THREE.Matrix4() }, uShadowOn: { value: 0 }, uShadowTexel: { value: 1 / 1024 } };
+    S.shadow = { uShadowMap: { value: null }, uShadowMatrix: { value: new THREE.Matrix4() }, uShadowOn: { value: 0 }, uShadowTexel: { value: 1 / 1024 }, uShadowSoft: { value: 1 } };
     S.focus = { value: new THREE.Vector3(0, -1e4, 0) };
   }
   return { ...u, uHemiSky: S.hemiSky, uHemiGround: S.hemiGround, uFocus: S.focus, ...S.shadow };
@@ -83,7 +83,7 @@ const FRAG_COMMON = `
   uniform sampler2D map; uniform float uAlphaTest; uniform vec3 uTint; uniform float uBright; uniform float uAlpha;
   uniform vec3 uLightTint; uniform vec3 uFogColor; uniform vec3 uSun; uniform float uAmb; uniform float uDiff; uniform vec3 uFocus;
   uniform vec3 uHemiSky; uniform vec3 uHemiGround; uniform float uGloss; uniform vec2 uPat; uniform float uPatAmt;
-  uniform sampler2D uShadowMap; uniform mat4 uShadowMatrix; uniform float uShadowOn; uniform float uShadowTexel;
+  uniform sampler2D uShadowMap; uniform mat4 uShadowMatrix; uniform float uShadowOn; uniform float uShadowTexel; uniform float uShadowSoft;
   #ifdef NEAR_FADE
     varying float vNear;
   #endif
@@ -142,7 +142,7 @@ const FRAG_COMMON = `
     #else
       float zb = 0.00025 + 0.0006 * (1.0 - abs(ndl));
     #endif
-    float z = p.z - zb, o = uShadowTexel * 0.8;
+    float z = p.z - zb, o = uShadowTexel * 0.8 * uShadowSoft; // the filter widens for a low sun (shadows.js, shadowSoft)
     float s = 0.25 * (shadowLerp(p.xy + vec2(-o, -o), z) + shadowLerp(p.xy + vec2(o, -o), z) + shadowLerp(p.xy + vec2(-o, o), z) + shadowLerp(p.xy + vec2(o, o), z));
     vec2 edge = min(p.xy, 1.0 - p.xy);
     return mix(1.0, s, smoothstep(0.0, 0.06, min(edge.x, edge.y)));

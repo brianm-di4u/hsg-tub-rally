@@ -31,6 +31,15 @@ export function partDepthMat(THREE, uParts, n) {
     fragmentShader: PACK, side: THREE.DoubleSide });
 }
 
+// S4-09: a low sun (dusk, sunset) lays the shadow map's texels across the ground at a long slant, so its stair-stepped
+// edges show on the road. The filter is widened by up to SOFT_LOW (1 = no change, as before, in daylight) as the sun's height
+// (the y of its direction) falls from SOFT_FROM to SOFT_TO. Park Avenue Nights comes to about 1.8 and Sunset Ridge 2.5; every daylight course (Bathhouse Row is the lowest at 0.55) stays 1.
+const SOFT_LOW = 2.5, SOFT_FROM = 0.5, SOFT_TO = 0.3;
+export function shadowSoft(sunY) {
+  const x = Math.max(0, Math.min(1, (sunY - SOFT_TO) / (SOFT_FROM - SOFT_TO))), s = x * x * (3 - 2 * x); // 0 at a low sun, 1 high
+  return 1 + (SOFT_LOW - 1) * (1 - s);
+}
+
 export class SunShadow {
   constructor(THREE, size = 1024, radius = 45) {
     this.THREE = THREE;

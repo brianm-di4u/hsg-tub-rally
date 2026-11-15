@@ -2,7 +2,8 @@
 // stretches it to the window with the browser's bilinear filter, which gives the soft analogue-video look for
 // free. Colours stay in gamma space (no colour management, no tone mapping).
 import { initMaterials, setFog, setSun, setTime, setLightTint } from './n64mat.js';
-import { setHemi } from './brickmat.js';
+import { setHemi, shadowUniforms } from './brickmat.js';
+import { shadowSoft } from './shadows.js';
 import { SSAO } from './ssao.js';
 
 export const RES_MODES = { authentic: 240, crisp: 480, native: 0 };
@@ -56,7 +57,7 @@ export class Renderer {
     const fogC = env.fogColor || '#C9DFE8';
     const fog = env.fog || [90, 330];
     setFog(fogC, fog[0], fog[1]);
-    if (env.sun) { setSun(env.sun, env.amb, env.diff); this.sunDir.set(env.sun[0], env.sun[1], env.sun[2]).normalize(); }
+    if (env.sun) { setSun(env.sun, env.amb, env.diff); this.sunDir.set(env.sun[0], env.sun[1], env.sun[2]).normalize(); this.shadowSoft = shadowSoft(this.sunDir.y); shadowUniforms().uShadowSoft.value = this.shadowSoft; }
     // ambient and reflections: the sky above (between its zenith and horizon colours), the baseplate below (a muted
     // green: a saturated one tinted shaded buff walls olive)
     const sky = env.sky || ['#7FB6E0', '#D9ECF5'], c = new THREE.Color(sky[0]).lerp(new THREE.Color(sky[1]), 0.55);
