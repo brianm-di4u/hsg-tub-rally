@@ -297,7 +297,7 @@ const TEMPLATES = {
     <div class="panel classes" role="dialog" aria-label="Choose a speed class">
       <canvas data-pixel="WATER TEMPERATURE" data-scale="4"></canvas>
       <p class="sub">Speed class: game difficulty, named for bath temperatures</p>
-      <nav class="menu">${Object.values(CLASSES).map((c, i) => `<button type="button" class="mbtn" data-act="${ok(c.id) ? 'cls' : 'locked'}" data-id="${c.id}" ${i === 1 ? 'autofocus' : ''} ${ok(c.id) ? '' : `data-why="${c.unlock || 'Win a cup'} to unlock ${c.name}." aria-disabled="true"`}>${c.name}${ok(c.id) ? '' : ` (${c.unlock || 'Win a cup'})`}</button>`).join('')}${btn('back', 'Back', 'data-back')}</nav>
+      <nav class="menu">${Object.values(CLASSES).map((c, i) => `<button type="button" class="mbtn" data-act="${ok(c.id) ? 'cls' : 'locked'}" data-id="${c.id}" ${i === 1 ? 'autofocus' : ''} ${ok(c.id) ? '' : `data-why="${c.unlock || 'Win a cup'} to unlock ${c.name}." aria-disabled="true"`}>${c.name}${ok(c.id) ? '' : ` (${c.unlock || 'Win a cup'})`}<small class="cls-how">${c.how} Rivals at ${Math.round(c.ai * 100)}% pace.</small></button>`).join('')}${btn('back', 'Back', 'data-back')}</nav>
     </div>`;
   },
   cups: (app, { built }) => `

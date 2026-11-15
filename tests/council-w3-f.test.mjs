@@ -2,6 +2,7 @@
 // what each speed class changes (S2-19), team voices (S4-04), the Goat Rock road (S4-06), the Vapors (S4-07) and local hooks (S4-08).
 import fs from 'node:fs';
 import { DEFAULT_SAVE } from '../src/js/save.js';
+import { CLASSES } from '../src/js/data/teams.js';
 import { ChaseCam, CROWD_LIFT } from '../src/js/gfx/camera.js';
 
 const SHOTS = '../_council/hsg-tub-rally/wave-3/shots';
@@ -129,6 +130,29 @@ export const tests = [
       t.expect(Math.abs(open - last) < 0.01, 'the camera settled on the open road: ' + open.toFixed(3));
       t.expect(peak - open >= 0.5, 'higher behind the crowd (' + peak.toFixed(2) + ' m) than on open road (' + open.toFixed(2) + ' m)');
       
+    },
+  },
+  // ---------------------------------------------------------------- S2-19
+  {
+    name: 'council F S2-19: each speed class says what it changes, from the data, and Soak is named as the one to start with',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await freshProfile(t);
+      await t.game('act', 'menu', 'quick'); await t.waitFrames(3); await t.game('act', 'menu', 'teamOk'); await t.waitFrames(3);
+      t.equal(await t.page.evaluate(() => document.body.dataset.screen), 'classes', 'the class choice is up');
+      const rows = await t.page.evaluate(() => Array.from(document.querySelectorAll('.classes .mbtn[data-id]')).map((b) => ({ id: b.dataset.id, text: b.textContent.replace(/\s+/g, ' ').trim(), locked: b.getAttribute('aria-disabled') === 'true', how: (b.querySelector('.cls-how') || {}).textContent })));
+      t.equal(rows.length, 4, 'four classes');
+      for (const r of rows) {
+        const c = CLASSES[r.id];
+        t.expect(r.how && r.how.startsWith(c.how), r.id + ' has its description: ' + r.how);
+        t.expect(r.how.includes('Rivals at ' + Math.round(c.ai * 100) + '% pace'), r.id + ' gives the pace the AI really has: ' + r.how);
+      }
+      t.expect(/start with/.test(rows.find((r) => r.id === 'soak').how), 'Soak is the one to start with');
+      const paces = rows.map((r) => +/at (\d+)% pace/.exec(r.how)[1]);
+      t.expect(paces.every((p, i) => !i || p > paces[i - 1]), 'the rivals get quicker down the list: ' + paces.join());
+      t.expect(rows.filter((r) => r.locked).every((r) => /Win a cup on/.test(r.text)), 'a locked class still says how to open it');
+      await shot(t, 'S2-19', 'classes');
+      await t.checkLayout({ allowScrollY: true });
     },
   },
 ];
