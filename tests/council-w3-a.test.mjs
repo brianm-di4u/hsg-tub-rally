@@ -249,3 +249,48 @@ tests.push(
     },
   },
 );
+
+// ---------------------------------------------------------------- P-N02
+// A laptop whose main pointer is a mouse reports no coarse pointer: the desktop viewport is one. The first touch on it brings the controls up.
+const touchUi = (t) => t.page.evaluate(() => ({ on: document.body.classList.contains('touch-on'), touch: getComputedStyle(document.querySelector('#touch')).display, pause: getComputedStyle(document.querySelector('#t-pause')).display, last: window.TR_APP.App && document.body.className }));
+const fakeTouch = (t, type = 'touch') => t.page.evaluate((pt) => { document.querySelector('#gl').dispatchEvent(new PointerEvent('pointerdown', { pointerType: pt, bubbles: true, pointerId: 41, clientX: 200, clientY: 300 })); document.querySelector('#gl').dispatchEvent(new PointerEvent('pointerup', { pointerType: pt, bubbles: true, pointerId: 41 })); }, type);
+tests.push(
+  {
+    name: 'council A P-N02: a mouse-and-keyboard laptop shows no touch controls until the first touch, and a key puts them away',
+    viewports: ['desktop'],
+    async run(t) {
+      await startRace(t);
+      let u = await touchUi(t);
+      t.expect(!u.on && u.touch === 'none' && u.pause === 'none', 'no touch controls for mouse and keyboard: ' + JSON.stringify(u));
+      await fakeTouch(t, 'mouse');
+      t.expect(!(await touchUi(t)).on, 'a mouse click does not bring them up');
+      await fakeTouch(t, 'touch');
+      await t.waitFrames(2);
+      u = await touchUi(t);
+      t.expect(u.on && u.touch === 'block' && u.pause === 'block', 'the first touch shows the steer pad and Pause: ' + JSON.stringify(u));
+      const box = await t.page.locator('#t-push').boundingBox();
+      t.expect(box && box.width >= 44 && box.height >= 44, 'the Push button is at least 44 px');
+      await shot(t, 'P-N02', 'touch-on-laptop');
+      await t.page.keyboard.press('ArrowUp');
+      await t.waitFrames(2);
+      u = await touchUi(t);
+      t.expect(!u.on && u.touch === 'none', 'a key press puts them away again');
+      await fakeTouch(t, 'pen');
+      t.expect((await touchUi(t)).on, 'a pen brings them back');
+    },
+  },
+  {
+    name: 'council A P-N02: a phone shows its touch controls from the start and keeps them under key presses',
+    viewports: ['mobile'],
+    async run(t) {
+      await startRace(t);
+      let u = await touchUi(t);
+      t.expect(u.on && u.touch === 'block' && u.pause === 'block', 'controls up on a coarse-pointer device: ' + JSON.stringify(u));
+      await t.page.keyboard.press('ArrowUp');
+      await t.waitFrames(2);
+      u = await touchUi(t);
+      t.expect(u.on && u.touch === 'block', 'a keyboard on a tablet does not hide them');
+      await t.checkLayout();
+    },
+  },
+);

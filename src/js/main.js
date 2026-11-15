@@ -102,6 +102,7 @@ async function boot() {
   App.audioState = audioState;
   initTouch($('#touch-steer'), { push: $('#t-push'), brake: $('#t-brake'), hop: $('#t-hop'), item: $('#t-item') });
   $('#t-pause').addEventListener('click', () => togglePause(true));
+  initTouchMode();
   window.addEventListener('resize', () => App.renderer.resize());
   // three.js re-creates its own resources after a lost context; the app tells the player and refits its render targets
   $('#gl').addEventListener('webglcontextlost', (e) => { e.preventDefault(); App.glLost = true; showGlNotice('Graphics were interrupted. Waiting for the browser to restore them...'); });
@@ -122,6 +123,16 @@ async function boot() {
   App.loading--;
   App.ready = true;
   requestAnimationFrame(frame);
+}
+
+// P-N02: the on-screen controls show when the main pointer is coarse (a phone or tablet), or after the first touch or pen on a
+// laptop or 2-in-1 whose main pointer is a mouse or trackpad. A key press there puts them away again.
+function initTouchMode() {
+  const coarse = () => !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+  const set = (on) => document.body.classList.toggle('touch-on', on);
+  set(coarse());
+  window.addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch' || e.pointerType === 'pen') { INPUT.last = 'touch'; set(true); } }, true);
+  window.addEventListener('keydown', () => { if (!coarse()) set(false); }, true);
 }
 
 function applyInputSettings(s) {
