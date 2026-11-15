@@ -95,7 +95,7 @@ const CONTROLS = {
     '<kbd>Shift</kbd>/<kbd>Space</kbd> hop. Hold it while steering into a turn to <b>power slide</b>; let go for a steam boost (Warm, then Hot).',
     '<kbd>X</kbd>/<kbd>J</kbd> use item (hold <kbd>↓</kbd> to aim back) · <kbd>C</kbd> look back · <kbd>Esc</kbd> pause'] },
   touch: { name: 'Touch', lines: [
-    'Drag anywhere on the left half of the screen to steer.',
+    'Drag anywhere on the {side} half of the screen to steer.',
     'Hold <b>Push</b> to run (Auto-push in Settings does it for you). Hold <b>Brake</b> to slow down.',
     'Hold <b>Hop</b> while steering into a turn to <b>power slide</b>; let go for a steam boost (Warm, then Hot).',
     'Tap <b>Item</b> to use your item. Hold <b>Brake</b> while you tap it to throw it backwards. <b>Pause</b> is at the top right.'] },
@@ -104,9 +104,9 @@ const CONTROLS = {
     'RB hop. Hold it while steering into a turn to <b>power slide</b>; let go for a steam boost (Warm, then Hot).',
     'LB, LT or X use item (hold B to throw it backwards) · Y look back · Start pause'] },
 };
-function driveHelp(open) {
+function driveHelp(open, lefty) {
   const first = CONTROLS[INPUT.last] ? INPUT.last : 'keyboard';
-  const list = (k) => `<ul>${CONTROLS[k].lines.map((l) => `<li>${l}</li>`).join('')}</ul>`;
+  const list = (k) => `<ul>${CONTROLS[k].lines.map((l) => `<li>${l.replace('{side}', lefty ? 'right' : 'left')}</li>`).join('')}</ul>`;
   const others = Object.keys(CONTROLS).filter((k) => k !== first), label = others.map((k) => CONTROLS[k].name).join(' and ') + ' controls';
   return `<section><h3>Drive: ${CONTROLS[first].name}</h3>${list(first)}
           <button type="button" class="chip help-more" data-act="helpAll" aria-expanded="${!!open}">${open ? 'Hide' : 'Show'} ${label}</button>
@@ -254,7 +254,7 @@ const TEMPLATES = {
       <canvas data-pixel="HOW TO PLAY" data-scale="5"></canvas>
       <p class="sub">Goal: cross the line first, with 10 gallons or more. Slide through turns for steam boosts.</p>
       <div class="help-cols">
-        ${driveHelp(app.helpAll)}
+        ${driveHelp(app.helpAll, app.save.settings.lefty)}
         <section><h3>The start</h3><ul>
           <li>Press <b>Push</b> in the last half second before <b>SCRUB!</b> for a GREAT START boost.</li>
           <li>Push too early, from <b>READY</b>, and it is a false start: you stumble for a moment.</li></ul></section>

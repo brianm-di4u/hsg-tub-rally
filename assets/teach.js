@@ -10,9 +10,9 @@
   const RESERVED = new Set(['Escape', 'Tab', 'Enter', 'Backspace']);
 
   // ---- the wording of each tip, by the input in use (twelve words or fewer)
-  function say(id, dev, auto, b) {
-    const t = dev === 'touch', p = dev === 'gamepad';
-    if (id === 'goal') return t ? (auto ? 'Goal: finish first. Drag the left side to steer.' : 'Goal: finish first. Hold Push; drag the left side to steer.')
+  function say(id, dev, auto, b, lefty) {
+    const t = dev === 'touch', p = dev === 'gamepad', side = lefty ? 'right' : 'left';
+    if (id === 'goal') return t ? (auto ? `Goal: finish first. Drag the ${side} side to steer.` : `Goal: finish first. Hold Push; drag the ${side} side to steer.`)
       : p ? 'Goal: finish first. Hold A to push, stick to steer.' : `Goal: finish first. Hold ${first(b, 'push')} to push, ${first(b, 'left')} ${first(b, 'right')} to steer.`;
     if (id === 'auto') return 'Auto-push is on. Hold Brake to stop; change it in Settings.';
     if (id === 'slide') return `Hold ${t ? 'Hop' : p ? 'RB' : first(b, 'hop')} and steer to slide; let go for a boost.`;
@@ -45,7 +45,7 @@
     T.el.firstChild.addEventListener('click', () => { if (T.cur) finish(T.cur); });
   }
   function show(id, c) {
-    const text = say(id, c.dev, c.auto, c.binds);
+    const text = say(id, c.dev, c.auto, c.binds, c.lefty);
     if (T.shown !== text) {
       T.shown = text; T.txt.textContent = text;
       T.el.lastChild.textContent = c.dev === 'keyboard' ? 'Skip tips (T)' : 'Skip tips';
@@ -62,7 +62,7 @@
     say,
     // tips run until the first race ends or the player skips them; onSeen writes the saved flag
     tipStart(h, onSeen) { Object.assign(T, { on: true, h, onSeen, cur: null, said: null, shown: null, done: {}, age: 0, gap: 0, steerT: 0 }); dom(h); T.el.hidden = true; },
-    // once per sim step: c = { race, me, steer, hop, brake, dev, auto, binds }
+    // once per sim step: c = { race, me, steer, hop, brake, dev, auto, binds, lefty }
     tipStep(c) {
       if (!T.on) return;
       T.steerT = Math.abs(c.steer) > 0.6 ? T.steerT + 1 / 60 : 0;

@@ -869,7 +869,7 @@ function stepOnce() {
   }
   if (me) playerFeedback(me);
   if (me && !App.raceOpts.autoplay && r.phase === 'race') landmarkCaption(me.s);
-  if (me && window.TR_TEACH) { const i = inputs[r.player]; window.TR_TEACH.tipStep({ race: r, me, steer: i.steer, hop: i.hop, brake: i.brake, dev: INPUT.last, auto: INPUT.autoPush, binds: getBindings() }); }
+  if (me && window.TR_TEACH) { const i = inputs[r.player]; window.TR_TEACH.tipStep({ race: r, me, steer: i.steer, hop: i.hop, brake: i.brake, dev: INPUT.last, auto: INPUT.autoPush, binds: getBindings(), lefty: !!App.save.settings.lefty }); }
   for (const e of r.events) {
     if (me && e.kart === me.id && e.type === 'lap') { if (e.lap === r.laps) setIntensity(1); if (e.lap > r.laps) sfx('finish', r.finishOrder.indexOf(me.id) + 1 || me.place); else sfx(e.lap === r.laps ? 'finalLap' : 'lap'); }
     if (me && e.kart === me.id && e.type === 'lap') App.hud.flash(e.lap === r.laps ? 'FINAL LAP!' : e.lap > r.laps ? 'FINISH!' : `LAP ${e.lap}`, 'lap', 1.4);
