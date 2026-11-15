@@ -28,14 +28,15 @@ export class Hud {
       <div class="hud-item" aria-hidden="true"><div class="bubble"><canvas class="item-icon" width="48" height="48"></canvas></div><div class="tickets"><span class="tk-ico"></span><b class="tk-n">0</b><small class="tk-l">tickets</small></div></div>
       <div class="hud-bl"><canvas class="hud-water" width="150" height="96" aria-hidden="true"></canvas><div class="hud-pips" aria-hidden="true"></div></div>
       <canvas class="hud-map" width="150" height="150" aria-hidden="true"></canvas>
-      <div class="hud-center"><canvas class="hud-count" aria-hidden="true"></canvas><div class="hud-call" role="status" aria-live="polite"></div></div>
+      <div class="hud-center"><canvas class="hud-count" aria-hidden="true"></canvas><div class="hud-call" role="status" aria-live="polite"></div><p class="hud-fact" aria-hidden="true"></p></div>
       <div class="hud-task" role="status" aria-live="assertive"><b class="t-name"></b><span class="t-how"></span><canvas class="t-meter" width="220" height="26" aria-hidden="true"></canvas></div>
       <div class="sr-only" aria-live="polite" id="hud-sr"></div>`;
     const q = (s) => root.querySelector(s);
-    this.el = { lap: q('.hud-lap'), time: q('.hud-time'), timeC: q('.hud-timec'), place: q('.hud-place'), water: q('.hud-water'), pips: q('.hud-pips'), map: q('.hud-map'), count: q('.hud-count'), call: q('.hud-call'), icon: q('.item-icon'), tk: q('.tk-n'), tkL: q('.tk-l'), parL: q('.hud-par'), sr: q('#hud-sr'), item: q('.hud-item'), task: q('.hud-task'), tname: q('.t-name'), thow: q('.t-how'), tmeter: q('.t-meter') };
+    this.el = { lap: q('.hud-lap'), time: q('.hud-time'), timeC: q('.hud-timec'), place: q('.hud-place'), water: q('.hud-water'), pips: q('.hud-pips'), map: q('.hud-map'), count: q('.hud-count'), call: q('.hud-call'), fact: q('.hud-fact'), icon: q('.item-icon'), tk: q('.tk-n'), tkL: q('.tk-l'), parL: q('.hud-par'), sr: q('#hud-sr'), item: q('.hud-item'), task: q('.hud-task'), tname: q('.t-name'), thow: q('.t-how'), tmeter: q('.t-meter') };
     this.el.pips.innerHTML = Object.keys(ITEM_ICONS).map((k) => `<span class="pip pip-${k}" title="${ITEM_NAMES[k]}"><i></i><em>${ITEM_LABELS[k]}</em></span>`).join('');
     this.last = {};
     this.callT = 0;
+    this.fact = '';
     this.mapCache = null;
   }
   // a mirrored race flips the minimap with the picture (the course map is drawn again from the track)
@@ -87,6 +88,9 @@ export class Hud {
       el.count.style.display = ct ? 'block' : 'none';
       if (ct) el.sr.textContent = ct;
     }
+    // S2-25: a local fact under READY and SET, unless a first-run tip is already talking
+    const factOn = !!this.fact && (race.phase === 'countdown' || race.time < 0.9) && !this.root.querySelector('.hud-tip:not([hidden])');
+    if (factOn !== L.factOn || (factOn && el.fact.textContent !== this.fact)) { L.factOn = factOn; el.fact.textContent = this.fact; el.fact.classList.toggle('show', factOn); }
     if (!me) return;
     // lap
     const lap = Math.max(1, Math.min(race.laps, me.lap || 1));

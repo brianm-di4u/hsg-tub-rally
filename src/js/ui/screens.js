@@ -121,13 +121,14 @@ const TEMPLATES = {
       </nav>
       <p class="fineprint">Inspired by the World Championship Running of the Tubs, held each June on Central Avenue. Fictional teams; not affiliated with the event or any business shown.</p>
     </div>`,
-  pause: () => `
+  pause: (app, { fact } = {}) => `
     <div class="panel pause" role="dialog" aria-label="Paused">
       <canvas data-pixel="PAUSED" data-scale="6"></canvas>
       <p class="sub">Goal: finish first, with 10 gallons or more.</p>
+      ${fact ? `<p class="fact-line">${fact.t}</p>` : ''}
       <nav class="menu">${btn('resume', 'Resume', 'autofocus data-back')}${btn('restart', 'Restart race')}${btn('help', 'How to play')}${btn('settings', 'Settings')}${btn('quit', 'Quit to title')}</nav>
     </div>`,
-  results: (app, { results, laps, trackName, gp, newRecord, mode, trial, daily }) => `
+  results: (app, { results, laps, trackName, gp, newRecord, mode, trial, daily, fact }) => `
     <div class="panel results" role="dialog" aria-label="Race results">
       <canvas data-pixel="${app.banner || 'RESULTS'}" data-scale="6"></canvas>
       <p class="sub">${mode === 'battle' ? `${trackName} · Water Fight: last tub with water wins` : `${trackName || ''} · ${laps} ${laps === 1 ? 'lap' : 'laps'}`}${newRecord ? ' · <b class="clean">NEW RECORD</b>' : ''}</p>
@@ -135,6 +136,7 @@ const TEMPLATES = {
       ${(results || []).map((r) => `<tr class="${r.human ? 'me' : ''}"><td>${r.place}</td><td><span class="sw" style="background:${TEAM_BY_ID[r.team].colors.tub}"></span>${TEAM_BY_ID[r.team].name}${r.human ? ' (you)' : ''}</td><td>${r.estimated ? '~' : ''}${fmtTime(r.time)}</td><td>${r.gal.toFixed(0)} gal${r.clean ? ' <b class="clean" title="Clean Finish: 10+ gallons and all four items">CLEAN</b>' : ''}</td><td>${r.points}</td></tr>`).join('')}
       </tbody></table>
       ${trial ? trialLines(trial) : ''}${daily ? dailyLines(daily) : ''}
+      ${fact ? `<p class="fact-line">${fact.t}</p>` : ''}
       <nav class="menu row">${gp ? btn('standingsGo', 'Standings', 'autofocus') : btn('restart', mode === 'timetrial' ? 'Try again' : 'Race again', 'autofocus')}${gp ? btn('quitCup', 'Quit cup') : btn('quit', 'Title', 'data-back')}</nav>
     </div>`,
   daily: (app, { plan, done, streak, best }) => `

@@ -1,4 +1,4 @@
-// Facts shown to players (course cards, loading tips, Trophy Room). Every one comes from research/town-content.md
+// Facts shown to players (course cards, the READY countdown, the pause menu and the results; the Trophy Room has none). Every one comes from research/town-content.md
 // with a source key from its §9 table; tools/check-facts.mjs checks every key exists there.
 export const FACTS = {
   event: [
@@ -49,5 +49,12 @@ export const FACTS = {
 
 export function factFor(id, n = 0) {
   const list = FACTS[id] || FACTS.event;
+  return list[n % list.length];
+}
+
+// S2-25: the facts the player meets in a race and its menus. A course's own facts come first, then the event's, and
+// n counts up across the session, so every sourced fact turns up and none repeats until the whole list has been seen.
+export function factAt(id, n = 0) {
+  const list = [...(FACTS[id] || []), ...FACTS.event];
   return list[n % list.length];
 }

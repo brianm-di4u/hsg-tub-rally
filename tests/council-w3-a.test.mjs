@@ -127,3 +127,55 @@ tests.push(
     },
   },
 );
+
+// ---------------------------------------------------------------- S2-25
+import { FACTS, factAt } from '../src/js/data/facts.js';
+const allFacts = new Set(Object.values(FACTS).flat().map((f) => f.t));
+tests.push(
+  {
+    name: 'council A S2-25: the fact rotation reaches every course fact and every event fact before it repeats',
+    node: true,
+    async run(t) {
+      for (const id of Object.keys(FACTS)) {
+        const len = (id === 'event' ? 0 : FACTS[id].length) + FACTS.event.length;
+        const seen = Array.from({ length: len }, (_, n) => factAt(id, n).t);
+        t.equal(new Set(seen).size, len, id + ': ' + len + ' different facts before a repeat');
+        t.expect(FACTS.event.every((e) => seen.includes(e.t)), id + ': the event facts are in the rotation');
+        t.equal(factAt(id, len).t, seen[0], id + ': then it starts again');
+      }
+      t.expect(factAt('no-such-course', 0).t === FACTS.event[0].t, 'an unknown course gets the event facts');
+    },
+  },
+  {
+    name: 'council A S2-25: a local fact shows under the countdown, a different one in the pause menu, another on the results',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.game('setState', { settings: { seenIntro: true } });
+      await t.game('newGame', { track: 'bathhouse-row', team: 'engine-six', classId: 'soak', laps: 1, seed: 5, paused: true });
+      await t.waitFrames(4);
+      const fact = () => t.page.evaluate(() => { const e = document.querySelector('.hud-fact'); return { on: e.classList.contains('show'), text: e.textContent, shown: getComputedStyle(e).display !== 'none' }; });
+      const f0 = await fact();
+      t.expect(f0.on && f0.shown && allFacts.has(f0.text), 'the countdown shows one of the repo\'s sourced facts: ' + f0.text);
+      await shot(t, 'S2-25', 'countdown-fact');
+      await t.game('act', 'skipCountdown');
+      await t.game('resume');
+      await t.waitFrames(130);
+      t.expect(!(await fact()).on, 'and it is gone once the race is running');
+      await t.page.keyboard.press('Escape');
+      await t.waitFrames(3);
+      const p = await t.page.evaluate(() => document.querySelector('.panel.pause .fact-line')?.textContent || '');
+      t.expect(allFacts.has(p) && p !== f0.text, 'the pause menu shows a different sourced fact: ' + p);
+      await shot(t, 'S2-25', 'pause-fact');
+      await t.page.keyboard.press('Escape');
+      await t.page.waitForFunction(() => window.__game.getState().resumeHold === 0, null, { timeout: 5000 });
+      await t.game('newGame', { track: 'bathhouse-row', team: 'engine-six', classId: 'soak', laps: 1, seed: 5, autoplay: true, paused: true });
+      await t.stepUntil((s) => s.race && s.race.phase === 'done', { max: 60 * 300, chunk: 300, label: 'race done' });
+      await t.page.waitForSelector('.panel.results', { timeout: 5000 });
+      const r = await t.page.evaluate(() => document.querySelector('.panel.results .fact-line')?.textContent || '');
+      t.expect(allFacts.has(r), 'the results screen shows a sourced fact: ' + r);
+      await shot(t, 'S2-25', 'results-fact');
+      await t.checkLayout({ allowScrollY: true });
+    },
+  },
+);

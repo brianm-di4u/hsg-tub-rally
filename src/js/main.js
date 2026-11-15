@@ -33,6 +33,7 @@ import { Screens } from './ui/screens.js';
 import { loadSave, writeSave, resetSave, saveProblem, saveGrandfathered, storeCup, loadCup, clearCup } from './save.js';
 import { initAudio, setAudio, sfx, tubLoop, rivalLoop, rivalEvent, setListener, USE_CUE, playTheme, playScene, setIntensity, audioState, setMuffle, suspendAudio, resumeAudio } from './ui/audio.js';
 import { dateKey, dailyPlan, liveStreak } from './daily.js';
+import { factAt } from './data/facts.js';
 import { installHooks } from './hooks.js';
 
 export const App = {
@@ -339,7 +340,7 @@ export async function startRace(opts = {}) {
   playTheme(o.mode === 'row' || o.mode === 'battle' ? 'march' : (trackData(o.track) || {}).env?.music || ((TRACK_BY_ID[o.track] || {}).cup === 'ouachita' ? 'grass' : 'rag'));
   document.body.classList.add('racing');
   App.hud.root.classList.add('on');
-  App.hud.last = {};
+  App.hud.last = {}; App.hud.fact = o.autoplay ? '' : nextFact().t;
   if (window.TR_TEACH) { if (tips && window.TR_TEACH.api) window.TR_TEACH.tipStart(App.hud, () => persistSave({ settings: { seenIntro: true } })); else window.TR_TEACH.tipStop(); }
   return App.race;
 }
@@ -378,6 +379,10 @@ function gotoTitle() {
   playTheme('title');
 }
 
+// S2-25: the next local fact for the course in play; the counter runs on across the session
+let factN = 0;
+const nextFact = () => factAt(App.track ? App.track.id : '', factN++);
+
 // The place a race is heard in: the plaza for the Water Fight, the mountain for the Ouachita cup, downtown otherwise.
 function sceneFor(o) {
   const tr = TRACK_BY_ID[o.track] || {};
@@ -412,7 +417,7 @@ function resumeCountdown(dt) {
 function togglePause(force) {
   if (App.scene !== 'race' || !App.race || App.race.phase === 'done') return;
   App.paused = force ?? !App.paused;
-  if (App.paused) { App.resumeT = 0; App.screens.show('pause'); } else { App.resumeT = RESUME_HOLD; App.resumeN = 0; App.screens.hide(); }
+  if (App.paused) { App.resumeT = 0; App.pauseFact = nextFact(); App.screens.show('pause', { fact: App.pauseFact }); } else { App.resumeT = RESUME_HOLD; App.resumeN = 0; App.screens.hide(); }
 }
 
 // courses that are built (data present) in registry order, with card info
@@ -546,7 +551,7 @@ function onMenu(act, data) {
     case 'rebindReset': persistSave({ settings: { keys: null } }); controlsScreen({ msg: 'Keys are back to their defaults.' }); break;
     case 'settings': App.capture = null; App.prevScreen = App.screens.cur; App.screens.show('settings'); break;
     case 'back':
-      if (App.scene === 'race' && App.paused) App.screens.show('pause');
+      if (App.scene === 'race' && App.paused) App.screens.show('pause', { fact: App.pauseFact });
       else { setPreview(null); App.screens.show('title'); }
       break;
     case 'continueCup': {
@@ -776,7 +781,7 @@ function stepOnce() {
     if (App.trialResult && App.trialResult.medalNew) sfx('cheer');
     if (r.mode === 'gp') recordGp(r);
     if (r.mode === 'row') { setTimeout(() => { if (App.race === r) onHeatDone(r); }, window.__TEST__ ? 0 : 1200); return; }
-    setTimeout(() => { if (App.race === r) App.screens.show('results', { results: r.results, laps: r.laps, trackName: App.track.name, gp: r.mode === 'gp', newRecord: App.newRecord, mode: r.mode, trial: App.trialResult, daily: App.dailyResult }); }, window.__TEST__ ? 0 : 1500);
+    setTimeout(() => { if (App.race === r) App.screens.show('results', { results: r.results, laps: r.laps, trackName: App.track.name, gp: r.mode === 'gp', newRecord: App.newRecord, mode: r.mode, trial: App.trialResult, daily: App.dailyResult, fact: nextFact() }); }, window.__TEST__ ? 0 : 1500);
   }
   if (r.phase !== 'done') App._resultsShown = false;
 }
