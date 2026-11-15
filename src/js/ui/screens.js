@@ -170,6 +170,9 @@ function raceOptsRow(app) {
 // S4-05: a postcard's picture is its course's own sky (the colours the race uses), a ridge and a postmark, drawn in CSS
 const SKY = { 'bathhouse-row': ['#79B3E2', '#DCEEF6'], 'park-avenue': ['#2B2350', '#E8875A'], 'whittington-valley': ['#86B8DE', '#E2EEE8'], 'bridge-street': ['#6FA9DC', '#E4EEF2'], 'hs-mountain': ['#6FA8DC', '#DDEFF5'], 'goat-rock-gulpha': ['#6FA8DC', '#DDEFF5'], 'west-mountain': ['#6AA6D8', '#E3F0F4'], 'hill-wheatley': ['#79B3E2', '#DCEEF6'], 'sunset-ridge': ['#5B4A8A', '#F7B267'] };
 
+// S4-04: the winning captain's line on the results
+const voice = (rs) => { const w = rs && rs.length > 1 && rs.find((r) => r.place === 1), tm = w && TEAM_BY_ID[w.team]; return tm ? `<p class="fact-line voice">${tm.captain}${w.human ? ' (you)' : ''}: “${tm.say}”</p>` : ''; };
+
 const TEMPLATES = {
   title: (app) => `
     <div class="title-wrap">
@@ -206,7 +209,7 @@ const TEMPLATES = {
       </tbody></table>
       ${mode === 'battle' ? '' : cleanLine((results || []).find((r) => r.human))}${cleanLegend(results)}
       ${trial ? trialLines(trial) : ''}${daily ? dailyLines(daily) : ''}
-      ${fact ? `<p class="fact-line">${fact.t}</p>` : ''}
+      ${voice(results)}${fact ? `<p class="fact-line">${fact.t}</p>` : ''}
       <nav class="menu row">${gp ? btn('standingsGo', 'Standings', 'autofocus') : btn('restart', mode === 'timetrial' ? 'Try again' : 'Race again', 'autofocus')}${gp ? btn('quitCup', 'Quit cup') : btn('quit', 'Title', 'data-back')}</nav>
     </div>`,
   daily: (app, { plan, done, streak, best }) => `

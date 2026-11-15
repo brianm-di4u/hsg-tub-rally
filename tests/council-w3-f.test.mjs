@@ -2,7 +2,7 @@
 // what each speed class changes (S2-19), team voices (S4-04), the Goat Rock road (S4-06), the Vapors (S4-07) and local hooks (S4-08).
 import fs from 'node:fs';
 import { DEFAULT_SAVE } from '../src/js/save.js';
-import { CLASSES } from '../src/js/data/teams.js';
+import { CLASSES, TEAMS } from '../src/js/data/teams.js';
 import { ChaseCam, CROWD_LIFT } from '../src/js/gfx/camera.js';
 
 const SHOTS = '../_council/hsg-tub-rally/wave-3/shots';
@@ -153,6 +153,51 @@ export const tests = [
       t.expect(rows.filter((r) => r.locked).every((r) => /Win a cup on/.test(r.text)), 'a locked class still says how to open it');
       await shot(t, 'S2-19', 'classes');
       await t.checkLayout({ allowScrollY: true });
+    },
+  },
+  // ---------------------------------------------------------------- S4-04
+  {
+    name: 'council F S4-04: every team has a line of its own',
+    node: true,
+    async run(t) {
+      t.equal(TEAMS.length, 12, 'twelve teams');
+      t.expect(TEAMS.every((x) => typeof x.say === 'string' && x.say.length >= 6 && x.say.length <= 32), 'every team has a short line: ' + TEAMS.filter((x) => !x.say || x.say.length > 32).map((x) => x.id));
+      t.equal(new Set(TEAMS.map((x) => x.say)).size, 12, 'no two teams say the same thing');
+    },
+  },
+  {
+    name: 'council F S4-04: a rival captain answers the first hit from their team, and the results carry the winning captain line',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.game('newGame', { mode: 'quick', count: 8, track: 'bathhouse-row', seed: 5 });
+      await t.game('act', 'skipCountdown'); await t.waitFrames(5);
+      const rivals = await t.page.evaluate(() => window.__game.getState().race.karts.filter((k) => !k.human).map((k) => ({ id: k.id, team: k.team })));
+      const call = () => t.page.evaluate(() => { const h = window.TR_APP.App.hud; return h.el.call.textContent; });
+      const clear = () => t.page.evaluate(() => { const h = window.TR_APP.App.hud; h.callT = 0; h.el.call.textContent = ''; });
+      const hit = (id) => t.game('act', 'event', { type: 'hit', by: 'soap', owner: id, blocked: false });
+      await clear(); await hit(rivals[0].id); await t.waitFrames(2);
+      const first = await call();
+      const tm = TEAMS.find((x) => x.id === rivals[0].team);
+      t.equal(first, tm.captain + ': “' + tm.say + '”', 'the first hit from ' + tm.name + ' is answered');
+      await shot(t, 'S4-04', 'hit-line');
+      await clear(); await hit(rivals[0].id); await t.waitFrames(2);
+      t.equal(await call(), '', 'the same team does not repeat itself in one race');
+      const other = rivals.find((r) => r.team !== rivals[0].team);
+      await hit(other.id); await t.waitFrames(2);
+      const tm2 = TEAMS.find((x) => x.id === other.team);
+      t.equal(await call(), tm2.captain + ': “' + tm2.say + '”', 'another team has its own line');
+      await clear(); await t.game('act', 'event', { type: 'hit', by: 'soap', owner: rivals[1].id === other.id ? rivals[2].id : rivals[1].id, blocked: true }); await t.waitFrames(2);
+      t.equal(await call(), '', 'a blocked hit gets no line');
+      // the results
+      const show = (humanWins) => t.page.evaluate(([w, hw]) => { const mk = (i, team) => ({ place: i + 1, team, human: hw ? i === 0 : i === 1, time: 90 + i, gal: 14, clean: false, points: 10, tickets: 0, lost: [], dry: false }); window.TR_APP.App.screens.show('results', { results: [mk(0, w), mk(1, 'engine-six')], laps: 3, trackName: 'Bathhouse Row' }); }, ['bubble-patrol', humanWins]);
+      await show(false); await t.waitFrames(3);
+      const line = () => t.page.evaluate(() => (document.querySelector('.results .voice') || {}).textContent);
+      t.equal(await line(), 'Sgt. Penny Suds: “Pull over, citizen!”', 'the winner speaks on the results');
+      await shot(t, 'S4-04', 'results-line');
+      await t.checkLayout({ allowScrollY: true });
+      await show(true); await t.waitFrames(3);
+      t.equal(await line(), 'Sgt. Penny Suds (you): “Pull over, citizen!”', 'your own captain speaks when you win');
     },
   },
 ];

@@ -28,6 +28,7 @@ export const CLASSES = {
   boil: { id: 'boil', name: 'Boil', vTop: 23, ai: 1.08, rubber: 0, noise: 0.2, aggro: 1, hunt: 1, spill: 1.15, wall: 1.1, how: 'The fastest rivals, who never ease off and aim every item at you.', unlock: 'Win a cup on Scald' },
 };
 
+// `say` is the captain's line, heard when a rival's item hits you and on the results (S4-04).
 // Captain names are invented. `perk` nudges one stat a little (never more than 4%). The four teams that are won, not given
 // (S3-09), also carry a signature in `perk` that changes how they race, named in `sig`:
 //   wall       how much speed a wall hit costs (1 = a normal tub)
@@ -36,40 +37,40 @@ export const CLASSES = {
 //   bump       how much water a bump from another tub spills (1 = normal)
 // Colours: tub, trim, crew shirt, crew hat, captain outfit, skin tone, flag.
 export const TEAMS = [
-  { id: 'engine-six', name: 'Engine Six Soakers', div: 'traditional', archetype: 'Firefighters', captain: 'Capt. Rosa Hydrant',
+  { id: 'engine-six', name: 'Engine Six Soakers', div: 'traditional', archetype: 'Firefighters', captain: 'Capt. Rosa Hydrant', say: 'Hose them down, team!',
     colors: { tub: '#C8322A', trim: '#F2C230', shirt: '#2A2D34', hat: '#C8322A', cap: '#F2C230', skin: '#C68C5D', flag: '#F2C230' },
     emblem: 'hydrant', hat: 'helmet', perk: { slosh: 0.96 }, unlocked: true },
-  { id: 'lather-linen', name: 'Lather & Linen', div: 'traditional', archetype: 'Spa attendants', captain: 'Madame Vapeur',
+  { id: 'lather-linen', name: 'Lather & Linen', div: 'traditional', archetype: 'Spa attendants', captain: 'Madame Vapeur', say: 'Do try to relax, darling.',
     colors: { tub: '#F4EFE4', trim: '#C9A24A', shirt: '#F4EFE4', hat: '#F4EFE4', cap: '#8FC9D6', skin: '#E2B48C', flag: '#8FC9D6' },
     emblem: 'towel', hat: 'turban', perk: { rim: 1.03 }, unlocked: true },
-  { id: 'velvet-mob', name: 'The Velvet Mob', div: 'traditional', archetype: '1930s costume team', captain: '"Lucky" Lou Lavender',
+  { id: 'velvet-mob', name: 'The Velvet Mob', div: 'traditional', archetype: '1930s costume team', captain: '"Lucky" Lou Lavender', say: 'Nothing personal, pal.',
     colors: { tub: '#4B2E5E', trim: '#D9C27A', shirt: '#2B2B33', hat: '#3A3A44', cap: '#6E4A86', skin: '#D9A77E', flag: '#D9C27A' },
     emblem: 'card', hat: 'fedora', perk: { top: 1.02 }, unlocked: true },
-  { id: 'gator-gang', name: 'Gator Gang', div: 'traditional', archetype: 'Alligator costumes', captain: 'Big Al Bayou',
+  { id: 'gator-gang', name: 'Gator Gang', div: 'traditional', archetype: 'Alligator costumes', captain: 'Big Al Bayou', say: 'Snap snap!',
     colors: { tub: '#3E7B3A', trim: '#E5D27A', shirt: '#4E8E45', hat: '#3E7B3A', cap: '#5FA052', skin: '#8D5A3B', flag: '#E5D27A' },
     emblem: 'gator', hat: 'snout', perk: { grip: 1.03, wall: 0.6 }, sig: 'Thick hide: wall hits cost 40% less speed.', unlocked: false },
-  { id: 'bubble-patrol', name: 'Bubble Patrol', div: 'modified', archetype: 'Police officers', captain: 'Sgt. Penny Suds',
+  { id: 'bubble-patrol', name: 'Bubble Patrol', div: 'modified', archetype: 'Police officers', captain: 'Sgt. Penny Suds', say: 'Pull over, citizen!',
     colors: { tub: '#2B4D9B', trim: '#E8ECF2', shirt: '#2B4D9B', hat: '#1D2C55', cap: '#E8ECF2', skin: '#7A4E36', flag: '#E8ECF2' },
     emblem: 'star', hat: 'peaked', perk: { push: 1.03 }, unlocked: true },
-  { id: 'trail-shredders', name: 'Trail Shredders', div: 'modified', archetype: 'Mountain bikers', captain: 'Dusty Switchback',
+  { id: 'trail-shredders', name: 'Trail Shredders', div: 'modified', archetype: 'Mountain bikers', captain: 'Dusty Switchback', say: 'Send it!',
     colors: { tub: '#F07F22', trim: '#2C3A2E', shirt: '#7DBB3C', hat: '#F07F22', cap: '#2C3A2E', skin: '#E0AA80', flag: '#7DBB3C' },
     emblem: 'wheel', hat: 'bike-helmet', perk: { grip: 1.03 }, unlocked: true },
-  { id: 'out-of-towners', name: 'The Out-of-Towners', div: 'modified', archetype: 'Tie-dye visitors from Texas', captain: 'Starla Lonestar',
+  { id: 'out-of-towners', name: 'The Out-of-Towners', div: 'modified', archetype: 'Tie-dye visitors from Texas', captain: 'Starla Lonestar', say: "Y'all come back now!",
     colors: { tub: '#2FB3A6', trim: '#9B4DCA', shirt: '#E84E8A', hat: '#47C7B6', cap: '#F5D547', skin: '#B57C55', flag: '#F5D547' },
     emblem: 'antenna', hat: 'antenna', perk: { turn: 1.03 }, unlocked: true },
-  { id: 'silks-stirrups', name: 'Silks & Stirrups', div: 'modified', archetype: 'Jockey silks', captain: 'Jo "Photo Finish" Furlong',
+  { id: 'silks-stirrups', name: 'Silks & Stirrups', div: 'modified', archetype: 'Jockey silks', captain: 'Jo "Photo Finish" Furlong', say: 'And down the stretch!',
     colors: { tub: '#E8E8E8', trim: '#D6226E', shirt: '#D6226E', hat: '#2FA84F', cap: '#2FA84F', skin: '#E9BE98', flag: '#2FA84F' },
     emblem: 'horseshoe', hat: 'jockey', perk: { top: 1.02, startBoost: 1.5 }, sig: 'Out of the gate: the start boost lasts 50% longer.', unlocked: false },
-  { id: 'steam-rangers', name: 'Steam Rangers', div: 'stock', archetype: 'Flat-hat rangers', captain: 'Ranger Hazel Fern',
+  { id: 'steam-rangers', name: 'Steam Rangers', div: 'stock', archetype: 'Flat-hat rangers', captain: 'Ranger Hazel Fern', say: 'Stay on the trail, friend.',
     colors: { tub: '#6B7F4A', trim: '#C7A86A', shirt: '#8C979C', hat: '#C9A66B', cap: '#4E6136', skin: '#A86F4C', flag: '#C7A86A' },
     emblem: 'pine', hat: 'flat-brim', perk: { slosh: 0.96 }, unlocked: true },
-  { id: 'suds-posse', name: 'Suds Posse', div: 'stock', archetype: "Sheriff's posse", captain: 'Deputy Dale Lather',
+  { id: 'suds-posse', name: 'Suds Posse', div: 'stock', archetype: "Sheriff's posse", captain: 'Deputy Dale Lather', say: 'Yeehaw, partner!',
     colors: { tub: '#8A5A2E', trim: '#E8C547', shirt: '#E6DCC8', hat: '#5A3B22', cap: '#E8C547', skin: '#D6A27A', flag: '#E8C547' },
     emblem: 'badge', hat: 'cowboy', perk: { push: 1.03 }, unlocked: true },
-  { id: 'flamingo-flock', name: 'Flamingo Flock', div: 'stock', archetype: 'Flamingos', captain: 'Flo Mingo',
+  { id: 'flamingo-flock', name: 'Flamingo Flock', div: 'stock', archetype: 'Flamingos', captain: 'Flo Mingo', say: 'Pink and proud!',
     colors: { tub: '#F28DB2', trim: '#FFFFFF', shirt: '#F7B6CE', hat: '#F28DB2', cap: '#F7B6CE', skin: '#C9875F', flag: '#FFFFFF' },
     emblem: 'flamingo', hat: 'beak', perk: { turn: 1.03, charge: 1.2 }, sig: 'Quick charge: power slides reach Warm and Hot 20% sooner.', unlocked: false },
-  { id: 'tub-ninjas', name: 'Tub Ninjas', div: 'stock', archetype: 'Ninjas', captain: 'Shadow Scrub',
+  { id: 'tub-ninjas', name: 'Tub Ninjas', div: 'stock', archetype: 'Ninjas', captain: 'Shadow Scrub', say: 'You never saw us.',
     colors: { tub: '#23232B', trim: '#D33A3A', shirt: '#2E2E38', hat: '#D33A3A', cap: '#2E2E38', skin: '#E0B48E', flag: '#D33A3A' },
     emblem: 'moon', hat: 'headband', perk: { rim: 1.03, bump: 0 }, sig: 'Silent bumps: bumping another tub spills no water.', unlocked: false },
 ];

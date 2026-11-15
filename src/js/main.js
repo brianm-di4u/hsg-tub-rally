@@ -803,7 +803,12 @@ function playerFeedback(me) {
     else if (e.type === 'taskFail') App.hud.flash('Judges say no! Dropped the ' + (e.item || 'item') + '. Circle the tub!', 'bad', 1.8);
     else if (e.type === 'wall' && e.v > 7) App.cam.shake = Math.min(1, e.v / 14);
     else if (e.type === 'land' && e.v > 7) App.cam.shake = 0.4;
-    else if (e.type === 'hit') { App.cam.shake = 0.7; App.cam.punch = 3; }
+    else if (e.type === 'hit') {
+      App.cam.shake = 0.7; App.cam.punch = 3;
+      // S4-04: a rival's captain answers the first hit from their team in a race
+      const r = App.race, o = r.karts[e.owner], tm = o && !o.human && TEAM_BY_ID[o.team], said = (r.said = r.said || new Set());
+      if (tm && !e.blocked && !said.has(o.team) && !(App.hud.callT > 0)) { said.add(o.team); App.hud.flash(`${tm.captain}: “${tm.say}”`, 'lap', 1.6); }
+    }
     else if (e.type === 'bump') App.cam.shake = Math.max(App.cam.shake, 0.35);
     else if (e.type === 'fall') App.hud.flash('Over the edge! The refs will tow you back', 'bad', 2);
     else if (e.type === 'bribe') App.hud.flash('Bribe accepted: HEAD START!', 'boost', 1.4);
