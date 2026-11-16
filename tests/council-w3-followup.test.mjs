@@ -65,8 +65,8 @@ export const tests = [
       const west = FACTS['west-mountain'].find((f) => /Lake Hamilton/.test(f.t));
       const jug = FACTS['hill-wheatley'].find((f) => /jug/.test(f.t));
       t.expect(!!west && west.src === 'nps-overlooks', 'a West Mountain fact about the Lake Hamilton view, from nps-overlooks');
-      t.expect(!!jug && jug.src === 'hotspringsguides', 'a Hill Wheatley fact about the thermal-water jug fountain, from the town-content listing: ' + (jug && jug.src));
-      t.expect(/`hotspringsguides`/.test(tc), 'that source key is in the §9 table');
+      t.expect(!!jug && jug.src === 'hsguides', 'a Hill Wheatley fact about the thermal-water jug fountain, from the town-content listing: ' + (jug && jug.src));
+      t.expect(/`hsguides`/.test(tc), 'that source key is in the §9 table');
       t.expect(/summit view south to the Trap Mountains and Lake Hamilton/.test(tc) && /thermal-water jug fountain/.test(tc), 'both claims are in research/town-content.md');
     },
   },

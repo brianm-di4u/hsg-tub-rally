@@ -250,28 +250,28 @@ const TEMPLATES = {
     </div>`;
   },
   help: (app) => `
-    <div class="panel help" role="dialog" aria-label="How to play">
-      <canvas data-pixel="HOW TO PLAY" data-scale="5"></canvas>
-      <p class="sub">Goal: cross the line first, with 10 gallons or more. Slide through turns for steam boosts.</p>
-      <div class="help-cols">
-        ${driveHelp(app.helpAll, app.save.settings.lefty)}
-        <section><h3>The start</h3><ul>
-          <li>Press <b>Push</b> in the last half second before <b>SCRUB!</b> for a GREAT START boost.</li>
-          <li>Push too early, from <b>READY</b>, and it is a false start: you stumble for a moment.</li></ul></section>
-        <section><h3>Keep your water</h3><ul>
-          <li>Your tub starts full. Hard turns, slides, landings and hits slosh water out. Crowds' water blasters, refill buckets, fountains and creek fords top you up.</li>
-          <li>More water is heavier: steadier, but slower to get going.</li>
-          <li>Cross the line with <b>10 gallons or more</b> and all four attendant items for a <b>Clean Finish</b> bonus point.</li></ul></section>
-        ${itemsHelp()}
-        ${rivalsHelp()}
-        <section><h3>Water Fight</h3><ul>
-          <li>Eight tubs circle the plaza fountain. Item hits spill more water here, and a dry tub is out.</li>
-          <li>Refill only at the fountain. The last tub with water wins, or the fullest when the 150 second clock ends.</li></ul></section>
-        <section><h3>The real rules</h3><ul>
-          <li>Inspired by Hot Springs' World Championship Running of the Tubs (since 2006): a captain rides and steers, four bath attendants push, each carrying a towel, bath mat, soap or loofah mitt.</li>
-          <li>Get hit and an attendant drops their item: everyone stops and runs once around the tub, just like rule 7.</li></ul></section>
-      </div>
-      <nav class="menu row">${btn('back', 'Back', 'autofocus data-back')}</nav>
+<div class="panel help" role="dialog" aria-label="How to play">
+<canvas data-pixel="HOW TO PLAY" data-scale="5"></canvas>
+<p class="sub">Goal: cross the line first, with 10 gallons or more. Slide through turns for steam boosts.</p>
+<div class="help-cols">
+${driveHelp(app.helpAll, app.save.settings.lefty)}
+<section><h3>The start</h3><ul>
+<li>Press <b>Push</b> in the last half second before <b>SCRUB!</b> for a GREAT START boost.</li>
+<li>Push too early, from <b>READY</b>, and it is a false start: you stumble for a moment.</li></ul></section>
+<section><h3>Keep your water</h3><ul>
+<li>Your tub starts full. Hard turns, slides, landings and hits slosh water out. Crowds' water blasters, refill buckets, fountains and creek fords top you up.</li>
+<li>More water is heavier: steadier, but slower to get going.</li>
+<li>Cross the line with <b>10 gallons or more</b> and all four attendant items for a <b>Clean Finish</b> bonus point.</li></ul></section>
+${itemsHelp()}
+${rivalsHelp()}
+<section><h3>Water Fight</h3><ul>
+<li>Eight tubs circle the plaza fountain. Item hits spill more water here, and a dry tub is out.</li>
+<li>Refill only at the fountain. The last tub with water wins, or the fullest when the 150 second clock ends.</li></ul></section>
+<section><h3>The real rules</h3><ul>
+<li>Inspired by Hot Springs' World Championship Running of the Tubs (since 2006): a captain rides and steers, four bath attendants push, each carrying a towel, bath mat, soap or loofah mitt.</li>
+<li>Get hit and an attendant drops their item: everyone stops and runs once around the tub, just like rule 7.</li></ul></section>
+</div>
+<nav class="menu row">${btn('back', 'Back', 'autofocus data-back')}</nav>
     </div>`,
   controls: (app, d) => (window.TR_TEACH && window.TR_TEACH.api ? window.TR_TEACH.controlsHtml(app, d || {}) : ''),
   teams: (app, { sel }) => {

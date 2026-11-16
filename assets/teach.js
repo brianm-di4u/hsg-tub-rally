@@ -11,8 +11,8 @@
 
   // ---- the wording of each tip, by the input in use (twelve words or fewer)
   function say(id, dev, auto, b, lefty) {
-    const t = dev === 'touch', p = dev === 'gamepad', side = lefty ? 'right' : 'left';
-    if (id === 'goal') return t ? (auto ? `Goal: finish first. Drag the ${side} side to steer.` : `Goal: finish first. Hold Push; drag the ${side} side to steer.`)
+    const t = dev === 'touch', p = dev === 'gamepad';
+    if (id === 'goal') return t ? `Goal: finish first. ${auto ? 'Drag' : 'Hold Push; drag'} the ${lefty ? 'right' : 'left'} side to steer.`
       : p ? 'Goal: finish first. Hold A to push, stick to steer.' : `Goal: finish first. Hold ${first(b, 'push')} to push, ${first(b, 'left')} ${first(b, 'right')} to steer.`;
     if (id === 'auto') return 'Auto-push is on. Hold Brake to stop; change it in Settings.';
     if (id === 'slide') return `Hold ${t ? 'Hop' : p ? 'RB' : first(b, 'hop')} and steer to slide; let go for a boost.`;
