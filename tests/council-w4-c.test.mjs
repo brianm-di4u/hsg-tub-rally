@@ -130,4 +130,37 @@ export const tests = [
       t.expect(!/outscore/.test(await text(t, '.panel.standings p')), 'the leader is not told to outscore anyone');
     },
   },
+
+  // ---------------------------------------------------------------- S6-09
+  {
+    name: 'council W4C S6-09: a page that is not under test has the reading hooks but not the ones that change state',
+    viewports: ['desktop'],
+    // as a player's browser: no harness flag, and not driven by automation
+    initScript: () => { window.__TEST__ = false; Object.defineProperty(navigator, 'webdriver', { get: () => false }); },
+    async run(t) {
+      await t.waitIdle(8000);
+      const r = await t.page.evaluate(() => ({ keys: Object.keys(window.__game), state: typeof window.__game.getState === 'function' && !!window.__game.getState().settings }));
+      t.expect(r.state, 'getState still reads the game');
+      t.expect(r.keys.includes('getState') && r.keys.includes('audioList') && r.keys.includes('isIdle'), 'the reading hooks stay: ' + r.keys);
+      t.expect(!r.keys.includes('setState') && !r.keys.includes('act'), 'setState and act (teleport, clearSave) are not there: ' + r.keys);
+    },
+  },
+  {
+    name: 'council W4C S6-09: ?debug brings the state-changing hooks back',
+    url: 'index.html?debug',
+    initScript: () => { window.__TEST__ = false; Object.defineProperty(navigator, 'webdriver', { get: () => false }); },
+    viewports: ['desktop'],
+    async run(t) {
+      await t.waitIdle(8000);
+      t.expect(await t.page.evaluate(() => typeof window.__game.setState === 'function' && typeof window.__game.act === 'function'), '?debug keeps them');
+    },
+  },
+  {
+    name: 'council W4C S6-09: under the test harness every hook is there',
+    viewports: ['desktop'],
+    async run(t) {
+      await t.waitIdle(8000);
+      t.expect(await t.page.evaluate(() => typeof window.__game.setState === 'function' && typeof window.__game.act === 'function' && window.__game.act('date', '2026-01-02') === true), 'the harness page has setState and act');
+    },
+  },
 ];

@@ -176,6 +176,13 @@ export function installHooks(App, api) {
       }
     },
   };
+  // S6-09: the hooks that change state (setState, and act with its teleport, water, hit and clearSave) are for a page that
+  // is under test (the harness sets __TEST__ and the browser reports webdriver) or opened with ?debug. The ones that only read stay.
+  if (!debugAllowed()) { delete window.__game.setState; delete window.__game.act; }
+}
+
+export function debugAllowed() {
+  try { return !!window.__TEST__ || navigator.webdriver === true || /[?&]debug(=|&|$)/.test(window.location.search); } catch (e) { return false; }
 }
 
 // a review-camera target: centre point plus the heading its "front" faces
