@@ -160,3 +160,8 @@ and side of the street; generic buildings are stand-ins.
 | `corpus-row` | research/bathhouse-row-layout.md (HABS AR-28, NHL nomination, OSM) |
 | `corpus-gangster` | research/gangster-era-and-gambling.md |
 | `corpus-culture` | research/culture-events-food.md |
+| `vapors-eoa` | Encyclopedia of Arkansas: Vapors (https://encyclopediaofarkansas.net/entries/vapors-3998/) |
+| `wiki-row` | Wikipedia: Bathhouse Row (https://en.wikipedia.org/wiki/Bathhouse_Row) |
+| `wiki-lakeham` | Wikipedia: Lake Hamilton (https://en.wikipedia.org/wiki/Lake_Hamilton_(Arkansas)) |
+| `nps-history` | NPS: History & Culture (https://www.nps.gov/hosp/learn/historyculture/index.htm) |
+| `nps-water` | National Park Service: Experience the Water (https://www.nps.gov/hosp/planyourvisit/thermal-springs.htm) |

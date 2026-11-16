@@ -10,14 +10,18 @@ export const FACTS = {
     { t: 'The real rules award extra points for bribing the judges.', src: 'rules-2026', rule: 17 },
     { t: 'Spectators line the street with water blasters, and downtown businesses set out refill buckets.', src: 'rott-faq' },
     { t: 'The race is a tribute to the city\'s old motto, "We Bathe the World."', src: 'rott-about' },
+    { t: 'NPS says the bathing industry led to Hot Springs becoming known as the "Great American Spa".', src: 'nps-history' },
   ],
   'bathhouse-row': [
     { t: 'Bathhouse Row runs north to south: Superior, Hale, Maurice, Fordyce, Quapaw, Ozark, Buckstaff and Lamar.', src: 'corpus-row' },
     { t: 'The Grand Promenade behind the Row is a brick walk about half a mile long.', src: 'corpus-row' },
     { t: 'Hot springs water comes out of the ground at about 143°F.', src: 'nps-display-spring' },
+    { t: 'A new jug fountain was installed on the sidewalk in front of the Administration building in 1966.', src: 'wiki-row' },
+    { t: 'The park provides spring water free of charge at all of its jug fountains.', src: 'nps-water' },
   ],
   'park-avenue': [
-    { t: 'The Vapors, a supper club that opened in 1960, stood at 315 Park Avenue.', src: 'corpus-gangster' },
+    { t: 'The Vapors, a club that opened in 1960, stood at 315 Park Avenue.', src: 'vapors-eoa' },
+    { t: 'Tony Bennett wrote that he first sang "I Left My Heart in San Francisco" at the Vapors, during a rehearsal for a later Fairmont Hotel appearance.', src: 'vapors-eoa' },
   ],
   'whittington-valley': [
     { t: 'Whittington Avenue runs about 1.1 miles west from the Arlington to the Alligator Farm.', src: 'corpus-row' },
@@ -37,7 +41,8 @@ export const FACTS = {
   ],
   'west-mountain': [
     { t: 'West Mountain\'s picnic overlook shelter was built in 1924, one of the oldest still in use in the park.', src: 'nps-overlooks' },
-    { t: 'The summit view on West Mountain looks south to Lake Hamilton.', src: 'nps-overlooks' },
+    { t: 'From West Mountain\'s summit the view looks south to the Trap Mountains and Lake Hamilton.', src: 'nps-overlooks' },
+    { t: 'Carpenter Dam, a concrete gravity dam, was completed in 1931, and Lake Hamilton was created in 1932.', src: 'wiki-lakeham' },
   ],
   'sunset-ridge': [
     { t: 'The original wooden tower on Hot Springs Mountain went up in 1877; the steel tower with an elevator dates from 1982.', src: 'nps-overlooks' },

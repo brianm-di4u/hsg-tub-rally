@@ -2,6 +2,7 @@
 // menu face (S4-10) and the award lines (S4-11).
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { FACTS } from '../src/js/data/facts.js';
 
 const SHOTS = '../_council/hsg-tub-rally/wave-4/shots';
 const shot = async (t, id, what) => { fs.mkdirSync(SHOTS, { recursive: true }); await t.page.screenshot({ path: `${SHOTS}/${id}-${what}-${t.viewport === 'mobile' ? 'mobile' : 'desktop'}.png` }); };
@@ -66,6 +67,54 @@ export const tests = [
       t.equal(line && line.n, 1, 'it is said once');
       await t.waitFrames(2);
       await shot(t, 'C4-02', 'credits-art');
+      await t.checkLayout({ allowScrollY: true });
+    },
+  },
+  // ---------------------------------------------------------------- C4-07
+  {
+    name: 'council W4D C4-07: the six approved course lines and the changed Vapors line are in, each with a source key the research table holds',
+    node: true,
+    run() {
+      const tc = fs.readFileSync(new URL('../research/town-content.md', import.meta.url), 'utf8');
+      const keys = new Set([...tc.slice(tc.indexOf('## 9. Source keys')).matchAll(/^\| `([a-z0-9-]+)` \|/gm)].map((m) => m[1]));
+      const want = {
+        'park-avenue': [['The Vapors, a club that opened in 1960, stood at 315 Park Avenue.', 'vapors-eoa'], ['Tony Bennett wrote that he first sang "I Left My Heart in San Francisco" at the Vapors, during a rehearsal for a later Fairmont Hotel appearance.', 'vapors-eoa']],
+        'bathhouse-row': [['A new jug fountain was installed on the sidewalk in front of the Administration building in 1966.', 'wiki-row'], ['The park provides spring water free of charge at all of its jug fountains.', 'nps-water']],
+        'west-mountain': [["From West Mountain's summit the view looks south to the Trap Mountains and Lake Hamilton.", 'nps-overlooks'], ['Carpenter Dam, a concrete gravity dam, was completed in 1931, and Lake Hamilton was created in 1932.', 'wiki-lakeham']],
+        event: [['NPS says the bathing industry led to Hot Springs becoming known as the "Great American Spa".', 'nps-history']],
+      };
+      for (const [id, rows] of Object.entries(want)) for (const [text, src] of rows) {
+        const f = FACTS[id].find((x) => x.t === text);
+        assert.ok(f, id + ' has: ' + text);
+        assert.equal(f.src, src); assert.ok(keys.has(src), src + ' is in section 9 of research/town-content.md');
+      }
+      assert.ok(!Object.values(FACTS).flat().some((f) => /supper club/.test(f.t)), 'the Vapors is no longer a supper club');
+      assert.equal(FACTS['west-mountain'].filter((f) => /summit/.test(f.t) && /Lake Hamilton/.test(f.t)).length, 1, 'one West Mountain summit-view line, not two');
+      assert.ok(!Object.values(FACTS).flat().some((f) => /Oaklawn|Owney|Madden|1963|bomb/i.test(f.t)), 'no track, gangster or bombing is named');
+    },
+  },
+  {
+    name: 'council W4D C4-07: every course line fits on the pause screen and the first line on each course card',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.game('scene', 'title'); await t.waitFrames(2);
+      const lines = [...FACTS['park-avenue'], ...FACTS['bathhouse-row'], ...FACTS['west-mountain'], FACTS.event[FACTS.event.length - 1]].map((f) => f.t);
+      for (const text of lines) {
+        await t.page.evaluate((x) => window.TR_APP.App.screens.show('pause', { fact: { t: x } }), text); await t.waitFrames(2);
+        const r = await t.page.evaluate(() => { const p = document.querySelector('.panel.pause .fact-line'), q = document.querySelector('.panel.pause').getBoundingClientRect(), b = p.getBoundingClientRect(); return { text: p.textContent, ok: b.left >= q.left && b.right <= q.right + 1 && b.bottom <= innerHeight && p.scrollWidth <= p.clientWidth + 1 }; });
+        t.expect(r.text === text && r.ok, 'on the pause screen: ' + text.slice(0, 40));
+      }
+      await t.page.evaluate((x) => window.TR_APP.App.screens.show('pause', { fact: { t: x } }), lines[1]); await t.waitFrames(2);
+      await shot(t, 'C4-07', 'pause-longest-line');
+      await t.checkLayout({ allowScrollY: true });
+      await t.game('act', 'menu', 'quick'); await t.waitFrames(3);
+      await t.game('act', 'menu', 'teamOk'); await t.waitFrames(3);
+      await t.game('act', 'menu', 'cls', { id: 'soak' }); await t.waitFrames(3);
+      const card = await t.page.evaluate(() => (document.querySelector('.courses [data-id="park-avenue"] .fact') || {}).textContent);
+      t.equal(card, 'The Vapors, a club that opened in 1960, stood at 315 Park Avenue.', 'the Park Avenue card shows the changed Vapors line');
+      await t.page.evaluate(() => document.querySelector('.courses [data-id="park-avenue"]').scrollIntoView({ block: 'center' })); await t.waitFrames(2);
+      await shot(t, 'C4-07', 'park-avenue-card');
       await t.checkLayout({ allowScrollY: true });
     },
   },
