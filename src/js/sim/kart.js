@@ -118,7 +118,9 @@ export function stepKart(k, inp, track, dt, env = {}) {
   k.lastHop = !!inp.hop;
   if (hopPress && grounded && k.state === 'run') {
     k.vy = HOP_V; k.air = true; k.airT = 0;
-    if (Math.abs(k.steer) > 0.25 && k.vf > 8) { k.drift = Math.sign(k.steer); k.driftT = 0; k.charge = 0; k.stage = 0; k.stats_.drifts++; }
+    // S1-09: the slide starts from the steer the player is asking for, not only from the smoothed one, which needs about two ticks to reach 0.25
+    const lean = Math.abs(k.steer) > 0.25 ? k.steer : Math.abs(want) > 0.25 ? want : 0;
+    if (lean && k.vf > 8) { k.drift = Math.sign(lean); k.driftT = 0; k.charge = 0; k.stage = 0; k.stats_.drifts++; }
   }
   if (k.drift) {
     const dir = k.drift;

@@ -1,6 +1,8 @@
 // Wave 4, batch B: controls, rules and play (C4-16, S1-11, S1-09, S1-10, S6-11) and the small ones (S2-14, S2-30, S4-28, S3-24).
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { Track } from '../src/js/sim/track.js';
+import { makeRace, stepRace, DT } from '../src/js/sim/race.js';
 import * as input from '../src/js/ui/input.js';
 const { pollGamepads, readIntent } = input;
 
@@ -149,3 +151,31 @@ tests.push(
     },
   },
 );
+
+// ---------------------------------------------------------------- S1-09
+const bathhouse = () => new Track(JSON.parse(fs.readFileSync(new URL('../data/tracks/bathhouse-row.json', import.meta.url), 'utf8')));
+// push straight until the player is past `speed` m/s, then press Hop on the tick the steer is first asked for (`lead` ticks late: the steer comes first)
+const hopAt = (speed, steer, lead) => {
+  const tr = bathhouse(), r = makeRace(tr, { seed: 5, classId: 'soak', player: 'engine-six', laps: 1, noItems: true });
+  const me = r.karts[r.player], mk = (o) => { const i = []; i[r.player] = { steer: 0, push: 1, brake: false, hop: false, back: false, item: false, ...o }; return i; };
+  for (let n = 0; n < 4000 && !(r.phase === 'race' && me.vf > speed); n++) stepRace(r, tr, mk({}), DT);
+  assert.ok(me.vf > speed, 'got up to speed');
+  for (let n = 0; n < lead; n++) stepRace(r, tr, mk({ steer }), DT);
+  stepRace(r, tr, mk({ steer, hop: true }), DT);
+  return { drift: me.drift, air: me.air, steerNow: me.steer, vf: me.vf };
+};
+tests.push({
+  name: 'council W4B S1-09: Hop and steer pressed on the same tick start the slide; a half-hearted steer or a slow tub still do not',
+  node: true,
+  run() {
+    const same = hopAt(10, 1, 0);
+    assert.ok(Math.abs(same.steerNow) < 0.25, 'the smoothed steer has not reached 0.25 on this tick (' + same.steerNow.toFixed(2) + '): this is the case the finding names');
+    assert.equal(same.drift, 1, 'Hop and a full right steer on one tick slide to the right');
+    assert.equal(hopAt(10, -1, 0).drift, -1, 'and to the left');
+    assert.equal(hopAt(10, 1, 3).drift, 1, 'steer first, Hop three ticks later still slides, as before');
+    assert.equal(hopAt(10, 0.2, 0).drift, 0, 'a steer under 0.25 is a plain hop');
+    assert.equal(hopAt(10, 0, 5).drift, 0, 'no steer is a plain hop');
+    const slow = hopAt(5, 1, 0);
+    assert.equal(slow.drift, 0, 'below 8 m/s it is a plain hop'); assert.equal(slow.air, true, 'which still hops');
+  },
+});
