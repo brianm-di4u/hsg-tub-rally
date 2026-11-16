@@ -258,4 +258,29 @@ export const tests = [
       t.expect(catchUp[0] === 0 && catchUp.every((v, i) => i === 0 || v >= catchUp[i - 1]) && catchUp[7] > 0.5, 'catch-up share by place: ' + catchUp.map((v) => v.toFixed(2)));
     },
   },
+
+  // ---------------------------------------------------------------- C4-12
+  {
+    name: 'council W4C C4-12: a locked team says whether it is the next to open, and the other locked cards keep their line',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await t.waitIdle(8000);
+      const sv = DEFAULT_SAVE(); sv.settings.seenIntro = true;
+      await setSave(t, sv);
+      await t.reload(); await t.waitIdle(8000);
+      const order = TEAMS.filter((x) => !x.unlocked).map((x) => x.id);
+      await t.game('scene', 'title'); await t.waitFrames(2);
+      await t.game('act', 'menu', 'quick'); await t.waitFrames(3);
+      const tap = async (id) => { await t.page.click(`.tcard[data-id="${id}"]`, { force: true }); await t.waitFrames(2); return t.page.evaluate(() => (document.querySelector('[data-menu-note]') || {}).textContent || ''); };
+      t.expect(/Win a Grand Prix cup to unlock this team: it is next.$/.test(await tap(order[0])), 'the first in the order says it is next: ' + await tap(order[0]));
+      await shot(t, 'C4-12', 'next-team');
+      await t.checkLayout({ allowScrollY: true });
+      t.expect(/Win a Grand Prix cup to unlock the next team.$/.test(await tap(order[1])), 'a later one keeps the old line: ' + await tap(order[1]));
+      // once the first is open, the next in the order is the one that says so
+      const s = await t.page.evaluate((k) => JSON.parse(localStorage.getItem(k)), KEY); s.unlocked.teams = [order[0]]; await setSave(t, s);
+      await t.reload(); await t.waitIdle(8000);
+      await t.game('act', 'menu', 'quick'); await t.waitFrames(3);
+      t.expect(/this team: it is next.$/.test(await tap(order[1])) && /the next team.$/.test(await tap(order[2])), 'the note follows the order after a cup is won');
+    },
+  },
 ];

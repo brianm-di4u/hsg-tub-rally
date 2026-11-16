@@ -212,7 +212,7 @@ export const tests = [
       await t.page.click('.tcard[data-id="gator-gang"]', { force: true });
       await t.waitFrames(2);
       const note = await t.page.evaluate(() => (document.querySelector('[data-menu-note]') || {}).textContent || '');
-      t.equal(note, 'Gator Gang: Thick hide: wall hits cost 40% less speed. Win a Grand Prix cup to unlock the next team.', 'the locked card answers');
+      t.equal(note, 'Gator Gang: Thick hide: wall hits cost 40% less speed. Win a Grand Prix cup to unlock this team: it is next.', 'the locked card answers');
       // open it, and the card carries the line
       const s = await readSave(t); s.unlocked.teams = ['gator-gang']; await setSave(t, s);
       await t.reload(); await t.waitIdle(8000);

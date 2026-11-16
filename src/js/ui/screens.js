@@ -300,13 +300,15 @@ ${rivalsHelp()}
   teams: (app, { sel }) => {
     const unlocked = (t) => t.unlocked || app.save.unlocked.teams.includes(t.id);
     const cur = TEAM_BY_ID[sel] || TEAMS[0];
+    // C4-12: a cup win opens the first team still locked, in the order of the list (the same one the trophy uses)
+    const next = TEAMS.filter((x) => !x.unlocked).find((x) => !app.save.unlocked.teams.includes(x.id));
     const st = kartStats(cur.id, app.save.lastClass || 'soak'), d = DIVISIONS[cur.div];
     // S2-14: each bar says its value as text for a screen reader and a hover, and a caption says what a full Water bar means
     const bar = (label, v) => { const pct = Math.round(Math.max(0.08, Math.min(1, v)) * 100); return `<div class="stat" role="img" aria-label="${label}: ${pct} out of 100" title="${label}: ${pct} out of 100"><span>${label}</span><i><b style="width:${pct}%"></b></i></div>`; };
     return `
     <div class="panel teams" role="dialog" aria-label="Choose your team">
       <canvas data-pixel="CHOOSE YOUR TEAM" data-scale="4"></canvas>
-      <div class="team-grid">${TEAMS.map((t) => `<button type="button" class="tcard ${t.id === cur.id ? 'sel' : ''}" data-act="${unlocked(t) ? 'team' : 'locked'}" data-id="${t.id}" ${unlocked(t) ? '' : `data-why="${t.sig ? t.name + ': ' + t.sig + ' ' : ''}Win a Grand Prix cup to unlock the next team." aria-disabled="true"`} aria-pressed="${t.id === cur.id}">
+      <div class="team-grid">${TEAMS.map((t) => `<button type="button" class="tcard ${t.id === cur.id ? 'sel' : ''}" data-act="${unlocked(t) ? 'team' : 'locked'}" data-id="${t.id}" ${unlocked(t) ? '' : `data-why="${t.sig ? t.name + ': ' + t.sig + ' ' : ''}Win a Grand Prix cup to unlock ${t === next ? 'this team: it is next' : 'the next team'}." aria-disabled="true"`} aria-pressed="${t.id === cur.id}">
         <span class="tsw" style="background:${t.colors.tub};border-color:${t.colors.flag}"></span><b>${t.name.replace(/-/g, '‑')}</b><small>${DIVISIONS[t.div].name}${unlocked(t) ? '' : '<i class="lk">locked</i>'}</small></button>`).join('')}</div>
       <div class="team-info">
         <h3>${cur.name}</h3>
