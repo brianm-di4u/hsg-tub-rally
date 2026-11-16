@@ -257,6 +257,8 @@ export const tests = [
     async run(t) {
       await freshProfile(t);
       await goToCourses(t);
+      // wave 4 (C4-14): on a phone the chips are folded behind the Race setup button; open it first
+      if (await t.page.evaluate(() => document.querySelector('.setup-toggle')?.getAttribute('aria-expanded') === 'false' && getComputedStyle(document.querySelector('.setup-toggle')).display !== 'none')) { await t.page.click('.setup-toggle'); await t.waitFrames(2); }
       const chips = () => t.page.evaluate(() => [...document.querySelectorAll('.race-opts .chip')].map((c) => `${c.dataset.k}=${c.dataset.v}${c.getAttribute('aria-pressed') === 'true' ? '*' : ''}`).join(' '));
       t.equal(await chips(), 'raceLaps=1 raceLaps=3* raceLaps=5 raceItems=true* raceItems=false raceRivals=3 raceRivals=7*', 'today\'s race is the default: 3 laps, items on, 7 rivals');
       await t.page.click('.race-opts [data-k="raceLaps"][data-v="5"]'); await t.waitFrames(2);

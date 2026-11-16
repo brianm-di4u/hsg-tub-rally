@@ -581,6 +581,7 @@ function onMenu(act, data) {
     case 'rowAwards': showRowAwards(); break;
     case 'gp': case 'quick': case 'timetrial':
       App.flow = { mode: act, team: s.lastTeam, classId: lastClass() };
+      App.screens.app.setupOpen = null;
       showTeams(s.lastTeam);
       break;
     case 'daily': App.screens.show('daily', dailyView()); break;
@@ -643,6 +644,13 @@ function onMenu(act, data) {
       persistSave({ settings: { [data.k]: v } });
       App.screens.show('courses', { list: builtCourses(), trial: false });
       App.screens.root.querySelector(`[data-act="raceOpt"][data-k="${data.k}"][data-v="${data.v}"]`)?.focus({ preventScroll: true });
+      break;
+    }
+    // C4-14: the Race setup button opens and closes the chips on a phone
+    case 'raceSetup': {
+      App.screens.app.setupOpen = App.screens.root.querySelector('.setup-toggle')?.getAttribute('aria-expanded') !== 'true';
+      App.screens.show('courses', { list: builtCourses(), trial: false });
+      App.screens.root.querySelector('[data-act="raceSetup"]')?.focus({ preventScroll: true });
       break;
     }
     // the Mirror switch on the course and cup screens

@@ -606,3 +606,10 @@ body.clock-frozen *, body.clock-frozen *::before, body.clock-frozen *::after { t
 .hud-skip { pointer-events: auto; min-height: 44px; padding: 8px 18px; border: 3px solid var(--ink); border-radius: 12px; background: rgba(30,78,121,0.92); color: #FFF6C8; font: 800 16px var(--font-ui); letter-spacing: 0.02em; cursor: pointer; touch-action: manipulation; }
 .hud-skip[hidden] { display: none; }
 .hud-skip:focus-visible { outline: 4px solid var(--steam); outline-offset: 2px; }
+
+/* ---------- wave 4, batch D ---------- */
+/* C4-14: Race setup folds behind one button where there is little room */
+.race-setup { flex-direction: column; align-items: center; gap: 6px; }
+.race-setup .setup-toggle { max-width: 100%; white-space: normal; }
+.race-setup .race-opts[hidden] { display: none; }
+@media (min-width: 701px) and (min-height: 641px) { .race-setup .setup-toggle { display: none; } .race-setup .race-opts[hidden] { display: flex; } }

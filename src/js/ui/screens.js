@@ -181,7 +181,12 @@ function raceOptsRow(app) {
   const s = app.save.settings;
   const chip = (k, v, label, cur) => `<button type="button" class="chip ${cur ? 'sel' : ''}" data-act="raceOpt" data-k="${k}" data-v="${v}" aria-pressed="${cur}">${label}</button>`;
   const grp = (name, chips) => `<div class="opt-grp" role="group" aria-label="${name}"><b>${name}</b>${chips}</div>`;
-  return `<div class="set-row race-opts">${grp('Laps', RACE_LAPS.map((n) => chip('raceLaps', n, n, s.raceLaps === n)).join(''))}${grp('Items', chip('raceItems', 'true', 'On', s.raceItems !== false) + chip('raceItems', 'false', 'Off', s.raceItems === false))}${grp('Rivals', RACE_RIVALS.map((n) => chip('raceRivals', n, n, s.raceRivals === n)).join(''))}</div>`;
+  // C4-14: on a phone the three groups sit behind one "Race setup" button that says what is chosen, so the first course card is on
+  // screen; where there is room (a wide, tall window) they stay open as before. The player's own choice holds while the screen is open.
+  const open = app.setupOpen != null ? app.setupOpen : !(window.matchMedia && window.matchMedia('(max-width: 700px), (max-height: 640px)').matches);
+  const sum = `${s.raceLaps} ${s.raceLaps === 1 ? 'lap' : 'laps'} · Items ${s.raceItems === false ? 'off' : 'on'} · ${s.raceRivals} rivals`;
+  const head = `<button type="button" class="chip setup-toggle" data-act="raceSetup" aria-expanded="${open}" aria-controls="race-opts">Race setup: ${sum}</button>`;
+  return `<div class="set-row race-setup">${head}<div id="race-opts" class="race-opts" ${open ? '' : 'hidden'}>${grp('Laps', RACE_LAPS.map((n) => chip('raceLaps', n, n, s.raceLaps === n)).join(''))}${grp('Items', chip('raceItems', 'true', 'On', s.raceItems !== false) + chip('raceItems', 'false', 'Off', s.raceItems === false))}${grp('Rivals', RACE_RIVALS.map((n) => chip('raceRivals', n, n, s.raceRivals === n)).join(''))}</div></div>`;
 }
 
 // S4-05: a postcard's picture is its course's own sky (the colours the race uses), a ridge and a postmark, drawn in CSS
