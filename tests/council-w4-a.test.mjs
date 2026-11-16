@@ -225,4 +225,66 @@ export const tests = [
       t.equal((await t.state()).race.mode, 'gp', 'Start new cup begins the cup');
     },
   },
+  // ---------------------------------------------------------------- C4-09
+  {
+    name: 'council W4A C4-09: a Space held across the finish does not press a button on the results when it is let go',
+    viewports: ['desktop'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.game('newGame', { track: 'bathhouse-row', team: 'engine-six', mode: 'quick', count: 2, laps: 1, paused: true, autoplay: true, seed: 4 });
+      await t.page.keyboard.down('Space');
+      await t.stepUntil((s) => s.race.phase === 'done', { max: 60 * 300, chunk: 600, label: 'race done' });
+      await t.page.waitForFunction(() => window.__game.getState().screen === 'results', null, { timeout: 8000 });
+      const before = await t.state();
+      // the key repeats on the results (the first press after the screen came up is a repeat of the held one), then is let go
+      for (let i = 0; i < 3; i++) await t.page.keyboard.down('Space');
+      await t.page.keyboard.up('Space');
+      await t.waitFrames(5);
+      let s = await t.state();
+      t.equal(s.screen, 'results', 'still on the results');
+      t.equal(s.race.seed, before.race.seed, 'and no race was started again');
+      // once the screen has been up a while, a fresh press and release works as it always did
+      await t.page.waitForFunction(() => { window.__t0 ||= performance.now(); return performance.now() - window.__t0 > 800; }, null, { timeout: 8000 });
+      await t.page.keyboard.down('Space'); await t.page.keyboard.up('Space');
+      await t.page.waitForFunction(() => window.__game.getState().screen !== 'results', null, { timeout: 8000 });
+      t.expect((await t.state()).screen !== 'results', 'a later single press and release presses the focused button');
+    },
+  },
+  {
+    name: 'council W4A C4-09: a Space pressed in the first half second of a screen is held back, and one after it is not',
+    viewports: ['desktop'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.game('scene', 'settings'); await t.waitFrames(2);
+      // In one page call, so the half second cannot pass between the screen and the key: whether the browser's own
+      // key handling is stopped (a cancelled Space key does not press the focused button).
+      const early = await t.page.evaluate(() => {
+        window.__game.act('menu', 'back');
+        const down = new KeyboardEvent('keydown', { code: 'Space', key: ' ', cancelable: true, bubbles: true });
+        const up = new KeyboardEvent('keyup', { code: 'Space', key: ' ', cancelable: true, bubbles: true });
+        document.activeElement.dispatchEvent(down); document.activeElement.dispatchEvent(up);
+        return { screen: document.body.dataset.screen, down: down.defaultPrevented, up: up.defaultPrevented };
+      });
+      t.equal(early.screen, 'title', 'the title is up');
+      t.expect(early.down && early.up, 'Space keys straight after it appears are cancelled: ' + JSON.stringify(early));
+      await t.page.waitForFunction(() => { window.__t1 ||= performance.now(); return performance.now() - window.__t1 > 800; }, null, { timeout: 8000 });
+      const late = await t.page.evaluate(() => {
+        const down = new KeyboardEvent('keydown', { code: 'Space', key: ' ', cancelable: true, bubbles: true });
+        const up = new KeyboardEvent('keyup', { code: 'Space', key: ' ', cancelable: true, bubbles: true });
+        document.activeElement.dispatchEvent(down); document.activeElement.dispatchEvent(up);
+        return { down: down.defaultPrevented, up: up.defaultPrevented };
+      });
+      t.expect(!late.down && !late.up, 'and Space keys after the first half second are left to the focused button: ' + JSON.stringify(late));
+      // a screen that redraws itself (a chip pressed in Settings) does not start the half second again
+      await t.game('scene', 'settings'); await t.waitFrames(2);
+      await t.page.waitForFunction(() => { window.__t2 ||= performance.now(); return performance.now() - window.__t2 > 800; }, null, { timeout: 8000 });
+      const redraw = await t.page.evaluate(() => {
+        window.__game.act('menu', 'set', { k: 'hudScale', v: '1' });
+        const down = new KeyboardEvent('keydown', { code: 'Space', key: ' ', cancelable: true, bubbles: true });
+        document.activeElement.dispatchEvent(down);
+        return down.defaultPrevented;
+      });
+      t.equal(redraw, false, 'a redraw of the same screen is not a new screen');
+    },
+  },
 ];

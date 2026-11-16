@@ -20,14 +20,26 @@ function menuSound(b) {
   else sfx('confirm', b.dataset.act === 'back');
 }
 
+// C4-09: a Space still held as a screen appears (the Hop key through the finish, say) must not press the button the
+// focus lands on when it is let go, and a Space pressed in the first half second is not meant for the screen either.
+export const SPACE_GRACE = 500;
+
 export class Screens {
   constructor(root, app) {
     this.root = root;
     this.app = app;
     this.cur = null;
     this.trans = 0;
+    this.shownAt = 0; this.spaceDown = false; this.spaceCarry = false;
+    // in the capture phase, before the focused button's own key handling
+    window.addEventListener('keydown', (e) => { if (e.code === 'Space') { this.spaceDown = true; if (this.spaceBlocked()) e.preventDefault(); } }, true);
+    window.addEventListener('blur', () => { this.spaceDown = false; this.spaceCarry = false; });
+    window.addEventListener('keyup', (e) => { if (e.code === 'Space') { if (this.spaceBlocked()) e.preventDefault(); this.spaceDown = false; this.spaceCarry = false; } }, true);
   }
+  spaceBlocked() { return !!this.cur && (this.spaceCarry || performance.now() - this.shownAt < SPACE_GRACE); }
   show(name, data = {}) {
+    // a screen redrawing itself (a chip pressed in Settings) is not a new screen
+    if (this.cur !== name) { this.shownAt = performance.now(); this.spaceCarry = this.spaceDown; }
     this.cur = name;
     const html = TEMPLATES[name] ? TEMPLATES[name](this.app, data) : '';
     this.root.innerHTML = html;
