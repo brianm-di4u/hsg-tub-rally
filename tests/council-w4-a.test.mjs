@@ -174,4 +174,55 @@ export const tests = [
       t.equal((await t.state()).render.tier, 'low', 'a pinned quality is left alone');
     },
   },
+  // ---------------------------------------------------------------- C4-04
+  {
+    name: 'council W4A C4-04: a new Grand Prix asks before it replaces a cup that can be continued, with Keep focused',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await t.waitIdle(8000);
+      const cup = { v: 1, cup: 'bathhouse', name: 'Bathhouse Cup', tracks: ['bathhouse-row', 'park-avenue', 'whittington-valley', 'bridge-street'], round: 1,
+        table: { 'engine-six': { team: 'engine-six', points: 20, clean: 1, human: true, bribes: 0 }, 'lather-linen': { team: 'lather-linen', points: 30, clean: 1, bribes: 0 } },
+        rivals: ['lather-linen'], team: 'engine-six', classId: 'soak', seed: 5 };
+      const stored = JSON.stringify(cup);
+      const toCups = async () => {
+        await t.game('scene', 'title'); await t.waitFrames(2);
+        await t.game('act', 'menu', 'gp'); await t.game('act', 'menu', 'teamOk'); await t.game('act', 'menu', 'cls', { id: 'soak' });
+        await t.waitFrames(3);
+        t.equal((await t.state()).screen, 'cups', 'on the cups screen');
+      };
+      // no cup to continue: nothing is asked
+      await toCups();
+      await t.page.locator('[data-act="cup"][data-id="bathhouse"]').click();
+      await t.page.waitForFunction(() => window.__game.getState().race?.mode === 'gp', null, { timeout: 20000 });
+      // a cup to continue
+      await t.page.evaluate(([k, v]) => localStorage.setItem(k, v), [CUP, stored]);
+      await t.reload(); await t.waitIdle(8000);
+      await toCups();
+      await t.page.locator('[data-act="cup"][data-id="bathhouse"]').click();
+      await t.waitFrames(3);
+      let s = await t.state();
+      t.equal(s.screen, 'replaceCup', 'the question is shown'); t.expect(!s.race, 'and no race has started');
+      const text = await t.page.locator('.panel.replace').innerText();
+      t.expect(/Bathhouse Cup/.test(text) && /race 2 of 4/.test(text) && /replaces it/.test(text), 'it names the cup and the race reached: ' + text.replace(/\n+/g, ' | '));
+      t.equal(await t.page.evaluate(() => document.activeElement.dataset.act), 'back', 'the focus is on keeping the cup');
+      t.equal(await t.page.locator('.panel.replace button').count(), 2, 'two choices');
+      await t.checkLayout();
+      await shot(t, 'C4-04', 'ask');
+      // Esc keeps it, and the title offers it again
+      await t.page.keyboard.press('Escape'); await t.waitFrames(3);
+      t.equal((await t.state()).screen, 'title', 'Esc keeps the cup');
+      t.equal(await t.page.locator('[data-act="continueCup"]').count(), 1, 'Continue cup is still offered');
+      t.equal(await t.page.evaluate((k) => localStorage.getItem(k), CUP), stored, 'the stored cup is untouched');
+      // Enter on the default does the same; the other button starts the new cup
+      await toCups();
+      await t.page.locator('[data-act="cup"][data-id="bathhouse"]').click(); await t.waitFrames(3);
+      await t.page.keyboard.press('Enter'); await t.waitFrames(3);
+      t.equal((await t.state()).screen, 'title', 'Enter on the focused choice keeps the cup');
+      await toCups();
+      await t.page.locator('[data-act="cup"][data-id="bathhouse"]').click(); await t.waitFrames(3);
+      await t.page.locator('[data-act="cupNew"]').click();
+      await t.page.waitForFunction(() => window.__game.getState().race?.mode === 'gp', null, { timeout: 20000 });
+      t.equal((await t.state()).race.mode, 'gp', 'Start new cup begins the cup');
+    },
+  },
 ];

@@ -608,10 +608,13 @@ function onMenu(act, data) {
       if (F.mode === 'gp') App.screens.show('cups', { built: builtCourses().map((c) => c.id) });
       else App.screens.show('courses', { list: builtCourses(), trial: F.mode === 'timetrial' });
       break;
-    case 'cup': {
+    case 'cup': case 'cupNew': {
       const cup = CUP_BY_ID[data.id];
       // a cup that is not open (a stale card, a hand-edited choice) is never raced
       if (!cup || !s.unlocked.cups.includes(cup.id)) break;
+      // C4-04: a cup that can be continued is only replaced when the player says so
+      const kept = act === 'cup' ? savedCup() : null;
+      if (kept) { App.screens.show('replaceCup', { id: cup.id, keptName: kept.name, done: kept.round + 1, of: kept.tracks.length, newName: cup.name }); break; }
       const tracks = cup.tracks.filter((id) => builtIds().includes(id));
       App.gp = { cup: cup.id, name: cup.name, tracks, round: 0, table: {} };
       setPreview(null);

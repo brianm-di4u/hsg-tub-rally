@@ -311,6 +311,13 @@ ${rivalsHelp()}
       ${cupPoints()}
       <nav class="menu row">${btn('back', 'Back', 'data-back')}</nav>
     </div>`,
+  // C4-04: a cup that can be continued is not replaced without asking; Keep is where the focus starts
+  replaceCup: (app, { id, keptName, done, of, newName }) => `
+    <div class="panel replace" role="alertdialog" aria-label="Start a new cup?" aria-describedby="rc-msg">
+      <canvas data-pixel="NEW CUP?" data-scale="5"></canvas>
+      <p class="sub" id="rc-msg">Your ${keptName} is waiting after race ${done} of ${of}. Starting ${keptName === newName ? 'it again' : 'the ' + newName} replaces it.</p>
+      <nav class="menu row">${btn('back', 'Keep my cup', 'autofocus data-back')}${btn('cupNew', 'Start new cup', `data-id="${id}"`)}</nav>
+    </div>`,
   courses: (app, { list, trial }) => `
     <div class="panel courses" role="dialog" aria-label="Choose a course">
       <canvas data-pixel="CHOOSE A COURSE" data-scale="4"></canvas>
