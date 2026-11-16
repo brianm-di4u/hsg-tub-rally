@@ -255,3 +255,33 @@ tests.push({
     assert.deepEqual(lapEvents, [2, 3]); assert.equal(me.lapTimes.length, 2);
   },
 });
+
+// ---------------------------------------------------------------- S2-14
+tests.push({
+  name: 'council W4B S2-14: the team bars say their values as text, and a caption says what a full Water bar means',
+  viewports: ['desktop', 'mobile'],
+  async run(t) {
+    await t.waitIdle(8000);
+    await t.page.evaluate(() => { window.TR_APP.App.screens.show('teams', { sel: 'engine-six' }); });
+    await t.waitFrames(3);
+    const bars = await t.page.evaluate(() => [...document.querySelectorAll('.panel.teams .stat')].map((e) => ({ label: e.getAttribute('aria-label'), title: e.getAttribute('title'), role: e.getAttribute('role'), width: e.querySelector('b').style.width })));
+    t.equal(bars.length, 4, 'four bars');
+    bars.forEach((b, i) => {
+      const name = ['Top speed', 'Push', 'Handling', 'Water'][i];
+      t.expect((b.label || '').startsWith(name + ': ') && /^[0-9]+ out of 100$/.test((b.label || '').slice(name.length + 2)), name + ' has a spoken value (' + b.label + ')');
+      t.equal(b.label, b.title, name + ' shows the same on hover');
+      t.equal(b.width, (b.label.match(/(\d+) out/) || [])[1] + '%', name + ': the text matches the bar');
+    });
+    const note = await t.page.evaluate(() => {
+      const n = document.querySelector('.panel.teams .stat-note'), p = document.querySelector('.panel.teams'), m = document.querySelector('.panel.teams > .menu.row .mbtn');
+      if (!n) return null;
+      const a = n.getBoundingClientRect(), b = p.getBoundingClientRect(), c = m.getBoundingClientRect();
+      return { text: n.textContent, top: a.top, bottom: a.bottom, left: a.left, right: a.right, panelL: b.left, panelR: b.right, btnTop: c.top, vh: innerHeight, scrolls: p.scrollHeight > p.clientHeight + 1 };
+    });
+    t.expect(!!note, 'the caption is there');
+    t.equal(note.text, 'Water: a bigger tub holds more, but is heavier and slower to get going.', 'the caption');
+    t.expect(note.left >= note.panelL && note.right <= note.panelR && note.bottom <= note.vh, 'it sits inside the panel and the screen');
+    await shot(t, 'S2-14', 'team-bars');
+    await t.checkLayout({ allowScrollY: true });
+  },
+});

@@ -291,7 +291,8 @@ ${rivalsHelp()}
     const unlocked = (t) => t.unlocked || app.save.unlocked.teams.includes(t.id);
     const cur = TEAM_BY_ID[sel] || TEAMS[0];
     const st = kartStats(cur.id, app.save.lastClass || 'soak'), d = DIVISIONS[cur.div];
-    const bar = (label, v) => `<div class="stat"><span>${label}</span><i><b style="width:${Math.round(Math.max(0.08, Math.min(1, v)) * 100)}%"></b></i></div>`;
+    // S2-14: each bar says its value as text for a screen reader and a hover, and a caption says what a full Water bar means
+    const bar = (label, v) => { const pct = Math.round(Math.max(0.08, Math.min(1, v)) * 100); return `<div class="stat" role="img" aria-label="${label}: ${pct} out of 100" title="${label}: ${pct} out of 100"><span>${label}</span><i><b style="width:${pct}%"></b></i></div>`; };
     return `
     <div class="panel teams" role="dialog" aria-label="Choose your team">
       <canvas data-pixel="CHOOSE YOUR TEAM" data-scale="4"></canvas>
@@ -303,6 +304,7 @@ ${rivalsHelp()}
         <p><b>${d.name} division</b>: ${d.tub}. ${d.blurb}</p>
         ${cur.sig ? `<p class="sig"><b>Signature:</b> ${cur.sig}</p>` : ''}
         <div class="stats">${bar('Top speed', (st.vTop / 19.5 - 0.9) / 0.15)}${bar('Push', (st.push - 0.8) / 0.35)}${bar('Handling', (st.turn - 0.8) / 0.4)}${bar('Water', (st.capGal / 44) * (1.15 - (st.slosh - 0.8)))}</div>
+        <p class="stat-note">Water: a bigger tub holds more, but is heavier and slower to get going.</p>
       </div>
       <nav class="menu row">${btn('teamOk', 'Choose ' + cur.name.replace(/^The /, ''), 'autofocus')}${btn('back', 'Back', 'data-back')}</nav>
     </div>`;
