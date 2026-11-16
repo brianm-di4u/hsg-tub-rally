@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { createSaveWriter, DEFAULT_SAVE } from '../src/js/save.js';
 import { Governor, CLIMB } from '../src/js/gfx/tiers.js';
+import { CLASSES } from '../src/js/data/teams.js';
 import { Track } from '../src/js/sim/track.js';
 import { makeRace, stepRace, DT } from '../src/js/sim/race.js';
 
@@ -357,6 +358,29 @@ export const tests = [
       const h0 = (await t.state()).render.throttled;
       await t.page.waitForFunction((h) => window.__game.getState().render.throttled > h + 3, h0, { timeout: 8000 });
       t.expect((await t.state()).render.throttled > h0, 'the throttle counts the frames it held back');
+    },
+  },
+  // ---------------------------------------------------------------- C4-13
+  {
+    name: 'council W4A C4-13: the Boil line no longer says rivals aim every item at you, and says what its hunt setting does',
+    node: true,
+    run() {
+      assert.equal(CLASSES.boil.hunt, 1, 'Boil rivals hunt fully');
+      assert.ok(!/every item|aim every/.test(CLASSES.boil.how), CLASSES.boil.how);
+      assert.ok(/save their items for a sure hit/.test(CLASSES.boil.how), 'it says what they do: ' + CLASSES.boil.how);
+      assert.ok(/aim some items at you/.test(CLASSES.scald.how), 'the Scald line is as it was');
+    },
+  },
+  {
+    name: 'council W4A C4-13: the speed class card shows the Boil line without clipping',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.game('act', 'menu', 'quick'); await t.game('act', 'menu', 'teamOk'); await t.waitFrames(3);
+      const how = await t.page.evaluate(() => document.querySelector('.classes .mbtn[data-id="boil"]').textContent.replace(/\s+/g, ' '));
+      t.expect(how.includes(CLASSES.boil.how), 'the card carries the line: ' + how);
+      await t.checkLayout({ allowScrollY: true });
+      await shot(t, 'C4-13', 'classes');
     },
   },
 ];

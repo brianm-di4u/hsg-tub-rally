@@ -25,7 +25,7 @@ export const CLASSES = {
   splash: { id: 'splash', name: 'Splash', vTop: 17.5, ai: 0.88, rubber: 0.06, noise: 0.9, aggro: 0.35, hunt: 0, spill: 0.9, wall: 0.7, how: 'Forgiving: walls and spills cost less.' },
   soak: { id: 'soak', name: 'Soak', vTop: 19.5, ai: 0.97, rubber: 0.04, noise: 0.55, aggro: 0.6, hunt: 0, spill: 1, wall: 1, how: 'Fair rivals and a fair tub: the one to start with.' },
   scald: { id: 'scald', name: 'Scald', vTop: 21.5, ai: 1.04, rubber: 0.02, noise: 0.3, aggro: 0.85, hunt: 0.5, spill: 1, wall: 1, how: 'Quicker rivals that aim some items at you.', unlock: 'Win a cup on Soak' },
-  boil: { id: 'boil', name: 'Boil', vTop: 23, ai: 1.08, rubber: 0, noise: 0.2, aggro: 1, hunt: 1, spill: 1.15, wall: 1.1, how: 'The fastest rivals, who never ease off and aim every item at you.', unlock: 'Win a cup on Scald' },
+  boil: { id: 'boil', name: 'Boil', vTop: 23, ai: 1.08, rubber: 0, noise: 0.2, aggro: 1, hunt: 1, spill: 1.15, wall: 1.1, how: 'The fastest rivals, who never ease off and save their items for a sure hit.', unlock: 'Win a cup on Scald' },
 };
 
 // `say` is the captain's line, heard when a rival's item hits you and on the results (S4-04).
