@@ -106,7 +106,7 @@ All courses follow real streets from OpenStreetMap (© OpenStreetMap contributor
 
 **Sunset Ridge (as built: the Hot Springs Mountain summit circuit at sunset)** — the Sugarloaf / Black Snake / Cedar Glades / Music Mountain roads only form 10–17 km loops (research/geo/road-survey.md), so the built course is the 1.8 km summit circuit past the picnic area, the Pagoda and the Tower; see `tracks/sunset-ridge.notes.md`. Background facts kept for cards: Music Mountain is the park's high point, 1,405 ft (NPS) or 1,418 ft (SummitPost), at the west end of the Sunset Trail, the park's longest trail; the Sugarloaf section between Black Snake Rd and Cedar Glades Rd includes Balanced Rock, a novaculite outcrop (NPS Sunset Trail page, nps.gov/hosp/planyourvisit/sunset-trail.htm).
 
-**Battle arena: Hill Wheatley Plaza** — downtown plaza where tubs are judged on Friday (2026 rules); it has a thermal-water jug fountain (hsguides.com listing; NPS "Getting Around" places RV/bus parking there).
+**Battle arena: Hill Wheatley Plaza** — downtown plaza where tubs are judged on Friday (2026 rules); it has a thermal-water jug fountain (hotspringsguides.com listing; NPS "Getting Around" places RV/bus parking there).
 
 Per-course street lists, facts, compression factors and every game-course link are in `tracks/<id>.notes.md`.
 
