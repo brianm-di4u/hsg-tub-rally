@@ -169,6 +169,7 @@ function showGlNotice(text) {
 
 // What the player is told when progress cannot be kept, by cause.
 function saveMessage(problem) {
+  if (problem === 'newer') return 'This visit is not being saved, because your saved data comes from a newer version of the game. It is left as it is, and will be there when you play that version again.';
   if (problem === 'damaged') return 'Your saved data is damaged and cannot be read, so changes are kept in this tab only. Use Reset saved data to start fresh; a copy of the old data is kept.';
   if (problem) return 'Saving is blocked in this browser, so changes are kept in this tab only. Allow site data for this page (or leave private browsing) and try again.';
   return '';
@@ -505,7 +506,8 @@ function persistSave(intent) {
   setHaptics(s.vibration, App.reducedMotion);
   App.saveProblem = result.stored ? null : result.problem;
   App.saveError = saveMessage(App.saveProblem);
-  if (App.saveError) App.hud.flash('Changes not saved · kept in this tab', 'bad', 3);
+  // a newer build's save is explained once by showSaveStatus, not flashed on every change
+  if (App.saveError) { if (App.saveProblem !== 'newer') App.hud.flash('Changes not saved · kept in this tab', 'bad', 3); }
   else {
     App.screens.root.querySelector('[data-save-status]')?.remove();
     // Retire only our own stale warning; leave later lap/boost callouts intact.
@@ -516,6 +518,12 @@ function persistSave(intent) {
 
 function showSaveStatus() {
   if (!App.saveError || !App.screens.cur || App.screens.root.querySelector('[data-save-status]')) return;
+  // a newer build's save is explained once: on the first screen, and not again after the player moves on
+  if (App.saveProblem === 'newer') {
+    if (App.newerTold) return;
+    if (App.newerScreen && App.newerScreen !== App.screens.cur) { App.newerTold = true; return; }
+    App.newerScreen = App.screens.cur;
+  }
   const p = document.createElement('p');
   p.className = 'sub'; p.dataset.saveStatus = ''; p.setAttribute('role', 'status');
   p.textContent = App.saveError;

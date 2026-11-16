@@ -65,6 +65,8 @@ function cleanKeys(k) {
 
 function projection(raw) {
   const s = raw === null ? { v: 1 } : JSON.parse(raw);
+  // A save from a newer build is not ours to read or write: it stays exactly as stored (C4-01)
+  if (object(s) && Number.isFinite(s.v) && s.v > 1) throw Object.assign(new Error('Save from a newer version'), { newer: true });
   if (!object(s) || s.v !== 1) throw new Error('Unsupported save');
   for (const k of ['settings', 'unlocked', 'best', 'ghosts', 'cups', 'stats']) {
     if (own(s, k) && !object(s[k])) throw new Error('Invalid save ' + k);
@@ -133,13 +135,13 @@ export function createSaveWriter({
   const raceSeen = new WeakMap(), cupSeen = new WeakMap();
   // the last read was a save from before the unlock record
   let grandfathered = false;
-  // why the last read failed: 'blocked' (storage unavailable) or 'damaged' (unreadable value)
+  // why the last read failed: 'blocked' (storage unavailable), 'damaged' (unreadable value) or 'newer' (written by a newer build)
   let problem = null;
   const current = () => {
     let raw;
     try { raw = read(); } catch (e) { problem = 'blocked'; return { readable: false, save: null }; }
     try { const save = projection(raw); problem = null; grandfathered = !!(save.unlocked && save.unlocked.grandfathered); delete save.unlocked.grandfathered; return { readable: true, save }; }
-    catch (e) { problem = 'damaged'; return { readable: false, save: null }; }
+    catch (e) { problem = e && e.newer ? 'newer' : 'damaged'; return { readable: false, save: null }; }
   };
   const sync = (target, value) => {
     // Screens holds the outer save object: adopt fresh data without replacing that alias.
@@ -277,6 +279,9 @@ export function createSaveWriter({
     // Player-chosen recovery: keep a copy of the unreadable value under KEY-corrupt, store a fresh save, then
     // merge this session's pending changes into it. Never runs on its own.
     reset(target) {
+      // a newer build's save is never set aside or replaced, even on request
+      current();
+      if (problem === 'newer') return this.commit(target);
       let raw;
       try { raw = read(); } catch (e) { return this.commit(target); }
       if (raw !== null) { try { backup(raw); } catch (e) { /* the player asked for a reset: carry on */ } }
@@ -298,12 +303,15 @@ export const saveGrandfathered = () => writer.grandfathered();
 // A Grand Prix in progress lives under its own key, so a damaged cup can never affect the main save. It is a
 // convenience: every access is guarded and a failure just means no "Continue cup".
 const CUP_KEY = 'hsg-tub-rally-cup-v1';
-export function storeCup(cup) { try { window.localStorage.setItem(CUP_KEY, JSON.stringify(cup)); } catch (e) { /* not kept */ } }
+// While the main save is a newer build's, nothing is written under any key and the cup in progress is not offered.
+const newerSave = () => writer.problem() === 'newer';
+export function storeCup(cup) { if (newerSave()) return; try { window.localStorage.setItem(CUP_KEY, JSON.stringify(cup)); } catch (e) { /* not kept */ } }
 export function loadCup() {
+  if (newerSave()) return null;
   try {
     const raw = window.localStorage.getItem(CUP_KEY);
     const cup = raw === null ? null : JSON.parse(raw);
     return object(cup) && cup.v === 1 ? cup : null;
   } catch (e) { return null; }
 }
-export function clearCup() { try { window.localStorage.removeItem(CUP_KEY); } catch (e) { /* not kept */ } }
+export function clearCup() { if (newerSave()) return; try { window.localStorage.removeItem(CUP_KEY); } catch (e) { /* not kept */ } }

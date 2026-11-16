@@ -131,7 +131,7 @@ export const tests = [
     name: 'council A1 S6-01: reset keeps a copy of the unreadable save and lets saving resume',
     node: true,
     run() {
-      for (const bad of ['{bad', 'null', '{"v":2}', '{"v":1,"best":[]}']) {
+      for (const bad of ['{bad', 'null', '{"v":"2"}', '{"v":1,"best":[]}']) {
         const box = { raw: bad, copy: null };
         const w = createSaveWriter({ read: () => box.raw, write: (r) => { box.raw = r; }, backup: (r) => { box.copy = r; } });
         const save = w.load();
