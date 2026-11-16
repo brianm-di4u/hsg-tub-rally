@@ -283,4 +283,42 @@ export const tests = [
       t.expect(/this team: it is next.$/.test(await tap(order[1])) && /the next team.$/.test(await tap(order[2])), 'the note follows the order after a cup is won');
     },
   },
+
+  // ---------------------------------------------------------------- S5-16
+  {
+    name: 'council W4C S5-16: a switched-off music or ambience bus builds no notes or one-shots, and plays again from now when it is switched on',
+    viewports: ['desktop'],
+    async run(t) {
+      await t.waitIdle(8000);
+      // the real kit on an offline context, scheduled by hand: nodes created by the scheduler are counted
+      const r = await t.page.evaluate(async () => {
+        const { makeAudioKit } = await import('./src/js/ui/audiokit.js');
+        const { SCORES, SCENES } = await import('./src/js/ui/scores.js');
+        const piece = Object.keys(SCORES)[0], scene = Object.keys(SCENES).find((k) => (SCENES[k].spots || []).length) || Object.keys(SCENES)[0];
+        const run = (musicLevel, ambLevel, seconds) => {
+          const c = new OfflineAudioContext(2, 44100 * 2, 44100);
+          let made = 0;
+          for (const m of ['createOscillator', 'createBufferSource']) { const o = c[m].bind(c); c[m] = (...a) => { made++; return o(...a); }; }
+          const k = makeAudioKit(c, c.destination, { music: musicLevel, ambience: ambLevel });
+          k.music.play(SCORES[piece], { at: 0.05, fade: 0.02 }); k.amb.play(SCENES[scene], { at: 0.05, fade: 0.02 });
+          made = 0;
+          k.scheduleUntil(seconds);
+          const off = made;
+          return { off, info: k.music.info(), kit: k };
+        };
+        const quiet = run(0, 0, 20), loud = run(1, 1, 20), musicOnly = run(1, 0, 20), ambOnly = run(0, 1, 20);
+        // switching on again after being off picks up the score where it stood
+        const c = new OfflineAudioContext(2, 44100, 44100), k = makeAudioKit(c, c.destination, { music: 0, ambience: 0 });
+        k.music.play(SCORES[piece], { at: 0.05, fade: 0.02 }); k.scheduleUntil(10); const barsOff = k.music.info().bars; k.music.level(1); k.scheduleUntil(10); const barsOn = k.music.info().bars;
+        return { piece, scene, quiet: quiet.off, quietBars: quiet.info.bars, loud: loud.off, loudBars: loud.info.bars, musicOnly: musicOnly.off, ambOnly: ambOnly.off, barsOff, barsOn };
+      });
+      t.equal(r.quiet, 0, 'nothing is built with both buses off');
+      t.equal(r.quietBars, 0, 'and the score has not moved on');
+      t.expect(r.loud > 20 && r.loudBars > 0, 'with both on the scheduler builds notes and one-shots: ' + JSON.stringify(r));
+      t.expect(r.musicOnly > 0 && r.musicOnly < r.loud, 'music on, ambience off: only the notes (' + r.musicOnly + ' of ' + r.loud + ')');
+      t.expect(r.ambOnly < r.loud, 'ambience on, music off: no notes (' + r.ambOnly + ' of ' + r.loud + ')');
+      t.equal(r.barsOff, 0, 'a muted score does not advance');
+      t.expect(r.barsOn > 0, 'it plays again from now when switched on');
+    },
+  },
 ];

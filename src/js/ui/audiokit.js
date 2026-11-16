@@ -261,8 +261,9 @@ export function makeAudioKit(ctx, out, opt = {}) {
   function scheduleUntil(T) {
     const now = ctx.currentTime;
     if (!held) {
-      if (cur) { if (cur.t < now - 0.05) cur.t = now + 0.05; let guard = 0; while (cur.t < T && guard++ < 400) { cur.t += playBar(cur, cur.t); cur.bar++; } }
-      if (scene) for (const sp of scene.spots) {
+      // a switched-off bus has nothing to hear: no notes and no one-shots are built for it, and it picks up again from "now" (S5-16)
+      if (cur && mLevel > 0) { if (cur.t < now - 0.05) cur.t = now + 0.05; let guard = 0; while (cur.t < T && guard++ < 400) { cur.t += playBar(cur, cur.t); cur.bar++; } }
+      if (scene && aLevel > 0) for (const sp of scene.spots) {
         if (sp.next < now - 0.05) sp.next = now + rr(0.2, sp.d.every[1]);
         let guard = 0;
         while (sp.next < T && guard++ < 400) {
