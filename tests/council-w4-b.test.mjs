@@ -182,32 +182,37 @@ tests.push({
 
 // ---------------------------------------------------------------- S1-10
 tests.push({
-  name: 'council W4B S1-10: a tub holding an item drives through a bubble and leaves it for the next tub',
+  name: "council W4B S1-10: the player's tub holding an item drives through a bubble and leaves it for the next tub; a rival still uses it up",
   node: true,
   run() {
     const tr = bathhouse(), r = makeRace(tr, { seed: 5, classId: 'soak', player: 'engine-six', laps: 1 });
-    const me = r.karts[r.player], other = r.karts[0], b = r.items.bubbles[0];
+    const me = r.karts[r.player], rival = r.karts.find((k) => k !== me), b = r.items.bubbles[0];
     while (r.phase !== 'race') stepRace(r, tr, [], DT);
-    const park = (k, at) => { k.x = at.x; k.y = at.y; k.z = at.z; k.vf = 0; };
-    // every other tub is parked well away from every bubble
-    for (const k of r.karts) if (k !== me && k !== other) { k.x = 1e5; k.z = 1e5; }
-    other.x = 1e5; other.z = 1e5;
+    // a tub in the rescue state is skipped by the pickups, so it stands for "somewhere else"
+    const away = (k) => { k.state = 'rescue'; k.stateT = 99; };
+    const park = (k) => { k.x = b.x; k.y = b.y; k.z = b.z; k.vf = 0; k.state = 'run'; k.stateT = 0; k.hitImmune = 0; };
+    const tick = () => stepRace(r, tr, [], DT);
+    for (const k of r.karts) away(k);
     me.held = 'duck'; me.heldN = 1;
-    park(me, b);
-    stepRace(r, tr, [], DT);
+    park(me); tick();
     assert.equal(me.held, 'duck', 'the held item is unchanged');
     assert.equal(b.on, true, 'and the bubble is still there');
     assert.equal(me.events.some((e) => e.type === 'pickup'), false, 'with no pickup call-out');
-    // the next tub, with empty hands, takes it
-    me.x = 1e5; me.z = 1e5; other.held = null;
-    park(other, b);
-    stepRace(r, tr, [], DT);
-    assert.ok(other.held, 'a tub with empty hands takes it');
+    // a rival with empty hands takes it
+    away(me); rival.held = null;
+    park(rival); tick();
+    assert.ok(rival.held, 'a tub with empty hands takes it');
     assert.equal(b.on, false, 'and the bubble goes off to respawn');
+    // a rival with an item in hand uses the bubble up exactly as before: its item is unchanged and the bubble goes off
+    b.on = true; rival.held = 'soap'; rival.heldN = 1;
+    park(rival); tick();
+    assert.equal(rival.held, 'soap', "a rival's held item is unchanged");
+    assert.equal(b.on, false, 'and a rival still uses the bubble up (the balance targets are tuned to that)');
     // and the player, once the item is used, takes the next one as before
-    other.x = 1e5; other.z = 1e5; b.on = true; me.held = null; park(me, b);
-    stepRace(r, tr, [], DT);
-    assert.ok(me.held && !b.on, 'empty hands pick up as before');
+    away(rival); b.on = true; me.held = null;
+    park(me); tick();
+    assert.ok(me.held, 'empty hands pick up as before');
+    assert.equal(b.on, false);
   },
 });
 

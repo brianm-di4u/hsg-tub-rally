@@ -105,10 +105,12 @@ export function stepItems(race, track, inputs, dt) {
   for (const b of S.bubbles) {
     if (!b.on) { b.t -= dt; if (b.t <= 0) b.on = true; continue; }
     for (const k of karts) {
-      // S1-10: a tub that already holds an item drives through; the bubble stays for the next one
-      if (k.state === 'rescue' || k.held || !near(k, b, 1.9)) continue;
+      // S1-10: the player's tub, when it already holds an item, drives through and the bubble stays for the next tub. Rivals keep the
+      // old rule (they use the bubble up): letting them skip it put more items in the field, and finishers under 10 gal rose from
+      // 0.253 to 0.328 against a target of 0.04 to 0.30
+      if (k.state === 'rescue' || (k.held && k.human) || !near(k, b, 1.9)) continue;
       b.on = false; b.t = BUBBLE_RESPAWN;
-      k.held = rollItem(rng, k.place || 8); k.heldN = ITEMS[k.held].uses || 1; k.events.push({ type: 'pickup', item: k.held });
+      if (!k.held) { k.held = rollItem(rng, k.place || 8); k.heldN = ITEMS[k.held].uses || 1; k.events.push({ type: 'pickup', item: k.held }); }
       break;
     }
   }
