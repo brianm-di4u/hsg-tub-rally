@@ -213,7 +213,7 @@ const TEMPLATES = {
         ${btn('settings', 'Settings')}
         ${btn('credits', 'Credits')}
       </nav>
-      <p class="fineprint">Inspired by the World Championship Running of the Tubs, held each June on Central Avenue. Fictional teams; not affiliated with the event or any business shown.</p>
+      <p class="title-note">Inspired by the World Championship Running of the Tubs. Not affiliated with the event.</p>
     </div>`,
   pause: (app, { fact } = {}) => `
     <div class="panel pause" role="dialog" aria-label="Paused">
@@ -424,6 +424,7 @@ ${rivalsHelp()}
       <canvas data-pixel="CREDITS" data-scale="5"></canvas>
       <div class="help-cols">
         <section><h3>The real race</h3><ul>
+          <li>Inspired by the World Championship Running of the Tubs, held each June on Central Avenue. Fictional teams; not affiliated with the event or any business shown.</li>
           <li>Inspired by the World Championship Running of the Tubs, held each June on Central Avenue in Hot Springs, Arkansas, since 2006 and organized by Visit Hot Springs. Named for downtown businessman Stueart Pennington.</li>
           <li>This is an independent fan-made game. It is not affiliated with or endorsed by the event, Visit Hot Springs, the National Park Service or any business shown. Every team in the game is fictional.</li></ul></section>
         <section><h3>Maps and facts</h3><ul>
@@ -433,6 +434,7 @@ ${rivalsHelp()}
         <section><h3>Made with</h3><ul>
           <li>Art: painted with AI image tools for this game.</li>
           <li>three.js (MIT). Textures painted for this game with Codex; landmark models built with scripted Blender; music and sound synthesized live with WebAudio.</li>
+          <li>Menu, race and results text: Jost SemiBold, SIL Open Font License.</li>
           <li>Part of the open-source (MIT) Hot Springs Games collection.</li></ul></section>
       </div>
       <nav class="menu row">${btn('back', 'Back', 'autofocus data-back')}</nav>

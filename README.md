@@ -48,4 +48,5 @@ Only `index.html`, `assets/` and `vendor/` ship to the website.
 ## Credits
 - Map data © OpenStreetMap contributors (ODbL 1.0); elevation: USGS 3D Elevation Program (public domain).
 - three.js (MIT). Textures painted for this game with Codex; models built with scripted Blender.
+- Jost SemiBold (SIL Open Font License 1.1, `vendor/fonts/`) for the menus, the race display and the results; `node tools/build-fonts.mjs` writes it into `src/styles/fonts.css`.
 - Event facts: World Championship Running of the Tubs official rules and site (Visit Hot Springs); NPS Hot Springs National Park pages. See `research/town-content.md`.

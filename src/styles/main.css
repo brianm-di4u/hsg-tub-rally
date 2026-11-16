@@ -1,3 +1,4 @@
+@import "fonts.css";
 /* Spa City Tub Rally. Palettes from shared/design/tokens.css (lake-life, gilded-spa, thermal-water), copied inline. */
 :root {
   --lake: #1E4E79; --lake-deep: #183F63; --shallows: #4C8FA8; --gold: #F2A541; --brick: #B5654A; --dogwood: #F6F3EC;
@@ -613,3 +614,12 @@ body.clock-frozen *, body.clock-frozen *::before, body.clock-frozen *::after { t
 .race-setup .setup-toggle { max-width: 100%; white-space: normal; }
 .race-setup .race-opts[hidden] { display: none; }
 @media (min-width: 701px) and (min-height: 641px) { .race-setup .setup-toggle { display: none; } .race-setup .race-opts[hidden] { display: flex; } }
+
+/* S4-10: Jost SemiBold (bundled, src/styles/fonts.css) sets the menus, the race display and the results. One weight, so every use
+   says 600 and nothing is a synthesised bold. Small print and long paragraphs keep the system stack. */
+.mbtn, .chip, .tcard b, .ccard b, .help-cols h3, .set-row > span, .sub, .rtable, .hud-time, .pip, .hud-warn, .hud-par, .hud-call,
+.hud-task .t-name, .hud-skip, .hud-item .tickets, .tb, .t-pause { font-family: "Jost", var(--font-ui); font-weight: 600; }
+.mbtn .cls-how { font-family: var(--font-ui); font-weight: 700; }
+/* the title's one line of notice: set like the tagline, not in a box (the full notice is on Credits) */
+.title-note { margin: 0; max-width: 560px; text-align: center; font: 700 14px/1.35 var(--font-ui); color: #fff; text-shadow: -1px -1px 0 var(--ink), 1px -1px 0 var(--ink), -1px 1px 0 var(--ink), 1px 1px 0 var(--ink); text-wrap: balance; }
+@media (max-height: 500px) and (min-aspect-ratio: 1/1) { .title-note { flex-basis: 100%; font-size: 12px; max-width: 90vw; } }

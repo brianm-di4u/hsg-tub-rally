@@ -3,6 +3,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { FACTS } from '../src/js/data/facts.js';
+import { TEAMS } from '../src/js/data/teams.js';
 
 const SHOTS = '../_council/hsg-tub-rally/wave-4/shots';
 const shot = async (t, id, what) => { fs.mkdirSync(SHOTS, { recursive: true }); await t.page.screenshot({ path: `${SHOTS}/${id}-${what}-${t.viewport === 'mobile' ? 'mobile' : 'desktop'}.png` }); };
@@ -115,6 +116,63 @@ export const tests = [
       t.equal(card, 'The Vapors, a club that opened in 1960, stood at 315 Park Avenue.', 'the Park Avenue card shows the changed Vapors line');
       await t.page.evaluate(() => document.querySelector('.courses [data-id="park-avenue"]').scrollIntoView({ block: 'center' })); await t.waitFrames(2);
       await shot(t, 'C4-07', 'park-avenue-card');
+      await t.checkLayout({ allowScrollY: true });
+    },
+  },
+  // ---------------------------------------------------------------- S4-10
+  {
+    name: 'council W4D S4-10: the title keeps one short line saying it is not affiliated, and Credits hold the full notice word for word',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.game('scene', 'title'); await t.waitFrames(3);
+      const n = await t.page.evaluate(() => { const p = document.querySelector('.scr-title .title-note'); if (!p) return null; const r = p.getBoundingClientRect(); return { text: p.textContent, lines: Math.round(r.height / parseFloat(getComputedStyle(p).lineHeight)), inside: r.left >= 0 && r.right <= innerWidth && r.bottom <= innerHeight, boxed: getComputedStyle(p).backgroundColor !== 'rgba(0, 0, 0, 0)', fine: !!document.querySelector('.scr-title .fineprint') }; });
+      t.expect(!!n && /not affiliated/i.test(n.text) && n.text.length < 100, 'a short line that says it is not affiliated: ' + JSON.stringify(n));
+      t.expect(n && n.lines <= 2 && n.inside && !n.boxed && !n.fine, 'two lines at most, on screen, not in a grey box: ' + JSON.stringify(n));
+      await shot(t, 'S4-10', 'title');
+      await t.checkLayout({ allowScrollY: true });
+      await t.game('act', 'menu', 'credits'); await t.waitFrames(3);
+      const full = 'Inspired by the World Championship Running of the Tubs, held each June on Central Avenue. Fictional teams; not affiliated with the event or any business shown.';
+      const c = await t.page.evaluate(() => [...document.querySelectorAll('.panel li')].map((l) => l.textContent));
+      t.expect(c.includes(full), 'Credits hold the old notice word for word');
+      t.expect(c.includes('Menu, race and results text: Jost SemiBold, SIL Open Font License.'), 'Credits name the face and its licence');
+      await t.checkLayout({ allowScrollY: true });
+    },
+  },
+  {
+    name: 'council W4D S4-10: Jost SemiBold sets the menus, the race display and the results, and small print keeps the system stack',
+    fileUrl: true,
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.game('scene', 'title'); await t.waitFrames(3);
+      const fam = (sel) => t.page.evaluate((q) => { const e = document.querySelector(q); return e ? getComputedStyle(e).fontFamily + ' / ' + getComputedStyle(e).fontWeight : null; }, sel);
+      t.expect(await t.page.evaluate(async () => { await document.fonts.ready; return document.fonts.check('600 16px Jost') && [...document.fonts].some((f) => f.family.replace(/"/g, '') === 'Jost' && f.status === 'loaded'); }), 'Jost is loaded from file://');
+      t.expect(/^"?Jost"?, .*\/ 600$/.test(await fam('.scr-title .mbtn')), 'a menu button: ' + await fam('.scr-title .mbtn'));
+      t.expect(/^"?Trebuchet MS"?/.test(await fam('.title-note')), 'the notice keeps the system stack: ' + await fam('.title-note'));
+      await t.game('act', 'menu', 'quick'); await t.waitFrames(3);
+      t.expect(/^"?Jost"?/.test(await fam('.tcard b')), 'a team card title: ' + await fam('.tcard b'));
+      await t.checkLayout({ allowScrollY: true });
+      await t.game('act', 'menu', 'teamOk'); await t.waitFrames(3);
+      await t.game('act', 'menu', 'cls', { id: 'soak' }); await t.waitFrames(3);
+      t.expect(/^"?Jost"?/.test(await fam('.ccard b')) && /^"?Trebuchet MS"?/.test(await fam('.ccard .fact')), 'course title in Jost, its fact line in the system stack');
+      await t.checkLayout({ allowScrollY: true });
+      await t.game('scene', 'title'); await t.waitFrames(2);
+      await t.game('act', 'menu', 'settings'); await t.waitFrames(3);
+      t.expect(/^"?Jost"?/.test(await fam('.settings .chip')), 'a Settings chip');
+      await shot(t, 'S4-10', 'settings');
+      await t.checkLayout({ allowScrollY: true });
+      await t.game('scene', 'title'); await t.waitFrames(2);
+      await t.game('act', 'menu', 'help'); await t.waitFrames(3);
+      t.expect(/^"?Trebuchet MS"?/.test(await fam('.help-cols li, .panel.help li')), 'long paragraphs keep the system stack: ' + await fam('.panel.help li'));
+      const ids = TEAMS.map((x) => x.id);
+      await t.page.evaluate((x) => { const mk = (k) => ({ place: k + 1, team: x[k], human: k === 1, time: 90 + k, gal: 14, clean: k === 0, points: 10, tickets: 0, lost: [], dry: false }); window.TR_APP.App.screens.show('results', { results: [0, 1, 2, 3, 4, 5, 6, 7].map(mk), laps: 3, trackName: 'Hot Springs Mountain Drive', mode: 'quick' }); }, ids); await t.waitFrames(3);
+      t.expect(/^"?Jost"?/.test(await fam('.rtable td')), 'the results table: ' + await fam('.rtable td'));
+      await shot(t, 'S4-10', 'results');
+      await t.checkLayout({ allowScrollY: true });
+      await t.game('newGame', { track: 'bathhouse-row', team: 'engine-six', classId: 'soak', laps: 1, seed: 5, paused: true }); await t.game('act', 'skipCountdown'); await t.waitFrames(3);
+      t.expect(/^"?Jost"?/.test(await fam('.hud-time')), 'the race clock: ' + await fam('.hud-time'));
+      await shot(t, 'S4-10', 'race');
       await t.checkLayout({ allowScrollY: true });
     },
   },
