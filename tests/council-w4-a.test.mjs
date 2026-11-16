@@ -383,4 +383,39 @@ export const tests = [
       await shot(t, 'C4-13', 'classes');
     },
   },
+  // ---------------------------------------------------------------- C4-15
+  {
+    name: 'council W4A C4-15: Settings lists Touch layout only where the touch controls can show, keeps a saved value, and the keys skip the hidden row',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await t.waitIdle(8000);
+      const row = () => t.page.evaluate(() => { const r = document.querySelector('.set-row.touch-only'); return r ? { shown: r.getClientRects().length > 0, text: r.textContent.replace(/\s+/g, ' ').trim() } : null; });
+      const saved = { ...DEFAULT_SAVE(), settings: { ...DEFAULT_SAVE().settings, seenIntro: true, lefty: true } };
+      await t.page.evaluate(([k, v]) => localStorage.setItem(k, JSON.stringify(v)), [KEY, saved]);
+      await t.reload(); await t.waitIdle(8000);
+      await t.game('scene', 'settings'); await t.waitFrames(3);
+      let r = await row();
+      if (t.viewport === 'desktop') {
+        t.expect(r && !r.shown, 'no Touch layout row for a mouse and keyboard: ' + JSON.stringify(r));
+        t.equal(await t.page.evaluate(() => window.__game.getState().settings.lefty), true, 'the saved Mirrored layout is kept');
+        // the arrow keys never land on the hidden chips: walk the whole screen
+        const seen = new Set();
+        await t.page.evaluate(() => document.querySelector('.panel.settings button').focus());
+        for (let i = 0; i < 60; i++) { await t.page.keyboard.press('ArrowDown'); seen.add(await t.page.evaluate(() => { const a = document.activeElement; return a.dataset.k ? a.dataset.k + '=' + a.dataset.v : a.dataset.act || a.textContent; })); }
+        t.expect(seen.size > 10 && ![...seen].some((k) => k.startsWith('lefty')), 'the arrow keys visit every visible button and skip the hidden row: ' + seen.size);
+        await t.checkLayout({ allowScrollY: true });
+        await shot(t, 'C4-15', 'settings-no-touch');
+        // the first touch brings the touch controls up, and the row with them
+        await t.page.evaluate(() => document.querySelector('#gl').dispatchEvent(new PointerEvent('pointerdown', { pointerType: 'touch', bubbles: true, pointerId: 41, clientX: 200, clientY: 300 })));
+        await t.waitFrames(2);
+        r = await row();
+        t.expect(r && r.shown && /Touch layout/.test(r.text), 'after a touch the row is there: ' + JSON.stringify(r));
+        t.equal(await t.page.locator('.settings [data-k="lefty"][data-v="true"]').getAttribute('aria-pressed'), 'true', 'showing the saved Mirrored choice');
+      } else {
+        t.expect(r && r.shown && /Touch layout/.test(r.text), 'a phone has the row: ' + JSON.stringify(r));
+        await t.checkLayout({ allowScrollY: true });
+        await shot(t, 'C4-15', 'settings-touch');
+      }
+    },
+  },
 ];

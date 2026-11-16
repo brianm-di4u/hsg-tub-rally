@@ -55,7 +55,8 @@ export class Screens {
   // arrow-key / d-pad focus movement across visible buttons
   nav(m) {
     if (!this.cur) return false;
-    const btns = [...this.root.querySelectorAll('button:not([disabled])')];
+    // a button that is not on screen (the Touch layout row without touch controls) cannot take the focus
+    const btns = [...this.root.querySelectorAll('button:not([disabled])')].filter((b) => b.getClientRects().length > 0);
     if (!btns.length) return false;
     let i = btns.indexOf(document.activeElement);
     if (m.down || m.right) i = (i + 1) % btns.length;
@@ -425,7 +426,7 @@ ${rivalsHelp()}
       <div class="set-row"><span>Picture</span>${opt('res', 'native', 'Sharp', s.res)}${opt('res', 'crisp', '480p', s.res)}${opt('res', 'authentic', 'Retro 240p', s.res)}</div>
       <div class="set-row"><span>Detail</span>${opt('quality', 'auto', 'Auto', s.quality)}${opt('quality', 'low', 'Low', s.quality)}${opt('quality', 'medium', 'Medium', s.quality)}${opt('quality', 'high', 'High', s.quality)}</div>
       <div class="set-row two"><span>Auto-push</span>${opt('autoPush', 'true', 'On', String(s.autoPush))}${opt('autoPush', 'false', 'Off', String(s.autoPush))}</div>
-      <div class="set-row two"><span>Touch layout</span>${opt('lefty', 'false', 'Standard', String(s.lefty))}${opt('lefty', 'true', 'Mirrored', String(s.lefty))}</div>
+      <div class="set-row two touch-only"><span>Touch layout</span>${opt('lefty', 'false', 'Standard', String(s.lefty))}${opt('lefty', 'true', 'Mirrored', String(s.lefty))}</div>
       <div class="set-row two"><span>Steer assist</span>${opt('steerAssist', 'true', 'On', String(s.steerAssist))}${opt('steerAssist', 'false', 'Off', String(s.steerAssist))}</div>
       <div class="set-row two"><span>HUD size</span>${[['0.85', 'Small'], ['1', 'Medium'], ['1.15', 'Large']].map(([v, l]) => opt('hudScale', v, l, String(s.hudScale))).join('')}</div>
       <div class="set-row two"><span>Sound</span>${opt('sound', 'true', 'On', String(s.sound))}${opt('sound', 'false', 'Off', String(s.sound))}</div>

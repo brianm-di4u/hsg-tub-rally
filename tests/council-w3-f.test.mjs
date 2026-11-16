@@ -70,6 +70,8 @@ export const tests = [
     viewports: ['desktop', 'mobile'],
     async run(t) {
       await freshProfile(t);
+      // C4-15: the Touch layout row shows once the touch controls can; a laptop's first touch brings them up
+      if (t.viewport === 'desktop') await t.page.evaluate(() => document.querySelector('#gl').dispatchEvent(new PointerEvent('pointerdown', { pointerType: 'touch', bubbles: true, pointerId: 41, clientX: 200, clientY: 300 })));
       await t.game('scene', 'settings'); await t.waitFrames(3);
       const chip = (v) => `.settings [data-k="lefty"][data-v="${v}"]`;
       t.equal(await t.page.getAttribute(chip('false'), 'aria-pressed'), 'true', 'Standard is the default');

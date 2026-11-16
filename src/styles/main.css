@@ -139,6 +139,8 @@ body.lefty .t-btns { right: auto; left: max(10px, env(safe-area-inset-left)); }
 .help-cols .help-more { margin-top: 8px; }
 .help-cols ul { margin: 0; padding-left: 18px; line-height: 1.45; font-size: 15px; }
 kbd { display: inline-block; padding: 0 5px; border: 2px solid var(--ink); border-radius: 5px; background: var(--dogwood); color: var(--ink); font: 700 12px var(--font-ui); }
+/* C4-15: the Touch layout row is only for a device whose on-screen controls can show (body.touch-on, as set by P-N02) */
+body:not(.touch-on) .set-row.touch-only { display: none; }
 .set-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; width: 100%; }
 .set-note { margin: -2px 0 0; color: var(--mist); font-size: 13px; font-weight: 700; }
 .set-row > span { width: 110px; font-weight: 800; color: var(--gold); }
