@@ -108,7 +108,7 @@ tests.push(
       fire('keydown', { code: 'ShiftLeft' }); fire('keyup', { code: 'ShiftLeft' });
       assert.equal(input.readIntent().hop, true, 'a key pressed and released inside one tick still counts');
       assert.equal(input.readIntent().hop, false, 'and counts once');
-      assert.equal(input.readIntent().asked, true, 'the player's intent is marked, which lets the slide read the steer being asked for (S1-09)');
+      assert.equal(input.readIntent().asked, true, 'the intent of the player is marked, which lets the slide read the steer being asked for (S1-09)');
       fire('keydown', { code: 'ShiftLeft' });
       assert.equal(input.readIntent().hop, true); assert.equal(input.readIntent().hop, true, 'a held key is still held');
       fire('keyup', { code: 'ShiftLeft' });
