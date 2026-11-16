@@ -3,11 +3,14 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { createSaveWriter, DEFAULT_SAVE, bestFor, bestEntries } from '../src/js/save.js';
+import { TEAMS } from '../src/js/data/teams.js';
 
 const SHOTS = '../_council/hsg-tub-rally/wave-4/shots';
 const KEY = 'hsg-tub-rally-v1';
 const shot = async (t, id, what) => { fs.mkdirSync(SHOTS, { recursive: true }); await t.page.screenshot({ path: `${SHOTS}/${id}-${what}-${t.viewport === 'mobile' ? 'mobile' : 'desktop'}.png` }); };
 const setSave = (t, s) => t.page.evaluate(([k, v]) => localStorage.setItem(k, JSON.stringify(v)), [KEY, s]);
+const IDS = TEAMS.map((x) => x.id);
+const text = (t, sel) => t.page.evaluate((q) => Array.from(document.querySelectorAll(q)).map((e) => e.textContent.replace(/\s+/g, ' ').trim()).join(' | '), sel);
 const mk = (initial) => {
   const box = { raw: JSON.stringify(initial) };
   const writer = createSaveWriter({ read: () => box.raw, write: (r) => { box.raw = r; } });
@@ -101,6 +104,30 @@ export const tests = [
       t.expect(/Scald 2:00\.50/.test(await row('Hot Springs Mountain Drive')), 'an old Scald time is under Scald: ' + await row('Hot Springs Mountain Drive'));
       await shot(t, 'C4-05', 'records');
       await t.checkLayout({ allowScrollY: true });
+    },
+  },
+
+  // ---------------------------------------------------------------- S3-10
+  {
+    name: 'council W4C S3-10: the standings show the gap to the leader and what winning the cup takes',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await t.waitIdle(8000);
+      const rows = IDS.slice(0, 5).map((id, i) => ({ team: id, points: 30 - i * 4, clean: i === 1 ? 1 : 0, human: i === 3, bribes: 0 }));
+      const show = (r, round, rounds) => t.page.evaluate(([rr, a, b]) => window.TR_APP.App.screens.show('standings', { rows: rr, round: a, rounds: b, cupName: 'Bathhouse Cup', final: false }), [r, round, rounds]);
+      await show(rows, 2, 4); await t.waitFrames(2);
+      const gaps = await t.page.evaluate(() => [...document.querySelectorAll('.panel.standings tbody tr')].map((r) => r.cells[3].textContent));
+      t.equal(gaps.join(), '–,−4,−8,−12,−16', 'a Gap column: the leader has none, the rest show the points behind');
+      t.expect((await text(t, '.panel.standings thead th')).includes('Gap'), 'the column is named');
+      const body = await text(t, '.panel.standings p');
+      const leader = TEAMS.find((x) => x.id === IDS[0]).name;
+      t.expect(body.includes('To win the cup, outscore ' + leader + ' by more than 12 points over the last 2 races.'), 'the line for the cup: ' + body);
+      await shot(t, 'S3-10', 'standings');
+      await t.checkLayout({ allowScrollY: true });
+      await show(rows.map((r, i) => ({ ...r, human: i === 1 })), 3, 4); await t.waitFrames(2);
+      t.expect(/outscore .* by more than 4 points over the last race./.test(await text(t, '.panel.standings p')), 'one race to go: "the last race"');
+      await show(rows.map((r, i) => ({ ...r, human: i === 0 })), 2, 4); await t.waitFrames(2);
+      t.expect(!/outscore/.test(await text(t, '.panel.standings p')), 'the leader is not told to outscore anyone');
     },
   },
 ];
