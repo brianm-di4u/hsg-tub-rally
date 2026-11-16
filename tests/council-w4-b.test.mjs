@@ -285,3 +285,23 @@ tests.push({
     await t.checkLayout({ allowScrollY: true });
   },
 });
+
+// ---------------------------------------------------------------- S2-30
+tests.push({
+  name: 'council W4B S2-30: the page names the game\'s own dark colour for the browser bar, and adds no install file',
+  viewports: ['desktop', 'mobile'],
+  async run(t) {
+    await t.waitIdle(8000);
+    const page = await t.page.evaluate(() => ({
+      theme: [...document.querySelectorAll('meta[name="theme-color"]')].map((m) => m.content),
+      manifest: document.querySelectorAll('link[rel="manifest"]').length,
+      appleCapable: document.querySelectorAll('meta[name="apple-mobile-web-app-capable"], meta[name="mobile-web-app-capable"]').length,
+      bodyBg: getComputedStyle(document.body).backgroundColor,
+    }));
+    t.equal(page.theme.length, 1, 'one theme-color');
+    t.equal(page.theme[0], '#0d1a26', 'the colour the page already paints behind the game');
+    t.equal(page.bodyBg, 'rgb(13, 26, 38)', 'and it is the page background (#0d1a26)');
+    t.equal(page.manifest, 0, 'no manifest yet: the install file waits for the icons');
+    t.equal(page.appleCapable, 0, 'and no standalone-app tag');
+  },
+});
