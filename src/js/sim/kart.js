@@ -118,8 +118,10 @@ export function stepKart(k, inp, track, dt, env = {}) {
   k.lastHop = !!inp.hop;
   if (hopPress && grounded && k.state === 'run') {
     k.vy = HOP_V; k.air = true; k.airT = 0;
-    // S1-09: the slide starts from the steer the player is asking for, not only from the smoothed one, which needs about two ticks to reach 0.25
-    const lean = Math.abs(k.steer) > 0.25 ? k.steer : Math.abs(want) > 0.25 ? want : 0;
+    // S1-09: for the player's own input (inp.asked, set by readIntent) the slide starts from the steer being asked for, not only from the
+    // smoothed one, which needs about two ticks to reach 0.25. The AI drivers keep the old gate: the stored par ghosts and the balance
+    // numbers were made with it
+    const lean = Math.abs(k.steer) > 0.25 ? k.steer : inp.asked && Math.abs(want) > 0.25 ? want : 0;
     if (lean && k.vf > 8) { k.drift = Math.sign(lean); k.driftT = 0; k.charge = 0; k.stage = 0; k.stats_.drifts++; }
   }
   if (k.drift) {

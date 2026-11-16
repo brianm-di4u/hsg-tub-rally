@@ -132,7 +132,7 @@ export function readIntent() {
   const p = I.pad || {};
   const brake = I.brake || !!p.brake;
   const push = I.push ? 1 : p.pushV || 0;
-  const out = { steer: I.steer || p.steer || 0, push: I.autoPush ? (brake ? 0 : 1) : push, brake, hop: I.hop || !!p.hop || I.hopP, back: I.back || !!p.back, item: I.itemP };
+  const out = { steer: I.steer || p.steer || 0, push: I.autoPush ? (brake ? 0 : 1) : push, brake, hop: I.hop || !!p.hop || I.hopP, back: I.back || !!p.back, item: I.itemP, asked: true };
   I.itemP = false; I.hopP = false;
   return out;
 }
