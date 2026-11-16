@@ -431,6 +431,7 @@ ${rivalsHelp()}
           <li>Facts: the event's 2026 official rules and website, NPS Hot Springs National Park pages, and the Hot Springs Games research corpus (sources listed in the game's research/town-content.md).</li>
           <li>Courses are compressed real streets; game-only links (racing on the Grand Promenade and the like) are game courses, not real roads.</li></ul></section>
         <section><h3>Made with</h3><ul>
+          <li>Art: painted with AI image tools for this game.</li>
           <li>three.js (MIT). Textures painted for this game with Codex; landmark models built with scripted Blender; music and sound synthesized live with WebAudio.</li>
           <li>Part of the open-source (MIT) Hot Springs Games collection.</li></ul></section>
       </div>

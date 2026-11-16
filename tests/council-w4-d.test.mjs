@@ -52,4 +52,21 @@ export const tests = [
       await t.checkLayout({ allowScrollY: true });
     },
   },
+  // ---------------------------------------------------------------- C4-02
+  {
+    name: 'council W4D C4-02: Credits say in one plain line that the art was painted with AI image tools',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.game('scene', 'title'); await t.waitFrames(2);
+      await t.game('act', 'menu', 'credits'); await t.waitFrames(3);
+      const line = await t.page.evaluate(() => { const li = [...document.querySelectorAll('.panel li')].find((l) => /^Art:/.test(l.textContent)); if (!li) return null; li.scrollIntoView({ block: 'center' }); const r = li.getBoundingClientRect(), p = li.closest('.panel').getBoundingClientRect(); return { text: li.textContent, inside: r.left >= p.left && r.right <= p.right + 1 && r.top >= 0 && r.bottom <= innerHeight, wide: li.scrollWidth <= li.clientWidth + 1, n: [...document.querySelectorAll('.panel li')].filter((l) => /AI image/.test(l.textContent)).length }; });
+      t.expect(!!line && line.text === 'Art: painted with AI image tools for this game.', 'the line: ' + JSON.stringify(line));
+      t.expect(line && line.inside && line.wide, 'and it is on screen and not cut off: ' + JSON.stringify(line));
+      t.equal(line && line.n, 1, 'it is said once');
+      await t.waitFrames(2);
+      await shot(t, 'C4-02', 'credits-art');
+      await t.checkLayout({ allowScrollY: true });
+    },
+  },
 ];
