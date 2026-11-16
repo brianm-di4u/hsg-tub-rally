@@ -88,7 +88,7 @@
       <canvas data-pixel="CONTROLS" data-scale="5"></canvas>
       <p class="sub" role="status">${d.msg || 'Choose a control, then press the key you want. Esc cancels.'}</p>${rows}
       <p class="fineprint">Pause stays on Esc and P. Gamepad and touch controls are fixed.</p>
-      <nav class="menu row"><button type="button" class="mbtn" data-act="rebindReset">Reset keys</button><button type="button" class="mbtn" data-act="settings" autofocus data-back>Done</button></nav>
+      <nav class="menu row"><button type="button" class="mbtn" data-act="rebindReset">Reset keys</button><button type="button" class="mbtn" data-act="settings" data-back>Done</button></nav>
     </div>`;
     },
     // a key press while a control waits to be rebound; always consumed. show(data) redraws the Controls screen.

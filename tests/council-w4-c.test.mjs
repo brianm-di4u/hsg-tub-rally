@@ -163,4 +163,47 @@ export const tests = [
       t.expect(await t.page.evaluate(() => typeof window.__game.setState === 'function' && typeof window.__game.act === 'function' && window.__game.act('date', '2026-01-02') === true), 'the harness page has setState and act');
     },
   },
+
+  // ---------------------------------------------------------------- S2-13
+  {
+    name: 'council W4C S2-13: a screen puts the focus on the button it marks, not on the first button in the page',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await t.waitIdle(8000);
+      const sv = DEFAULT_SAVE();
+      sv.settings.seenIntro = true; sv.lastTeam = 'lather-linen'; sv.unlocked.teams = ['lather-linen'];
+      await setSave(t, sv);
+      await t.reload(); await t.waitIdle(8000);
+      const focus = () => t.page.evaluate(() => { const a = document.activeElement; return a && a.dataset ? `${a.dataset.act}${a.dataset.id ? ':' + a.dataset.id : ''}` : ''; });
+      await t.game('scene', 'title'); await t.waitFrames(3);
+      t.equal(await focus(), 'gp', 'the title: Grand Prix when there is no cup to continue');
+      await t.game('act', 'menu', 'quick'); await t.waitFrames(3);
+      t.equal(await t.page.evaluate(() => document.body.dataset.screen), 'teams', 'team choice');
+      t.equal(await focus(), 'teamOk', 'the team screen: the choose button of the saved team, not the first card');
+      t.expect(/Lather/.test(await t.page.evaluate(() => document.querySelector('[data-act="teamOk"]').textContent)), 'and it is the saved team');
+      await t.game('act', 'menu', 'teamOk'); await t.waitFrames(3);
+      t.equal(await t.page.evaluate(() => document.body.dataset.screen), 'classes', 'class choice');
+      t.equal(await focus(), 'cls:soak', 'the class screen lands on Soak, not Splash');
+      await shot(t, 'S2-13', 'class-focus');
+      await t.game('act', 'menu', 'cls', { id: 'soak' }); await t.waitFrames(3);
+      t.equal(await focus(), 'course:' + await t.page.evaluate(() => document.querySelector('.courses [data-act="course"]').dataset.id), 'the course screen lands on the first course, not on the Mirror row or a chip');
+      await t.game('scene', 'title'); await t.waitFrames(2);
+      await t.game('act', 'menu', 'settings'); await t.waitFrames(3);
+      t.expect(await t.page.evaluate(() => !document.activeElement.matches('[data-back]')), 'Settings still opens on its first control, not on Done');
+    },
+  },
+  {
+    name: 'council W4C S2-13: with a cup to continue the title still opens on Continue cup',
+    viewports: ['desktop'],
+    async run(t) {
+      await t.waitIdle(8000);
+      const cup = { v: 1, cup: 'bathhouse', name: 'Bathhouse Cup', tracks: ['bathhouse-row', 'park-avenue', 'whittington-valley', 'bridge-street'], round: 1,
+        table: { 'engine-six': { team: 'engine-six', points: 20, clean: 1, human: true, bribes: 0 }, 'lather-linen': { team: 'lather-linen', points: 30, clean: 1, bribes: 0 } },
+        rivals: ['lather-linen'], team: 'engine-six', classId: 'soak', seed: 5 };
+      await t.page.evaluate(([k, v]) => localStorage.setItem(k, v), ['hsg-tub-rally-cup-v1', JSON.stringify(cup)]);
+      await t.reload(); await t.waitIdle(8000);
+      await t.game('scene', 'title'); await t.waitFrames(3);
+      t.equal(await t.page.evaluate(() => document.activeElement.dataset.act), 'continueCup', 'Continue cup has the focus');
+    },
+  },
 ];

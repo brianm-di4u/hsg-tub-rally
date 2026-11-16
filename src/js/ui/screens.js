@@ -48,7 +48,8 @@ export class Screens {
     document.body.dataset.screen = name;
     this.root.querySelectorAll('canvas[data-pixel]').forEach((c) => pixelText(c.dataset.pixel, { scale: +c.dataset.scale || 6, canvas: c, fill: (c.dataset.fill || '#FFF6C8,#F2A541').split(',') }));
     this.root.querySelectorAll('[data-act]').forEach((b) => b.addEventListener('click', () => { menuSound(b); this.app.onMenu(b.dataset.act, b.dataset); }));
-    const first = this.root.querySelector('[autofocus], button');
+    // the screen's own choice of first button wins over the first one in the page (S2-13)
+    const first = this.root.querySelector('[autofocus]') || this.root.querySelector('button');
     if (first) first.focus({ preventScroll: true });
     this.trans = 0.25;
   }
@@ -195,8 +196,8 @@ const TEMPLATES = {
       <div class="logo"><canvas data-pixel="SPA CITY" data-scale="7" data-fill="#E9FBFF,#3FA8C0"></canvas><canvas data-pixel="TUB RALLY" data-scale="11"></canvas>
         <p class="tagline">Bathtub racing on the streets and mountain roads of Hot Springs, Arkansas</p></div>
       <nav class="menu" aria-label="Main menu">
-        ${app.cup ? btn('continueCup', 'Continue cup') : ''}
-        ${btn('gp', 'Grand Prix', 'autofocus')}
+        ${app.cup ? btn('continueCup', 'Continue cup', 'autofocus') : ''}
+        ${btn('gp', 'Grand Prix', app.cup ? '' : 'autofocus')}
         ${btn('quick', 'Quick Race')}
         ${btn('timetrial', 'Time Trial')}
         ${btn('daily', 'Daily Race')}
@@ -451,7 +452,7 @@ ${rivalsHelp()}
       <div class="set-row two"><span>Motion</span>${opt('reducedMotion', 'false', 'Full', String(s.reducedMotion))}${opt('reducedMotion', 'true', 'Reduced', String(s.reducedMotion))}</div>
       <div class="set-row two"><span>Race tips</span>${opt('seenIntro', 'false', 'Show', String(s.seenIntro))}${opt('seenIntro', 'true', 'Hide', String(s.seenIntro))}</div>
       <div class="set-row two"><span>Controls</span><button type="button" class="chip" data-act="controls">Change keys</button></div>
-      <nav class="menu row">${btn('back', 'Done', 'autofocus data-back')}</nav>
+      <nav class="menu row">${btn('back', 'Done', 'data-back')}</nav>
     </div>`;
   },
 };
