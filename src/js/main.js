@@ -854,12 +854,13 @@ function kartEvents(k) {
   else if (me) for (const e of k.events) rivalEvent(me, k, e, r.time);
 }
 
-// S2-04: the way to a GREAT START, in the words of the device in use (Push pressed in the last half second before SCRUB!)
+// S2-04: the way to a GREAT START, in the words of the device in use (Push pressed in the last half second before SCRUB!
+// and held through the line: a tap let go before it earns nothing, C4-10)
 const PUSH_KEY = { ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→' };
 function startHint() {
   if (INPUT.autoPush) return 'Auto-push takes over at SCRUB!';
   const code = (getBindings().push || ['ArrowUp'])[0] || 'ArrowUp';
-  const how = INPUT.last === 'touch' ? 'Tap Push' : INPUT.last === 'gamepad' ? 'Press A or RT' : 'Tap ' + (PUSH_KEY[code] || String(code).replace(/^(Key|Digit)/, ''));
+  const how = INPUT.last === 'touch' ? 'Press and hold Push' : INPUT.last === 'gamepad' ? 'Press and hold A or RT' : 'Press and hold ' + (PUSH_KEY[code] || String(code).replace(/^(Key|Digit)/, ''));
   return `${how} just before SCRUB! for a GREAT START`;
 }
 

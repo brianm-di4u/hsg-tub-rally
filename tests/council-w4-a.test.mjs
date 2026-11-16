@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { createSaveWriter, DEFAULT_SAVE } from '../src/js/save.js';
 import { Governor, CLIMB } from '../src/js/gfx/tiers.js';
+import { Track } from '../src/js/sim/track.js';
+import { makeRace, stepRace, DT } from '../src/js/sim/race.js';
 
 const KEY = 'hsg-tub-rally-v1', CUP = 'hsg-tub-rally-cup-v1';
 const SHOTS = '../_council/hsg-tub-rally/wave-4/shots';
@@ -285,6 +287,48 @@ export const tests = [
         return down.defaultPrevented;
       });
       t.equal(redraw, false, 'a redraw of the same screen is not a new screen');
+    },
+  },
+  // ---------------------------------------------------------------- C4-10
+  {
+    name: 'council W4A C4-10: a tap let go before SCRUB! earns no start boost, so the hint says to hold',
+    node: true,
+    run() {
+      const tr = new Track(JSON.parse(fs.readFileSync(new URL('../data/tracks/bathhouse-row.json', import.meta.url), 'utf8')));
+      // Push goes down at `from` seconds (relative to SCRUB!) and comes up at `until` (null: held through the line)
+      const go = (from, until) => {
+        const r = makeRace(tr, { seed: 5, classId: 'soak', player: 'engine-six', laps: 1 });
+        const me = r.karts[r.player];
+        for (let i = 0; i < 400; i++) {
+          const inp = [];
+          inp[r.player] = { steer: 0, push: r.time >= from && (until == null || r.time < until) ? 1 : 0, brake: false, hop: false, back: false, item: false };
+          stepRace(r, tr, inp, DT);
+          if (r.phase === 'race') return me.events.map((e) => e.type + (e.kind ? ':' + e.kind : ''));
+        }
+        return null;
+      };
+      assert.ok(go(-0.3, null).includes('boost:start'), 'pressed just before SCRUB! and held: the boost');
+      assert.ok(!go(-0.3, -0.1).some((e) => e.startsWith('boost')), 'pressed and let go before SCRUB!: nothing');
+    },
+  },
+  {
+    name: 'council W4A C4-10: the start hint and How to Play say "Press and hold", for the key and for touch',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.game('act', 'menu', 'set', { k: 'autoPush', v: 'false' }); await t.game('act', 'menu', 'set', { k: 'seenIntro', v: 'true' });
+      await t.game('newGame', { track: 'bathhouse-row', team: 'engine-six', classId: 'soak', laps: 1, seed: 5, paused: true });
+      await t.waitFrames(3);
+      const now = (await t.state()).race.time;
+      await t.game('step', Math.ceil((-1.8 - now) * 60)); await t.waitFrames(3);
+      const h = await t.page.evaluate(() => { const e = document.querySelector('.hud-start'), r = e.getBoundingClientRect(); return { text: e.textContent, shown: e.classList.contains('show'), l: r.left, r: r.right, w: innerWidth }; });
+      t.equal(h.text, (t.viewport === 'mobile' ? 'Press and hold Push' : 'Press and hold ↑') + ' just before SCRUB! for a GREAT START', 'the hint');
+      t.expect(h.shown && h.l >= 0 && h.r <= h.w, 'it is on screen and inside the width: ' + JSON.stringify(h));
+      t.expect(!/\bTap\b/.test(h.text), 'and does not say Tap');
+      await shot(t, 'C4-10', 'hint');
+      await t.game('scene', 'help'); await t.waitFrames(3);
+      if (t.viewport === 'desktop' && (await t.page.locator('[data-act="helpAll"]').getAttribute('aria-expanded')) !== 'true') { await t.page.locator('[data-act="helpAll"]').click(); await t.waitFrames(2); }
+      t.expect(/Press and hold Push in the last half second before SCRUB!/.test(await t.page.evaluate(() => document.querySelector('.panel.help').textContent)), 'How to Play says it too');
     },
   },
 ];

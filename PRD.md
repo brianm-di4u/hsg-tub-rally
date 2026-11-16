@@ -24,7 +24,7 @@ and visitors; ages 8+.
 | Rules of the Row | The real format: straight run down Central, division bracket heats, judge stops, keep 10 gal and all four items or be disqualified, awards ceremony |
 
 ## 3. Rules (game rules)
-- **Race**: 3 laps (Grand Prix, Quick Race); start from a 2-wide grid behind the line; countdown READY, SET, SCRUB!; a push timed in the last 0.45 s gives a start boost; a push held from READY is a false start (short stumble).
+- **Race**: 3 laps (Grand Prix, Quick Race); start from a 2-wide grid behind the line; countdown READY, SET, SCRUB!; a push begun in the last 0.45 s and held through the start gives a start boost; a push held from READY is a false start (short stumble).
 - **Laps** count only after passing ≥ 85% of the checkpoints in order. Backing over the line un-counts a lap.
 - **Water**: tubs start full (Traditional 42, Modified 34, Stock 38 gal). Slosh physics spill water in hard turns, slides, landings and wall hits; item hits and bumps spill more. Refills: crowd blasters (slow), refill buckets and fountains (fast), creek fords (fast). Below 0.01 gal the tub is "Bone dry": −6% top speed.
 - **Clean Finish**: finish with ≥ 10 gal and all four attendant items → +1 point.

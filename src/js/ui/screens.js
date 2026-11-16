@@ -268,7 +268,7 @@ const TEMPLATES = {
 <div class="help-cols">
 ${driveHelp(app.helpAll, app.save.settings.lefty)}
 <section><h3>The start</h3><ul>
-<li>Press <b>Push</b> in the last half second before <b>SCRUB!</b> for a GREAT START boost.</li>
+<li>Press and hold <b>Push</b> in the last half second before <b>SCRUB!</b> for a GREAT START boost.</li>
 <li>Push too early, from <b>READY</b>, and it is a false start: you stumble for a moment.</li></ul></section>
 <section><h3>Keep your water</h3><ul>
 <li>Your tub starts full. Hard turns, slides, landings and hits slosh water out. Crowds' water blasters, refill buckets, fountains and creek fords top you up.</li>

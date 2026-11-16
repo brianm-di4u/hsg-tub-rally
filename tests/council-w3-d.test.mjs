@@ -203,7 +203,7 @@ export const tests = [
       t.expect(!h.shown, 'under READY the hint is not up yet');
       await at(-1.8);
       h = await hint();
-      const word = t.viewport === 'mobile' ? 'Tap Push' : 'Tap ↑';
+      const word = t.viewport === 'mobile' ? 'Press and hold Push' : 'Press and hold ↑';
       t.expect(h.shown && h.text === word + ' just before SCRUB! for a GREAT START', 'from SET it says how, in the words of the device: ' + JSON.stringify(h));
       await shot(t, 'S2-04', 'start-hint');
       await t.checkLayout();
