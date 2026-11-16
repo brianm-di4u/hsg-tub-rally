@@ -103,7 +103,7 @@ tests.push(
       await t.waitFrames(2);
       const h = await helpText(t);
       t.equal(h.h, 'Drive: Gamepad', 'gamepad first');
-      t.expect(/hold B to throw it backwards/.test(h.text), 'and it says how to throw backwards');
+      t.expect(/hold B or LT to throw it backwards/.test(h.text), 'and it says how to throw backwards');
     },
   },
   {

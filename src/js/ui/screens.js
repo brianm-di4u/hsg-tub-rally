@@ -113,9 +113,9 @@ const CONTROLS = {
     'Hold <b>Hop</b> while steering into a turn to <b>power slide</b>; let go for a steam boost (Warm, then Hot).',
     'Tap <b>Item</b> to use your item. Hold <b>Brake</b> while you tap it to throw it backwards. <b>Pause</b> is at the top right.'] },
   gamepad: { name: 'Gamepad', lines: [
-    'Stick or D-pad steer · A or RT push · B brake',
+    'Stick or D-pad steer · A or RT push · B or LT brake',
     'RB hop. Hold it while steering into a turn to <b>power slide</b>; let go for a steam boost (Warm, then Hot).',
-    'LB, LT or X use item (hold B to throw it backwards) · Y look back · Start pause'] },
+    'LB or X use item (hold B or LT to throw it backwards) · Y look back · Start pause'] },
 };
 function driveHelp(open, lefty) {
   const first = CONTROLS[INPUT.last] ? INPUT.last : 'keyboard';

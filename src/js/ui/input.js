@@ -60,7 +60,7 @@ export function initInput(onKey) {
   window.addEventListener('blur', () => { keys.clear(); recompute(); });
 }
 
-// Gamepads: standard mapping. A or RT push (RT is analog: a half pull is half the thrust), B brake, RB hop, LB/LT/X item, Y look back,
+// Gamepads: standard mapping. A or RT push (RT is analog: a half pull is half the thrust), B or LT brake (C4-16: LT was an item button), RB hop, LB/X item, Y look back,
 // Start pause. The stick has a dead zone (PAD_DEAD, was 0.18 with a jump to 0.18 at its edge) that its output starts from, so the
 // first nudge past it is a small turn, and a mild curve (PAD_EXPO, was 1 = straight) for fine steering near the middle.
 export const PAD_DEAD = 0.18, PAD_EXPO = 1.4, PAD_TRIGGER_DEAD = 0.08;
@@ -81,9 +81,9 @@ export function pollGamepads() {
     if (used) { any = true; I.last = 'gamepad'; }
     // S5-29: a button or a hard stick push is a gesture that can start the sound
     if (Object.values(now).some(Boolean)) I.padPress = true;
-    pad.steer = ax || pad.steer; pad.push = pad.push || now.a || now.rt; pad.pushV = Math.max(pad.pushV, now.a ? 1 : rtV); pad.brake = pad.brake || now.b;
-    pad.hop = pad.hop || now.rb; pad.back = pad.back || now.y; pad.item = pad.item || now.lb || now.lt || now.x;
-    if ((now.lb || now.lt || now.x) && !(prev.lb || prev.lt || prev.x)) I.itemP = true;
+    pad.steer = ax || pad.steer; pad.push = pad.push || now.a || now.rt; pad.pushV = Math.max(pad.pushV, now.a ? 1 : rtV); pad.brake = pad.brake || now.b || now.lt;
+    pad.hop = pad.hop || now.rb; pad.back = pad.back || now.y; pad.item = pad.item || now.lb || now.x;
+    if ((now.lb || now.x) && !(prev.lb || prev.x)) I.itemP = true;
     if (now.start && !prev.start) I.pauseP = true;
     const m = I.menu;
     if (now.up && !prev.up) m.up = true; if (now.down && !prev.down) m.down = true;
