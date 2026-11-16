@@ -195,6 +195,9 @@ const SKY = { 'bathhouse-row': ['#79B3E2', '#DCEEF6'], 'park-avenue': ['#2B2350'
 // S4-04: the winning captain's line on the results
 const voice = (rs) => { const w = rs && rs.length > 1 && rs.find((r) => r.place === 1), tm = w && TEAM_BY_ID[w.team]; return tm ? `<p class="voice">${tm.captain}${w.human ? ' (you)' : ''}: “${tm.say}”</p>` : ''; };
 
+// S4-11: a winner's name with one line from its team bio (captain, who the team is inspired by, division), nothing more
+const awardWinner = (id) => { const t = TEAM_BY_ID[id]; return t ? `<span class="aw-win">${t.name}<small>${t.captain} · ${t.archetype} · ${DIVISIONS[t.div].name} division</small></span>` : '–'; };
+
 const TEMPLATES = {
   title: (app) => `
     <div class="title-wrap">
@@ -411,10 +414,10 @@ ${rivalsHelp()}
       <canvas data-pixel="AWARDS CEREMONY" data-scale="4"></canvas>
       <p class="sub">${DIVISIONS[division].name} Division Cup: <b>${champion ? TEAM_BY_ID[champion].name : 'no finisher'}</b></p>
       <ul class="award-list">
-        <li><b>Best Overall Tub</b>${TEAM_BY_ID[a.bestOverall]?.name || '–'}</li>
-        <li><b>Most Spirit</b>${TEAM_BY_ID[a.mostSpirit]?.name || '–'}</li>
-        <li><b>Most Original</b>${TEAM_BY_ID[a.mostOriginal]?.name || '–'}</li>
-        <li><b>Fan Favorite</b>${TEAM_BY_ID[a.fanAward]?.name || '–'}</li>
+        <li><b>Best Overall Tub</b>${awardWinner(a.bestOverall)}</li>
+        <li><b>Most Spirit</b>${awardWinner(a.mostSpirit)}</li>
+        <li><b>Most Original</b>${awardWinner(a.mostOriginal)}</li>
+        <li><b>Fan Favorite</b>${awardWinner(a.fanAward)}</li>
       </ul>
       <p class="fineprint">Award categories follow coverage of the real event; winners here are decided by game rules (and the judges' whims).</p>
       <nav class="menu row">${btn('quit', 'Back to title', 'autofocus data-back')}</nav>

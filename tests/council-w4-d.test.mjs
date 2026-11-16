@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { FACTS } from '../src/js/data/facts.js';
-import { TEAMS } from '../src/js/data/teams.js';
+import { TEAMS, DIVISIONS } from '../src/js/data/teams.js';
 
 const SHOTS = '../_council/hsg-tub-rally/wave-4/shots';
 const shot = async (t, id, what) => { fs.mkdirSync(SHOTS, { recursive: true }); await t.page.screenshot({ path: `${SHOTS}/${id}-${what}-${t.viewport === 'mobile' ? 'mobile' : 'desktop'}.png` }); };
@@ -174,6 +174,30 @@ export const tests = [
       t.expect(/^"?Jost"?/.test(await fam('.hud-time')), 'the race clock: ' + await fam('.hud-time'));
       await shot(t, 'S4-10', 'race');
       await t.checkLayout({ allowScrollY: true });
+    },
+  },
+  // ---------------------------------------------------------------- S4-11
+  {
+    name: 'council W4D S4-11: each award winner has one line from its team bio, the award is still called Fan Favorite, and nothing overflows',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await t.waitIdle(8000);
+      const pick = ['out-of-towners', 'velvet-mob', 'lather-linen', 'engine-six'];
+      await t.game('scene', 'title'); await t.waitFrames(2);
+      await t.page.evaluate((p) => window.TR_APP.App.screens.show('awards', { a: { bestOverall: p[0], mostSpirit: p[1], mostOriginal: p[2], fanAward: p[3] }, champion: p[0], division: 'modified' }), pick); await t.waitFrames(3);
+      const rows = await t.page.evaluate(() => [...document.querySelectorAll('.award-list li')].map((l) => ({ label: l.querySelector('b').textContent, name: (l.querySelector('.aw-win') || {}).firstChild ? l.querySelector('.aw-win').firstChild.textContent : '', line: (l.querySelector('.aw-win small') || {}).textContent || '', fits: l.scrollWidth <= l.clientWidth + 1 })));
+      t.equal(rows.map((r) => r.label).join(), 'Best Overall Tub,Most Spirit,Most Original,Fan Favorite', 'the four awards keep their names');
+      rows.forEach((r, i) => {
+        const tm = TEAMS.find((x) => x.id === pick[i]);
+        t.equal(r.name, tm.name, 'the winner: ' + r.label);
+        t.equal(r.line, tm.captain + ' · ' + tm.archetype + ' · ' + DIVISIONS[tm.div].name + ' division', 'the line comes from the team bio: ' + r.label);
+        t.expect(r.fits, 'the row fits: ' + r.label);
+      });
+      t.expect(!/Tubtastic/.test(await t.page.evaluate(() => document.body.innerText)), 'the award is not renamed');
+      await shot(t, 'S4-11', 'awards');
+      await t.checkLayout({ allowScrollY: true });
+      await t.page.evaluate(() => window.TR_APP.App.screens.show('awards', { a: { bestOverall: undefined, mostSpirit: undefined, mostOriginal: undefined, fanAward: undefined }, champion: null, division: 'stock' })); await t.waitFrames(2);
+      t.equal(await t.page.evaluate(() => document.querySelectorAll('.award-list small').length), 0, 'no winner, no line');
     },
   },
 ];
