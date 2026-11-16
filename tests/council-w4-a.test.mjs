@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { createSaveWriter, DEFAULT_SAVE } from '../src/js/save.js';
+import { Governor, CLIMB } from '../src/js/gfx/tiers.js';
 
 const KEY = 'hsg-tub-rally-v1', CUP = 'hsg-tub-rally-cup-v1';
 const SHOTS = '../_council/hsg-tub-rally/wave-4/shots';
@@ -86,6 +87,91 @@ export const tests = [
       await t.page.waitForSelector('[data-save-status]', { timeout: 8000 });
       t.expect(/damaged/i.test(await t.page.locator('[data-save-status]').textContent()), 'damaged wording');
       t.equal(await t.page.locator('[data-save-status] button').count(), 1, 'reset offered');
+    },
+  },
+  // ---------------------------------------------------------------- C4-03
+  {
+    name: 'council W4A C4-03: the governor climbs one step between races, and only when the whole race had room to spare',
+    node: true,
+    run() {
+      const good = { windows: CLIMB.windows, worst: CLIMB.slowest, cpu: CLIMB.cpuMs };
+      const at = (start, now, last, auto = true) => { const g = new Governor(start, true); g.tier = now; g.last = last ? { ...last } : null; return [g, g.climb(auto)]; };
+      assert.equal(at('medium', 'low', good)[1], 'medium', 'room to spare: one step up');
+      assert.equal(at('medium', 'low', { ...good, windows: CLIMB.windows - 1 })[1], null, 'a short race proves nothing');
+      assert.equal(at('medium', 'low', { ...good, worst: CLIMB.slowest + 0.001 })[1], null, 'one slow stretch in the race');
+      assert.equal(at('medium', 'low', { ...good, cpu: CLIMB.cpuMs + 0.1 })[1], null, 'heavy drawing work');
+      assert.equal(at('medium', 'low', null)[1], null, 'a race that did not finish measured nothing');
+      assert.equal(at('medium', 'low', good, false)[1], null, 'a quality the player chose is left alone');
+      assert.equal(at('low', 'low', good)[1], null, 'never above the tier the visit started at');
+      assert.equal(at('medium', 'medium', good)[1], null, 'already there');
+      // from High a visit climbs at most back to Medium: the High parts are not built mid-visit
+      assert.equal(at('high', 'low', good)[1], 'medium');
+      const [g] = at('high', 'medium', good); assert.equal(g.climb(true), null, 'the reading is used once');
+      const pinned = new Governor('medium', false); pinned.tier = 'low'; pinned.last = { ...good };
+      assert.equal(pinned.climb(true), null, 'a governor that was off at the start stays off');
+    },
+  },
+  {
+    name: 'council W4A C4-03: a drop right after a climb is final for the visit, and a race is measured from its own frames',
+    node: true,
+    run() {
+      const g = new Governor('medium', true);
+      const race = (dt, secs, cpu = 1) => { g.beginRace(); let drop = null; for (let i = 0; i < Math.round(secs / dt); i++) drop = g.frame(dt, true, cpu) || drop; g.endRace(); return drop; };
+      assert.equal(race(1 / 30, 2.2), null, 'two slow windows are needed to drop: one is not enough'); assert.equal(g.tier, 'medium');
+      g.tier = 'low'; g.slow = 0; g.last = null;
+      assert.equal(race(1 / 60, 20), null);
+      assert.ok(g.last.windows >= 9 && g.last.worst < CLIMB.slowest, 'twenty smooth seconds are on record: ' + JSON.stringify(g.last));
+      assert.equal(g.climb(true), 'medium');
+      race(1 / 30, 8); race(1 / 30, 8);
+      assert.equal(g.tier, 'low', 'slow again at Medium: down again');
+      assert.equal(g.locked, true);
+      race(1 / 60, 20);
+      assert.equal(g.climb(true), null, 'and it does not go back and forth');
+      // paused or very long frames are not racing
+      const h = new Governor('medium', true); h.beginRace();
+      for (let i = 0; i < 400; i++) { h.frame(1 / 60, false); h.frame(0.5, true); }
+      assert.equal(h.windows, 0);
+    },
+  },
+  {
+    name: 'council W4A C4-03: the next scene is built one tier higher after a smooth race, never during one',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await t.waitIdle(8000);
+      const good = { windows: 12, worst: 0.0167, cpu: 2 };
+      const start = (await t.state()).render.tier;
+      t.equal(start, t.viewport === 'desktop' ? 'medium' : 'low', 'the visit starts at the tier the game picks');
+      const race = (o = {}) => t.game('newGame', { track: 'bathhouse-row', team: 'engine-six', laps: 1, seed: 4, paused: true, ...o });
+      await race();
+      const tris = async () => (await t.state()).world.tris;
+      const atMedium = await tris();
+      if (t.viewport === 'mobile') {
+        await t.game('act', 'lastRace', good); await race();
+        t.equal((await t.state()).render.tier, 'low', 'a phone that starts on Low is never taken above it');
+        return;
+      }
+      await t.game('act', 'governorDown', 'low');
+      let s = await t.state();
+      t.equal(s.render.tier, 'low', 'the governor stepped down');
+      await race();
+      t.equal((await t.state()).render.builtTier, 'low', 'the next scene is built at Low');
+      t.expect((await tris()) < atMedium, 'and is lighter: ' + (await tris()) + ' < ' + atMedium + ' triangles');
+      await t.game('act', 'lastRace', good);
+      s = await t.state();
+      t.equal(s.render.tier, 'low', 'not during the race: the reading alone changes nothing');
+      await race();
+      s = await t.state();
+      t.equal(s.render.tier, 'medium', 'the next race is built one tier up'); t.equal(s.render.builtTier, 'medium', 'and the scene was built there');
+      t.equal(await tris(), atMedium, 'with the Medium scene back, not the Low one kept');
+      await shot(t, 'C4-03', 'climbed');
+      // a slow race, a race that was left, and a quality the player chose all stay where they are
+      for (const [what, last] of [['a slow stretch', { ...good, worst: 0.03 }], ['a race that never finished', null]]) {
+        await t.game('act', 'governorDown', 'low'); await t.game('act', 'lastRace', last); await race();
+        t.equal((await t.state()).render.tier, 'low', what + ' keeps Low');
+      }
+      await t.game('setState', { settings: { quality: 'low' } });
+      await t.game('act', 'lastRace', good); await race();
+      t.equal((await t.state()).render.tier, 'low', 'a pinned quality is left alone');
     },
   },
 ];

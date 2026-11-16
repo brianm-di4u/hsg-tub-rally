@@ -109,6 +109,10 @@ export function installHooks(App, api) {
         }
         // the Daily Race's idea of today (YYYY-MM-DD), for tests
         case 'date': App.dateOverride = args[0] || null; return true;
+        // what the last race measured, for the governor's climb back up between races: act('lastRace', { windows, worst, cpu })
+        case 'lastRace': App.governor.last = args[0] ? { windows: +args[0].windows, worst: +args[0].worst, cpu: +args[0].cpu } : null; return App.governor.last;
+        // the governor's step down, as if the race had been slow
+        case 'governorDown': App.governor.tier = args[0] || 'low'; api.stepTierDown(App.governor.tier); return App.tier;
         case 'clearSave': App.save.best = {}; App.save.ghosts = {}; return true;
         // review captures (tools/shots-gpu.mjs): freeze the render clock at ms, or release it with null
         // (CSS transitions and animations run on wall-clock time, so they hold still too while the clock is frozen)

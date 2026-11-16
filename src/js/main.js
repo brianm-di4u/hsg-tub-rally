@@ -116,7 +116,7 @@ async function boot() {
   window.addEventListener('pagehide', onAway);
   window.addEventListener('pageshow', onBack);
   window.addEventListener('blur', pauseRace);
-  installHooks(App, { startRace, gotoTitle, setScene, stepOnce, kartEvents, audioFrame, onMenu, perfLab, labStats: () => labStats(window.THREE) });
+  installHooks(App, { startRace, gotoTitle, setScene, stepOnce, kartEvents, audioFrame, onMenu, perfLab, labStats: () => labStats(window.THREE), stepTierDown });
   window.TR_APP = { App, KartView };
   // the finish ceremony and ambient motion
   await loadScript('assets/finale.js').catch((e) => console.warn(e.message));
@@ -248,7 +248,7 @@ export async function ensureTrack(id) {
 }
 
 export function loadCourse(id) {
-  if (App.track && App.track.id === id) return App.track;
+  if (App.track && App.track.id === id && App.worldTier === App.tier) return App.track;
   const json = trackData(id);
   if (!json) throw new Error('track data missing: ' + id);
   const THREE = window.THREE;
@@ -260,6 +260,7 @@ export function loadCourse(id) {
   if (env.fog) env.fog = [Math.min(env.fog[0], T.fogFar * 0.4), Math.min(env.fog[1], T.fogFar)];
   App.renderer.setEnv(env);
   App.world = buildTrackWorld(THREE, App.track, env);
+  App.worldTier = App.tier;
   // Hot Springs Mountain rises right behind Bathhouse Row: a peak in the ridge ring toward the Row's bathhouses
   const row = (json.landmarks || []).filter((l) => /fordyce|quapaw|buckstaff|maurice|hale|superior|lamar|ozark/.test(l.id));
   if (row.length >= 3) {
@@ -321,6 +322,19 @@ function setMirror(on) {
 // The class the player last chose, or Soak when that class is not open to them (a hand-edited save, say).
 const lastClass = () => (CLASSES[App.save.lastClass] && App.save.unlocked.classes.includes(App.save.lastClass) ? App.save.lastClass : 'soak');
 // opts: { track, team, classId, laps, seed, mode, noItems, paused, autoplay }
+// The governor found the frames slow: what a lower tier takes away goes at once, the rest from the next race.
+function stepTierDown(down) {
+  App.tier = down; if (App.renderer.ssao) { App.renderer.ssao.dispose(); App.renderer.ssao = null; } if (down === 'low' && App.shadow) App.shadow.setEnabled(false); const env = App.track.json.env || {}; App.renderer.setEnv({ ...env, fog: env.fog ? [Math.min(env.fog[0], TIERS[down].fogFar * 0.4), Math.min(env.fog[1], TIERS[down].fogFar)] : undefined });
+}
+
+// The governor stepped down in a race; the scene about to be built goes back up to a tier this visit already had.
+function climbTier(tier) {
+  App.tier = tier;
+  const on = !!TIERS[tier].shadow;
+  setShadowDefault(on);
+  if (App.shadow && on) App.shadow.setEnabled(true);
+}
+
 export async function startRace(opts = {}) {
   const o = { track: 'bathhouse-row', team: App.save.lastTeam, classId: lastClass(), laps: 3, seed: (Math.random() * 1e9) | 0, mode: 'quick', ...opts };
   if (window.__TEST__ && opts.seed == null) o.seed = 7;
@@ -328,6 +342,10 @@ export async function startRace(opts = {}) {
   App.raceOpts = o;
   setPreview(null);
   await ensureTrack(o.track);
+  // C4-03: a race that held its frame rate with room to spare lets this scene be built one tier higher
+  const up = App.governor.climb((App.save.settings.quality || 'auto') === 'auto');
+  if (up) climbTier(up);
+  App.governor.beginRace();
   if (o.mode === 'timetrial') await ensurePar();
   // S2-01: first-run tips (not Row, Water Fight or autoplay)
   const tips = !App.save.settings.seenIntro && !o.autoplay && o.mode !== 'row' && o.mode !== 'battle';
@@ -974,8 +992,9 @@ function frameStep(t) {
     drawRace(r, alpha, dt);
     skipPrompt();
     audioFrame(r, dt, !App.paused && !App.testPaused && !(App.resumeT > 0));
-    const down = App.governor.frame(dt, !App.paused && !App.testPaused);
-    if (down) { App.tier = down; if (App.renderer.ssao) { App.renderer.ssao.dispose(); App.renderer.ssao = null; } if (down === 'low' && App.shadow) App.shadow.setEnabled(false); const env = App.track.json.env || {}; App.renderer.setEnv({ ...env, fog: env.fog ? [Math.min(env.fog[0], TIERS[down].fogFar * 0.4), Math.min(env.fog[1], TIERS[down].fogFar)] : undefined }); }
+    const down = App.governor.frame(dt, !App.paused && !App.testPaused, App.cpuMs);
+    if (r.phase === 'done') App.governor.endRace();
+    if (down) stepTierDown(down);
   } else {
     tubLoop(null, dt, false);
     rivalLoop(null, [], false, dt);
