@@ -206,4 +206,37 @@ export const tests = [
       t.equal(await t.page.evaluate(() => document.activeElement.dataset.act), 'continueCup', 'Continue cup has the focus');
     },
   },
+
+  // ---------------------------------------------------------------- S2-15
+  {
+    name: 'council W4C S2-15: on a phone in portrait the pip labels and the ticket label are drawn at 14 px or more, and follow the HUD size',
+    viewports: ['mobile', 'desktop'],
+    async run(t) {
+      await t.waitIdle(8000);
+      const sv = DEFAULT_SAVE(); sv.settings.seenIntro = true;
+      await setSave(t, sv);
+      await t.reload(); await t.waitIdle(8000);
+      await t.game('newGame', { mode: 'quick', track: 'bathhouse-row', count: 8, paused: true, team: 'engine-six', classId: 'soak', seed: 5 });
+      await t.waitFrames(3);
+      await t.game('setState', { kart: { tickets: 3 } }); await t.waitFrames(3);
+      // the size a label is painted at: its own font size times the scale its HUD block is drawn with
+      const painted = (sel, block) => t.page.evaluate(([s, b]) => { const e = document.querySelector(s), box = document.querySelector(b); const k = box.getBoundingClientRect().width / box.offsetWidth; return +(parseFloat(getComputedStyle(e).fontSize) * k).toFixed(2); }, [sel, block]);
+      const pip = await painted('.hud-pips .pip em', '.hud-bl'), tk = await painted('.hud-item .tk-l', '.hud-item');
+      if (t.viewport === 'mobile') {
+        t.expect(pip >= 14, 'pip label painted at ' + pip + ' px');
+        t.expect(tk >= 14, 'ticket label painted at ' + tk + ' px');
+        // the HUD size setting still scales them
+        await t.page.evaluate(() => document.documentElement.style.setProperty('--hud-user', '1.2')); await t.waitFrames(2);
+        t.expect(await painted('.hud-pips .pip em', '.hud-bl') > pip, 'a larger HUD size makes the pip labels larger');
+        await t.page.evaluate(() => document.documentElement.style.setProperty('--hud-user', '1'));
+        await t.waitFrames(2);
+        // the bigger labels do not grow the row into the READY / GO banner below it, nor into the item tray beside it
+        const clash = await t.page.evaluate(() => { const p = document.querySelector('.hud-pips').getBoundingClientRect(), c = document.querySelector('.hud-center').getBoundingClientRect(), i = document.querySelector('.hud-item').getBoundingClientRect(); return { inside: p.left >= 0 && p.right <= innerWidth, belowClear: p.bottom <= c.top, trayClear: p.right <= i.left || p.bottom <= i.top }; });
+        t.expect(clash.inside && clash.belowClear && clash.trayClear, 'the pip row is inside the screen and clear of the banner and the tray: ' + JSON.stringify(clash));
+        await shot(t, 'S2-15', 'hud');
+      } else {
+        t.expect(pip >= 13 && tk >= 12, 'desktop keeps its sizes: ' + pip + ', ' + tk);
+      }
+    },
+  },
 ];
