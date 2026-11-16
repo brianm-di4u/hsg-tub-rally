@@ -153,11 +153,14 @@ function updateLaps(race, track, k, prevS) {
   if (k.finished) return;
   // forward crossing of the start line
   if (prevS > L - 80 && s < 80 && prevS > s) {
-    if (k.lap === 0) { k.lap = 1; k.cpNext = 0; k.lapStart = race.time; }
+    // S6-11: lapMax is the highest lap already counted. Backing over the line and crossing again goes back to a lap that was
+    // counted, and counts nothing a second time: no extra lap time, no second lap event or cue
+    if (k.lap === 0) { k.lap = 1; k.cpNext = 0; if (k.lapMax < 1) { k.lapStart = race.time; k.lapMax = 1; } }
+    else if (k.cpNext >= Math.ceil(cps.length * 0.85) && k.lap < k.lapMax) { k.lap++; k.cpNext = 0; }
     else if (k.cpNext >= Math.ceil(cps.length * 0.85)) {
       k.lapTimes.push(race.time - k.lapStart);
       k.lapStart = race.time;
-      k.lap++; k.cpNext = 0;
+      k.lap++; k.cpNext = 0; k.lapMax = k.lap;
       race.events.push({ type: 'lap', kart: k.id, lap: k.lap });
       if (k.lap > race.laps) {
         k.finished = true; k.finishT = race.time; race.finishOrder.push(k.id);

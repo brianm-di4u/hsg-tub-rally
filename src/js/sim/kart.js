@@ -44,7 +44,7 @@ export function makeKart(id, teamId, classId, pose, opts = {}) {
     air: false, airT: 0, steer: 0, drift: 0, driftT: 0, charge: 0, stage: 0, boostT: 0, boostKind: '',
     state: 'run', stateT: 0, water: makeWater(stats.capGal),
     items: { towel: true, mat: true, soap: true, loofah: true }, dropped: null, hitImmune: 0, held: null, heldN: 0, tickets: 0,
-    s: pose.s ?? 0, d: 0, lap: 0, cpNext: 0, progress: 0, place: 0, finished: false, finishT: 0, lapTimes: [],
+    s: pose.s ?? 0, d: 0, lap: 0, lapMax: 0, cpNext: 0, progress: 0, place: 0, finished: false, finishT: 0, lapTimes: [],
     lapStart: 0, safeS: pose.s ?? 0, offT: 0, wallT: 0, wallHold: 0, surfType: 'road', shield: 0, bubbleT: 0, hoseT: 0, sprayT: 0, bribes: 0,
     runPhase: 0, lastHop: false, events: [], stats_: { hits: 0, fumbles: 0, walls: 0, offroad: 0, drifts: 0, boosts: 0 },
   };

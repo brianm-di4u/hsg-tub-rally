@@ -210,3 +210,48 @@ tests.push({
     assert.ok(me.held && !b.on, 'empty hands pick up as before');
   },
 });
+
+// ---------------------------------------------------------------- S6-11
+tests.push({
+  name: 'council W4B S6-11: backing over the start line and crossing it again counts no extra lap time and no second lap event',
+  node: true,
+  run() {
+    const tr = bathhouse(), L = tr.length;
+    const r = makeRace(tr, { seed: 5, classId: 'soak', player: 'engine-six', laps: 3, noItems: true });
+    const me = r.karts[r.player];
+    while (r.phase !== 'race') stepRace(r, tr, [], DT);
+    const lapEvents = [];
+    // put the tub at arc length s on the line, facing along the road (or against it) and let one tick carry it across
+    const cross = (from, backwards) => {
+      const c = tr.at(from), p = tr.point(from, 0);
+      me.x = p.x; me.z = p.z; me.y = p.y; me.s = from; me.safeS = from; me.vl = 0; me.vf = 10; me.state = 'run'; me.stateT = 0;
+      me.yaw = Math.atan2(c.tx, c.tz) + (backwards ? Math.PI : 0);
+      const inp = []; inp[r.player] = { steer: 0, push: 0, brake: false, hop: false, back: false, item: false };
+      for (let n = 0; n < 90 && !(backwards ? me.s > L - 40 : me.s < 40); n++) {
+        stepRace(r, tr, inp, DT);
+        for (const e of r.events) if (e.type === 'lap' && e.kart === me.id) lapEvents.push(e.lap);
+      }
+    };
+    const throughAll = () => { me.cpNext = tr.cps.length; };
+    cross(L - 2, false);
+    assert.equal(me.lap, 1, 'the first crossing starts lap 1'); assert.equal(me.lapTimes.length, 0);
+    r.time += 40; throughAll();
+    cross(L - 2, false);
+    assert.equal(me.lap, 2, 'a full lap, then lap 2'); assert.equal(me.lapTimes.length, 1, 'one lap time'); assert.deepEqual(lapEvents, [2], 'and one lap event');
+    const t1 = me.lapTimes[0];
+    cross(2, true);
+    assert.equal(me.lap, 1, 'backing over the line goes back a lap');
+    r.time += 3;
+    cross(L - 2, false);
+    assert.equal(me.lap, 2, 'crossing forward again is lap 2 once more');
+    assert.equal(me.lapTimes.length, 1, 'no extra lap time'); assert.equal(me.lapTimes[0], t1, 'and the one lap time is the same');
+    assert.deepEqual(lapEvents, [2], 'no second lap event, so no second lap cue');
+    // the next real lap still counts
+    r.time += 40; throughAll();
+    cross(L - 2, false);
+    assert.equal(me.lap, 3); assert.equal(me.lapTimes.length, 2, 'the next lap is timed as usual'); assert.deepEqual(lapEvents, [2, 3]);
+    // reversing twice and coming back twice counts nothing either
+    cross(2, true); cross(L - 2, false);
+    assert.deepEqual(lapEvents, [2, 3]); assert.equal(me.lapTimes.length, 2);
+  },
+});
