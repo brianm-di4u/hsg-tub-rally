@@ -40,7 +40,7 @@ const CUE_TRIM = { quack: 3.48, splash: 13.2, steam: 7.8, snap: 4.727, whistle: 
 const DUCKS = { boost: 1, hit: 1, finish: 1.9, trophy: 1.9, record: 1 };
 // the crowd roars on a lap, the last lap and the finish
 const SWELLS = { lap: 0.5, finalLap: 0.8, finish: 1 };
-const state = { cues: [], ducks: 0, on: true, music: true, ambience: true, vol: 0.6, musicVol: 1, started: false, theme: null, scene: null, intensity: 0, muffle: false, hidden: false, swell: 0, swells: 0, crowd: 0, wind: 0 };
+const state = { cues: [], cueN: 0, ducks: 0, on: true, music: true, ambience: true, vol: 0.6, musicVol: 1, started: false, theme: null, scene: null, intensity: 0, muffle: false, hidden: false, swell: 0, swells: 0, crowd: 0, wind: 0 };
 
 // was 22000: a gentle low-pass keeps the tune under the cues
 const OPEN_HZ = 5200;
@@ -141,7 +141,7 @@ export function resumeAudio() {
   if (ctx.state !== 'running') ctx.resume().catch(() => {});
 }
 export function audioState() {
-  return { started: state.started, on: state.on, music: state.music, musicVol: state.musicVol, ambience: state.ambience, muffled: state.muffle, theme: state.theme, scene: state.scene, intensity: state.intensity, ctx: ctx ? ctx.state : 'none', ducks: state.ducks, rivals: { ...rivalInfo, voices: rivalInfo.voices.slice() }, slide: { ...slideInfo }, tub: { ...tubInfo }, cues: state.cues.slice(),
+  return { started: state.started, on: state.on, music: state.music, musicVol: state.musicVol, ambience: state.ambience, muffled: state.muffle, theme: state.theme, scene: state.scene, intensity: state.intensity, ctx: ctx ? ctx.state : 'none', ducks: state.ducks, rivals: { ...rivalInfo, voices: rivalInfo.voices.slice() }, slide: { ...slideInfo }, tub: { ...tubInfo }, cues: state.cues.slice(), cueN: state.cueN,
     amb: { crowd: +state.crowd.toFixed(3), wind: +state.wind.toFixed(3), swells: state.swells }, kit: kit ? { ...kit.levels(), info: kit.music.info() } : null,
     mix: ctx ? { master: +master.gain.value.toFixed(3), sfx: sfxBus.gain.value, musicLP: Math.round(musicLP.frequency.value), limiter: { threshold: comp.threshold.value, ratio: comp.ratio.value } } : null };
 }
@@ -291,7 +291,8 @@ export const SFX = {
 };
 // pos: { pan, gain } puts the cue somewhere in the stereo field and quieter (a rival's cue); null for the player's own.
 function playCue(name, pos, ...a) { cueG = (CUE_TRIM[name] ?? 1) * (pos ? pos.gain : 1); cuePan = pos ? pos.pan : 0; try { SFX[name](...a); } finally { cueG = 1; cuePan = 0; } }
-function logCue(name, pos, a) { state.cues.push(name + (a.length && a[0] !== undefined ? ':' + a.map(String).join(',') : '') + (pos ? '@' + pos.pan.toFixed(2) + '*' + pos.gain.toFixed(2) : '')); if (state.cues.length > 24) state.cues.shift(); }
+// cueN counts every cue ever played; cues keeps only the last 24, so a test counts events by cueN
+function logCue(name, pos, a) { state.cueN++; state.cues.push(name + (a.length && a[0] !== undefined ? ':' + a.map(String).join(',') : '') + (pos ? '@' + pos.pan.toFixed(2) + '*' + pos.gain.toFixed(2) : '')); if (state.cues.length > 24) state.cues.shift(); }
 // A cue placed on one side (pan -0.7 to 0.7) without the distance a rival's cue has: the warning knows where the threat is.
 export function sfxPan(name, pan, ...a) {
   if (!ctx || !state.on || !SFX[name]) return;

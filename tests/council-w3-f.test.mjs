@@ -45,22 +45,23 @@ export const tests = [
     async run(t) {
       await t.waitIdle(8000);
       await t.game('scene', 'title'); await t.waitFrames(3);
-      // draws and animation frames counted together over the same 1.5 s
+      // draws, animation frames and the frames the throttle reports it left undrawn, counted together over the same 1.5 s
       const count = () => t.page.evaluate(() => new Promise((done) => {
-        const g = window.__game, d0 = g.getState().render.drawn, t0 = performance.now(); let ticks = 0;
-        const tick = () => { ticks++; if (performance.now() - t0 < 1500) requestAnimationFrame(tick); else done({ ticks, draws: g.getState().render.drawn - d0, ms: performance.now() - t0 }); };
+        const g = window.__game, r0 = g.getState().render, d0 = r0.drawn, h0 = r0.throttled, t0 = performance.now(); let ticks = 0;
+        const tick = () => { ticks++; if (performance.now() - t0 < 1500) requestAnimationFrame(tick); else done({ ticks, draws: g.getState().render.drawn - d0, held: g.getState().render.throttled - h0, ms: performance.now() - t0 }); };
         requestAnimationFrame(tick);
       }));
       const still = await count();
       t.expect(still.draws >= 3, 'the menu is still drawn: ' + JSON.stringify(still));
       t.expect(still.draws <= Math.ceil(still.ms / 100) + 1, 'ten draws a second at most: ' + JSON.stringify(still));
-      t.expect(still.draws < still.ticks, 'fewer draws than animation frames: ' + JSON.stringify(still));
+      // by state, not by frame rate (C4-11): the throttle says it held frames back, and every frame was either drawn or held
+      t.expect(still.held > 0, 'the throttle held frames back: ' + JSON.stringify(still));
       // Reduced motion off: back to a draw on every frame
       await freshProfile(t, (v) => { v.settings.reducedMotion = false; });
       await t.game('scene', 'title'); await t.waitFrames(3);
       const live = await count();
       t.log('title idle draws over 1.5 s: reduced motion ' + still.draws + ' of ' + still.ticks + ' frames, motion on ' + live.draws + ' of ' + live.ticks);
-      t.expect(live.draws >= live.ticks - 2, 'every frame is drawn when motion is on: ' + JSON.stringify(live));
+      t.expect(live.draws >= live.ticks - 2 && live.held === 0, 'every frame is drawn when motion is on: ' + JSON.stringify(live));
     },
   },
   // ---------------------------------------------------------------- S2-17

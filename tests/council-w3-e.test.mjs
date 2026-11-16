@@ -382,7 +382,8 @@ export const tests = [
         [{ type: 'blocked' }, 'snap'], [{ type: 'drained' }, 'splash'], [{ type: 'charge', stage: 1 }, 'charge'], [{ type: 'land', v: 9 }, 'land'], [{ type: 'fall' }, 'fall'], [{ type: 'incoming', by: 'duck', side: 0, dist: 10 }, 'alert'],
         [{ type: 'use', item: 'duck' }, 'quack'], [{ type: 'use', item: 'soap' }, 'menu'], [{ type: 'use', item: 'towel' }, 'snap'], [{ type: 'use', item: 'blaster' }, 'splash'], [{ type: 'use', item: 'jet' }, 'steam'], [{ type: 'use', item: 'bubble' }, 'pickup'],
       ];
-      const cuesAfter = async (ev) => { const n = (await t.state()).audio.cues.length; await t.game('act', 'event', ev); return (await t.state()).audio.cues.slice(n).map((c) => c.split(/[:@]/)[0]); };
+      // the cue log keeps only the last 24, so what this event played is counted by the running total (C4-11)
+      const cuesAfter = async (ev) => { const n = (await t.state()).audio.cueN; await t.game('act', 'event', ev); const a = (await t.state()).audio, k = a.cueN - n; return k > 0 ? a.cues.slice(-k).map((c) => c.split(/[:@]/)[0]) : []; };
       for (const [ev, cue] of EVENTS) {
         const got = await cuesAfter(ev);
         t.expect(got.includes(cue), ev.type + (ev.item ? ':' + ev.item : '') + ' plays ' + cue + ' (got ' + got + ')');

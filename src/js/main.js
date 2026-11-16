@@ -42,7 +42,7 @@ export const App = {
   scene: 'boot', save: null, renderer: null, cam: null, hud: null, screens: null,
   track: null, world: null, sky: null, views: [], race: null, raceOpts: null,
   paused: false, testPaused: false, acc: 0, time: 0, last: 0, loading: 0, prev: [], held: null,
-  reducedMotion: false, lastDraw: -1, drawn: 0, steps: 0, ready: false, lookBack: false,
+  reducedMotion: false, lastDraw: -1, drawn: 0, throttled: 0, steps: 0, ready: false, lookBack: false,
 };
 
 const $ = (s) => document.querySelector(s);
@@ -983,7 +983,10 @@ function frameStep(t) {
   else if (m.ok && skipReady()) skipToResults();
   showSaveStatus();
   const r = App.race;
-  const skipDraw = document.hidden || (App.reducedMotion && App.scene !== 'race' && App.clock == null && now - App.lastDraw < 0.1);
+  const still = App.reducedMotion && App.scene !== 'race' && App.clock == null && now - App.lastDraw < 0.1;
+  // frames the still-menu throttle left undrawn, for the tests to count by state
+  if (still && !document.hidden) App.throttled++;
+  const skipDraw = document.hidden || still;
   if (App.scene === 'race' && r) {
     if (!App.paused && !App.testPaused && App.resumeT > 0) resumeCountdown(dt);
     else if (!App.paused && !App.testPaused) {

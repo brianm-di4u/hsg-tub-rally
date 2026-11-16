@@ -331,4 +331,32 @@ export const tests = [
       t.expect(/Press and hold Push in the last half second before SCRUB!/.test(await t.page.evaluate(() => document.querySelector('.panel.help').textContent)), 'How to Play says it too');
     },
   },
+  // ---------------------------------------------------------------- C4-11
+  {
+    name: 'council W4A C4-11: the cue total keeps counting after the 24-entry log is full, and the still-menu throttle reports the frames it held back',
+    viewports: ['desktop'],
+    reducedMotion: true,
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.page.keyboard.press('Shift');
+      await t.page.waitForFunction(() => window.__game.getState().audio.ctx === 'running', null, { timeout: 5000 });
+      await t.game('newGame', { seed: 12, paused: true }); await t.game('act', 'skipCountdown');
+      const audio = async () => (await t.state()).audio;
+      // fill the log with more than it keeps
+      for (let i = 0; i < 30; i++) await t.game('act', 'event', { type: 'wall', v: 8 });
+      const full = await audio();
+      t.equal(full.cues.length, 24, 'the log holds its last 24');
+      t.expect(full.cueN >= 30, 'the running total went past it: ' + full.cueN);
+      const n = full.cueN;
+      await t.game('act', 'event', { type: 'pickup', item: 'duck' });
+      const after = await audio(), k = after.cueN - n;
+      t.expect(k >= 1, 'one more event adds to the total even with the log full: ' + k);
+      t.expect(after.cues.slice(-k).some((c) => c.startsWith('pickup')), 'and the newest log entries are the ones it played: ' + after.cues.slice(-k));
+      // under Reduced motion a menu is held back by state the game reports
+      await t.game('scene', 'title'); await t.waitFrames(3);
+      const h0 = (await t.state()).render.throttled;
+      await t.page.waitForFunction((h) => window.__game.getState().render.throttled > h + 3, h0, { timeout: 8000 });
+      t.expect((await t.state()).render.throttled > h0, 'the throttle counts the frames it held back');
+    },
+  },
 ];
