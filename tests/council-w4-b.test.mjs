@@ -1,7 +1,8 @@
 // Wave 4, batch B: controls, rules and play (C4-16, S1-11, S1-09, S1-10, S6-11) and the small ones (S2-14, S2-30, S4-28, S3-24).
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { pollGamepads, readIntent } from '../src/js/ui/input.js';
+import * as input from '../src/js/ui/input.js';
+const { pollGamepads, readIntent } = input;
 
 // a simulated standard pad (nobody here has a controller): `down` lists the pressed button indexes
 const withPad = (down = []) => {
@@ -80,3 +81,71 @@ export const tests = [
     },
   },
 ];
+
+// ---------------------------------------------------------------- S1-11
+// a stand-in page for the input module: it records the handlers it registers
+const fakeEvents = () => {
+  const on = {};
+  const el = (extra = {}) => ({ addEventListener: (n, f) => { (on[n] = on[n] || []).push(f); }, classList: { add() {}, remove() {} }, setPointerCapture() {}, style: { setProperty() {} }, clientWidth: 400, ...extra });
+  return { on, el };
+};
+tests.push(
+  {
+    name: 'council W4B S1-11: a Hop pressed and released between two ticks still hops once (key, touch button, pad)',
+    node: true,
+    async run() {
+      const { on, el } = fakeEvents();
+      const had = { window: 'window' in globalThis, document: 'document' in globalThis };
+      assert.ok(!had.window && !had.document, 'a node test has no page');
+      try {
+      Object.defineProperty(globalThis, 'window', { value: { addEventListener: (n, f) => { (on[n] = on[n] || []).push(f); } }, configurable: true });
+      Object.defineProperty(globalThis, 'document', { value: { body: { dataset: {} } }, configurable: true });
+      input.initInput(null);
+      const fire = (name, e) => (on[name] || []).forEach((f) => f({ preventDefault() {}, repeat: false, ...e }));
+      input.readIntent();
+      fire('keydown', { code: 'ShiftLeft' }); fire('keyup', { code: 'ShiftLeft' });
+      assert.equal(input.readIntent().hop, true, 'a key pressed and released inside one tick still counts');
+      assert.equal(input.readIntent().hop, false, 'and counts once');
+      fire('keydown', { code: 'ShiftLeft' });
+      assert.equal(input.readIntent().hop, true); assert.equal(input.readIntent().hop, true, 'a held key is still held');
+      fire('keyup', { code: 'ShiftLeft' });
+      assert.equal(input.readIntent().hop, false);
+      // a Shift pressed while a menu is open is not a hop for the race that follows
+      document.body.dataset.screen = 'title';
+      fire('keydown', { code: 'ShiftLeft' }); fire('keyup', { code: 'ShiftLeft' });
+      delete document.body.dataset.screen;
+      assert.equal(input.readIntent().hop, false, 'a menu key press is forgotten');
+      // the touch button
+      const hop = el();
+      const ev = {};
+      hop.addEventListener = (n, f) => { ev[n] = f; };
+      input.initTouch(el(), { push: null, brake: null, hop, item: null });
+      ev.pointerdown({ preventDefault() {}, pointerId: 1 }); ev.pointerup({ pointerId: 1 });
+      assert.equal(input.readIntent().hop, true, 'a tap on the Hop button inside one tick counts');
+      assert.equal(input.readIntent().hop, false);
+      // the pad: pressed on one poll, let go on the next, before the tick reads it
+      const buttons = (down) => Array.from({ length: 17 }, (_, i) => ({ pressed: down.includes(i), value: down.includes(i) ? 1 : 0 }));
+      const pads = { now: buttons([5]) };
+      Object.defineProperty(globalThis, 'navigator', { value: { getGamepads: () => [{ index: 3, connected: true, axes: [0, 0, 0, 0], buttons: pads.now }] }, configurable: true });
+      input.pollGamepads(); pads.now = buttons([]); input.pollGamepads();
+      assert.equal(input.readIntent().hop, true, 'RB pressed and let go between ticks still counts');
+      } finally { delete globalThis.window; delete globalThis.document; }
+    },
+  },
+  {
+    name: 'council W4B S1-11: in the game, a real Shift tap between two ticks makes the tub hop',
+    viewports: ['desktop'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.game('newGame', { seed: 9 });
+      await t.game('act', 'skipCountdown');
+      await t.game('pause');
+      const air = async () => { const s = await t.state(); return s.race.karts[s.race.player].air; };
+      t.equal(await air(), false, 'on the ground to start');
+      await t.page.keyboard.down('ShiftLeft'); await t.page.keyboard.up('ShiftLeft');
+      await t.waitFrames(2);
+      await t.game('step', 3);
+      t.equal(await air(), true, 'the tap was kept until the next tick and hopped');
+    },
+  },
+);

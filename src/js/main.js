@@ -495,7 +495,7 @@ function onBack() { App.last = 0; resumeAudio(); }
 // The Resume hold: the sim stands still, the camera and HUD live on, a 3-2-1 shows, and any key pressed meanwhile is forgotten.
 function resumeCountdown(dt) {
   App.resumeT = Math.max(0, App.resumeT - dt);
-  INPUT.itemP = false;
+  INPUT.itemP = false; INPUT.hopP = false;
   const n = Math.ceil(App.resumeT / (RESUME_HOLD / 3) - 1e-6);
   if (n > 0 && n !== App.resumeN) { App.resumeN = n; App.hud.flash('RESUMING ' + n, 'lap', RESUME_HOLD / 3 + 0.05); }
 }

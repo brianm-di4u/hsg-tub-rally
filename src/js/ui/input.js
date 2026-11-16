@@ -1,5 +1,5 @@
 // Input: keyboard (remappable), gamepads (Gamepad API, polled once per frame) and touch controls folded into
-// one intent read by the fixed step. Edges (item, pause, menu) latch until consumed so quick taps are never lost.
+// one intent read by the fixed step. Edges (item, hop, pause, menu) latch until consumed so quick taps are never lost.
 // Keyboard/touch structure after games/basketball/src/js/input.js (Hot Springs Games, MIT).
 
 export const DEFAULT_KEYS = {
@@ -7,7 +7,7 @@ export const DEFAULT_KEYS = {
   hop: ['ShiftLeft', 'ShiftRight', 'Space'], item: ['KeyX', 'KeyJ'], back: ['KeyC', 'KeyK'], pause: ['Escape', 'KeyP'],
 };
 export const I = {
-  steer: 0, push: 0, brake: false, hop: false, back: false, item: false, itemP: false, pauseP: false,
+  steer: 0, push: 0, brake: false, hop: false, hopP: false, back: false, item: false, itemP: false, pauseP: false,
   menu: { up: false, down: false, left: false, right: false, ok: false, cancel: false },
   autoPush: false, steerAssist: false, padPress: false, last: 'keyboard', touch: { steer: 0, id: null, push: false, brake: false, hop: false, item: false },
 };
@@ -53,6 +53,7 @@ export function initInput(onKey) {
     if (e.repeat) return;
     keys.add(e.code);
     if (a === 'item') I.itemP = true;
+    if (a === 'hop' && !document.body.dataset.screen) I.hopP = true;
     if (a === 'pause') I.pauseP = true;
     recompute();
   });
@@ -84,6 +85,7 @@ export function pollGamepads() {
     pad.steer = ax || pad.steer; pad.push = pad.push || now.a || now.rt; pad.pushV = Math.max(pad.pushV, now.a ? 1 : rtV); pad.brake = pad.brake || now.b || now.lt;
     pad.hop = pad.hop || now.rb; pad.back = pad.back || now.y; pad.item = pad.item || now.lb || now.x;
     if ((now.lb || now.x) && !(prev.lb || prev.x)) I.itemP = true;
+    if (now.rb && !prev.rb) I.hopP = true;
     if (now.start && !prev.start) I.pauseP = true;
     const m = I.menu;
     if (now.up && !prev.up) m.up = true; if (now.down && !prev.down) m.down = true;
@@ -122,7 +124,7 @@ export function initTouch(zone, btns) {
     const off = () => { el.classList.remove('on'); t[key] = false; recompute(); };
     el.addEventListener('pointerup', off); el.addEventListener('pointercancel', off); el.addEventListener('lostpointercapture', off);
   };
-  hold(btns.push, 'push'); hold(btns.brake, 'brake'); hold(btns.hop, 'hop'); hold(btns.item, 'item', 'itemP');
+  hold(btns.push, 'push'); hold(btns.brake, 'brake'); hold(btns.hop, 'hop', 'hopP'); hold(btns.item, 'item', 'itemP');
 }
 
 // Copy the intent for one fixed step. Edges are consumed.
@@ -130,8 +132,8 @@ export function readIntent() {
   const p = I.pad || {};
   const brake = I.brake || !!p.brake;
   const push = I.push ? 1 : p.pushV || 0;
-  const out = { steer: I.steer || p.steer || 0, push: I.autoPush ? (brake ? 0 : 1) : push, brake, hop: I.hop || !!p.hop, back: I.back || !!p.back, item: I.itemP };
-  I.itemP = false;
+  const out = { steer: I.steer || p.steer || 0, push: I.autoPush ? (brake ? 0 : 1) : push, brake, hop: I.hop || !!p.hop || I.hopP, back: I.back || !!p.back, item: I.itemP };
+  I.itemP = false; I.hopP = false;
   return out;
 }
 export function consumeMenu() { const m = { ...I.menu }; for (const k of Object.keys(I.menu)) I.menu[k] = false; return m; }
