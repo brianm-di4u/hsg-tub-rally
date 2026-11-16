@@ -131,6 +131,9 @@ body.lefty .t-btns { right: auto; left: max(10px, env(safe-area-inset-left)); }
 .rtable th, .rtable td { padding: 6px 8px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.15); }
 .rtable th { color: var(--gold); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
 .rtable tr.me td { background: rgba(242,165,65,0.22); color: #fff; }
+.rtable .bc { display: block; }
+.rtable .bc + .bc { margin-top: 4px; }
+.rtable .bc small { color: var(--gold); text-transform: uppercase; letter-spacing: 1px; }
 .sw { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--ink); border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
 .clean { color: #0f2a18; background: #9BE29B; border-radius: 4px; padding: 1px 4px; font-size: 11px; margin-left: 4px; }
 .help-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; text-align: left; }

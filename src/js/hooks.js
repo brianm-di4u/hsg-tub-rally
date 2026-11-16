@@ -3,6 +3,7 @@ import { fumble } from './sim/kart.js';
 import { DT } from './sim/race.js';
 import { makeDriver, driveAI } from './sim/ai.js';
 import { makeRng } from './rng.js';
+import { bestFor } from './save.js';
 import { audioList, audioRender } from './ui/audio.js';
 
 export function installHooks(App, api) {
@@ -15,7 +16,7 @@ export function installHooks(App, api) {
       world: App.world ? App.world.userData : null,
       settings: App.save.settings, steps: App.steps, resumeHold: +(App.resumeT > 0 ? App.resumeT : 0).toFixed(2),
       ghost: App.ghost ? { team: App.ghost.team, total: App.ghost.total, n: App.ghost.n } : null, par: App.par ? { team: App.par.team, total: App.par.total, n: App.par.n } : null, trial: App.trialResult || null, daily: App.dailyResult || null, newRecord: !!App.newRecord,
-      best: App.track ? App.save.best[App.track.id] || null : null,
+      best: App.track ? bestFor(App.save, App.track.id, (App.race && App.race.classId) || App.save.lastClass || 'soak') : null,
       audio: App.audioState ? App.audioState() : null,
       tips: window.TR_TEACH ? window.TR_TEACH.tipState() : null, bindings: App.save.settings.keys,
     };
@@ -113,7 +114,7 @@ export function installHooks(App, api) {
         case 'lastRace': App.governor.last = args[0] ? { windows: +args[0].windows, worst: +args[0].worst, cpu: +args[0].cpu } : null; return App.governor.last;
         // the governor's step down, as if the race had been slow
         case 'governorDown': App.governor.tier = args[0] || 'low'; api.stepTierDown(App.governor.tier); return App.tier;
-        case 'clearSave': App.save.best = {}; App.save.ghosts = {}; return true;
+        case 'clearSave': App.save.best = {}; App.save.bests = {}; App.save.ghosts = {}; return true;
         // review captures (tools/shots-gpu.mjs): freeze the render clock at ms, or release it with null
         // (CSS transitions and animations run on wall-clock time, so they hold still too while the clock is frozen)
         case 'clock': { const was = App.clock; App.clock = args[0] == null ? null : args[0] / 1000; if (App.clock != null && was == null) App.time = App.clock; document.body.classList.toggle('clock-frozen', App.clock != null); return true; }

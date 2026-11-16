@@ -1,6 +1,6 @@
 // Portable fixture tests. These exercise storage policy, not earned gameplay.
 import assert from 'node:assert/strict';
-import { createSaveWriter, DEFAULT_SAVE } from '../src/js/save.js';
+import { createSaveWriter, DEFAULT_SAVE, bestFor } from '../src/js/save.js';
 const clone = (v) => JSON.parse(JSON.stringify(v));
 const record = (time, team = 'engine-six') => ({ race: +time.toFixed(3), lap: 30, team, cls: 'splash' });
 const ghost = (tag) => ({ v: 1, team: tag, total: 90, n: 2, t: 'AAAAAA==', x: 'AAAAAA==', z: 'AAAAAA==', y: 'AAAAAA==', yaw: 'AAAAAA==' });
@@ -51,9 +51,9 @@ export const tests = [
   test('raw finish time is compared before rounding and complete lap record stays together', () => {
     const s = DEFAULT_SAVE(); s.best['bathhouse-row'] = record(90, 'old'); s.ghosts['bathhouse-row'] = ghost('old');
     const f = fixture(s); const no = earned(f, 90.0004, { recorded: ghost('slow') });
-    assert.equal(no.recordAccepted, false); assert.equal(f.stored().best['bathhouse-row'].team, 'old');
+    assert.equal(no.recordAccepted, false); assert.equal(bestFor(f.stored(), 'bathhouse-row', 'splash').team, 'old');
     const yes = earned(f, 89.9996, { recorded: ghost('new'), team: 'new' });
-    assert.equal(yes.recordAccepted, true); assert.deepEqual(f.stored().best['bathhouse-row'], record(89.9996, 'new'));
+    assert.equal(yes.recordAccepted, true); assert.deepEqual(bestFor(f.stored(), 'bathhouse-row', 'splash'), record(89.9996, 'new'));
     assert.equal(f.stored().ghosts['bathhouse-row'].team, 'new');
   }),
   test('pending recorded90 then unrecorded80 does not admit later recorded85', () => {
@@ -63,7 +63,7 @@ export const tests = [
       earned(f, 85, { recorded: ghost('nonimproving85') });
       const remote = DEFAULT_SAVE(); remote.best['bathhouse-row'] = record(remoteBest); remote.ghosts['bathhouse-row'] = ghost('remote');
       f.box.raw = JSON.stringify(remote); f.box.writeFails = false; f.commit({ settings: { sound: false } });
-      assert.equal(f.stored().best['bathhouse-row'].race, 80);
+      assert.equal(bestFor(f.stored(), 'bathhouse-row', 'splash').race, 80);
       assert.equal(f.stored().ghosts['bathhouse-row'].team, remoteBest === 95 ? 'recorded90' : 'remote');
     }
   }),
@@ -74,7 +74,7 @@ export const tests = [
       const remote = DEFAULT_SAVE(); remote.best['bathhouse-row'] = record(100);
       remote.best['bathhouse-row'].race = remoteBest; remote.ghosts['bathhouse-row'] = ghost('remote');
       f.box.raw = JSON.stringify(remote); f.box.writeFails = false; f.commit();
-      assert.equal(f.stored().best['bathhouse-row'].race, 90);
+      assert.equal(bestFor(f.stored(), 'bathhouse-row', 'splash').race, 90);
       assert.equal(f.stored().ghosts['bathhouse-row'].team, remoteBest === 100 ? 'first' : 'second');
     }
   }),
@@ -135,7 +135,7 @@ export const tests = [
     assert.equal(f.save, alias); assert.equal(alias.stats.races, 0);
     f.box.readFails = true; earned(f, 90);
     f.box.readFails = false; f.box.raw = null; f.commit({ settings: { sound: false } });
-    assert.equal(f.stored().stats.races, 1); assert.equal(f.stored().best['bathhouse-row'].race, 90);
+    assert.equal(f.stored().stats.races, 1); assert.equal(bestFor(f.stored(), 'bathhouse-row', 'splash').race, 90);
   }),
   test('cup place and explicit additions preserve newer remote awards', () => {
     const remote = DEFAULT_SAVE(); remote.cups['bathhouse:soak'] = 1;

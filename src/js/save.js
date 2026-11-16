@@ -18,6 +18,9 @@ export const DEFAULT_SAVE = () => ({
   unlocked: { teams: [], cups: ['bathhouse'], classes: ['splash', 'soak'], mirror: false, rec: 2 },
   // trackId → the complete winning race record, including its lap
   best: {},
+  // trackId → class → the best race time set in that class (C4-05). `best` above holds the times saved before records
+  // were kept per class: they are left where they are and read under the class each one names (bestFor, bestEntries)
+  bests: {},
   // trackId → Time Trial best { race, lap, medal 0..3 } (S3-04): Time Trial runs are on Scald only, so these are comparable
   trial: {},
   // trackId → last eligible recorded Time Trial
@@ -40,6 +43,40 @@ function cleanTrial(t) {
     out[id] = { race: v.race, lap: Number.isFinite(v.lap) && v.lap > 0 ? v.lap : null, medal: Number.isInteger(v.medal) && v.medal >= 0 && v.medal <= 3 ? v.medal : 0 };
   }
   return out;
+}
+
+// Per-class bests: an entry that is not a real time is dropped, never an error (a class's own time is a course record,
+// but a bad entry must not stop the save from loading).
+function cleanBests(b) {
+  const out = {};
+  if (!object(b)) return out;
+  for (const [track, byClass] of Object.entries(b)) {
+    if (!object(byClass)) continue;
+    for (const [cls, v] of Object.entries(byClass)) {
+      if (!cls || !object(v) || !Number.isFinite(v.race) || v.race <= 0) continue;
+      (out[track] = out[track] || {})[cls] = { race: v.race, lap: Number.isFinite(v.lap) && v.lap > 0 ? v.lap : null, team: typeof v.team === 'string' ? v.team : '', cls };
+    }
+  }
+  return out;
+}
+
+// Every race time a save holds for a course, each with the class it was set in: [{ cls, rec }]. A time from before
+// records were kept per class sits in `best` and counts for the class it names; one that names none (an older
+// save) is listed with cls null. Where both hold a time for the same class, the faster is listed (a tie goes to the newer key).
+export function bestEntries(save, track) {
+  const out = new Map();
+  const add = (cls, rec) => { if (rec && Number.isFinite(rec.race) && (!out.has(cls) || rec.race <= out.get(cls).race)) out.set(cls, rec); };
+  const old = save && object(save.best) ? save.best[track] : null;
+  if (old) add(typeof old.cls === 'string' && old.cls ? old.cls : null, old);
+  const mine = save && object(save.bests) ? save.bests[track] : null;
+  if (object(mine)) for (const [cls, rec] of Object.entries(mine)) add(cls, rec);
+  return [...out].map(([cls, rec]) => ({ cls, rec }));
+}
+// The time to beat in one class: its own best, or a time with no class stored. Null when there is none.
+export function bestFor(save, track, cls) {
+  let best = null;
+  for (const e of bestEntries(save, track)) if ((e.cls === cls || e.cls === null) && (!best || e.rec.race < best.race)) best = e.rec;
+  return best;
 }
 
 // Daily results and the streak are derived data too: bad entries are dropped, never an error.
@@ -95,6 +132,7 @@ function projection(raw) {
   if (grand) { if (!out.unlocked.cups.includes('ouachita')) out.unlocked.cups = [...out.unlocked.cups, 'ouachita']; out.unlocked.grandfathered = true; }
   else delete out.unlocked.grandfathered;
   out.unlocked.mirror = out.unlocked.mirror === true;
+  out.bests = cleanBests(s.bests);
   out.trial = cleanTrial(s.trial);
   out.daily = cleanDaily(s.daily);
   out.dailyStreak = cleanStreak(s.dailyStreak);
@@ -167,13 +205,15 @@ export function createSaveWriter({
         if (r.record) {
           const c = { ...copy(r.record), info };
           if (!Number.isFinite(c.finishT) || c.finishT <= 0 || !object(c.value) || c.value.race !== +c.finishT.toFixed(3)) throw new Error('Invalid earned record');
-          const chain = runs.get(c.track) || [];
+          if (typeof c.value.cls !== 'string' || !c.value.cls) c.value.cls = 'soak';
+          const key = c.track + '|' + c.value.cls;
+          const chain = runs.get(key) || [];
           // Such a run cannot improve any fresh base: an earlier pending run either
           // wins first, or the fresh base is already faster than this new run.
           // Keep rounding-boundary transitions and their ordering, rather than
           // selecting a minimum recorded ghost independently of record eligibility.
           if (!chain.some((p) => c.finishT >= Math.max(p.finishT, p.value.race))) {
-            chain.push(c); runs.set(c.track, chain);
+            chain.push(c); runs.set(key, chain);
           }
         }
       }
@@ -195,15 +235,19 @@ export function createSaveWriter({
     Object.assign(out.settings, settings);
     Object.assign(out, selection);
     out.stats.races += races; out.stats.wins += wins;
-    for (const [track, chain] of runs) {
+    for (const chain of runs.values()) {
       for (const c of chain) {
+        const track = c.track, cls = c.value.cls;
         c.info.recordAccepted = false; c.info.hadBest = false;
-        const old = out.best[track];
+        // the time to beat is the best of this class: a faster class's time is not a record for a slower one (C4-05)
+        const old = bestFor(out, track, cls);
         // Keep the original raw finishT < rounded stored best.race boundary.
         if (!old || c.finishT < old.race) {
+          // the ghost follows the fastest time on the course in any class, as it did when there was one best per course
+          const fastest = Math.min(Infinity, ...bestEntries(out, track).map((e) => e.rec.race));
           c.info.recordAccepted = true; c.info.hadBest = !!old;
-          out.best[track] = copy(c.value);
-          if (c.ghost) out.ghosts[track] = copy(c.ghost);
+          (out.bests[track] = out.bests[track] || {})[cls] = copy(c.value);
+          if (c.ghost && c.finishT < fastest) out.ghosts[track] = copy(c.ghost);
         }
       }
     }

@@ -10,6 +10,7 @@ import { CUPS, CUP_BY_ID, TROPHY } from '../data/cups.js';
 import { factFor } from '../data/facts.js';
 import { MEDAL_NAMES, medalTimes } from '../sim/medals.js';
 import { addDays } from '../daily.js';
+import { bestFor, bestEntries } from '../save.js';
 import { TRACK_BY_ID } from '../data/tracks.js';
 import { I as INPUT } from './input.js';
 import { sfx } from './audio.js';
@@ -244,6 +245,12 @@ const TEMPLATES = {
     const tile = (label, v) => `<div class="rtile"><b>${v}</b><span>${label}</span></div>`;
     const cupCell = (place) => (place ? (place <= 3 ? `<b class="medal m${4 - place}" title="${TROPHY[place - 1]}">${ord(place)}</b>` : ord(place)) : '–');
     const cal = Array.from({ length: 14 }, (_, i) => addDays(today, i - 13));
+    // a race time is a record of its own class (C4-05): one line for each class that has a time, slowest class first
+    const raceCell = (id) => {
+      const order = Object.keys(CLASSES), rank = (cls) => (cls === null ? -1 : order.indexOf(cls));
+      const rows = bestEntries(sv, id).filter((e) => e.cls === null || CLASSES[e.cls]).sort((a, b) => rank(a.cls) - rank(b.cls));
+      return rows.length ? rows.map((e) => `<span class="bc">${e.cls ? `<small>${CLASSES[e.cls].name}</small> ` : ''}${timeCell(e.rec)}</span>`).join('') : '–';
+    };
     const timeCell = (r) => (r ? fmtTime(r.race) + (r.lap ? `<small> lap ${fmtTime(r.lap)}</small>` : '') : '–');
     return `
     <div class="panel records" role="dialog" aria-label="Records">
@@ -255,7 +262,7 @@ const TEMPLATES = {
       </tbody></table>
       <h3>Courses</h3>
       <table class="rtable" aria-label="Best times by course"><thead><tr><th>Course</th><th>Race best</th><th>Time Trial</th><th>Medal</th></tr></thead><tbody>
-      ${courses.map((c) => { const t = (sv.trial || {})[c.id]; return `<tr><td>${c.name}</td><td>${timeCell(sv.best[c.id])}</td><td>${timeCell(t)}</td><td>${t && t.medal ? medalChip(t.medal) : '–'}</td></tr>`; }).join('')}
+      ${courses.map((c) => { const t = (sv.trial || {})[c.id]; return `<tr><td>${c.name}</td><td>${raceCell(c.id)}</td><td>${timeCell(t)}</td><td>${t && t.medal ? medalChip(t.medal) : '–'}</td></tr>`; }).join('')}
       </tbody></table>
       <h3>Daily Races, last 14 days</h3>
       <ol class="cal" aria-label="Daily Races played in the last 14 days">${cal.map((k) => { const d = sv.daily[k]; return `<li class="${d ? 'done' : ''} ${k === today ? 'today' : ''}" title="${dateLabel(k)}${d ? ': ' + ord(d.place) : ''}"><b>${+k.slice(8)}</b><i>${d ? ord(d.place) : ''}</i></li>`; }).join('')}</ol>
@@ -333,15 +340,15 @@ ${rivalsHelp()}
       <p class="sub" id="rc-msg">Your ${keptName} is waiting after race ${done} of ${of}. Starting ${keptName === newName ? 'it again' : 'the ' + newName} replaces it.</p>
       <nav class="menu row">${btn('back', 'Keep my cup', 'autofocus data-back')}${btn('cupNew', 'Start new cup', `data-id="${id}"`)}</nav>
     </div>`,
-  courses: (app, { list, trial }) => `
+  courses: (app, { list, trial }) => { const cid = CLASSES[app.flow && app.flow.classId] ? app.flow.classId : CLASSES[app.save.lastClass] ? app.save.lastClass : 'soak'; return `
     <div class="panel courses" role="dialog" aria-label="Choose a course">
       <canvas data-pixel="CHOOSE A COURSE" data-scale="4"></canvas>
       ${trial ? `<p class="sub trial-note">Time Trial runs at ${CLASSES.scald.name} speed with no items.</p>` : ''}
       ${mirrorRow(app)}
       ${trial ? '' : raceOptsRow(app)}
-      <div class="card-row">${list.map((t, i) => { const best = app.save.best[t.id], tt = (app.save.trial || {})[t.id], mt = medalTimes(t.id); return `<button type="button" class="ccard postcard" data-act="course" data-id="${t.id}" ${i === 0 ? 'autofocus' : ''}><span class="pc-pic" aria-hidden="true" style="--a:${(SKY[t.id] || SKY['hill-wheatley'])[0]};--b:${(SKY[t.id] || SKY['hill-wheatley'])[1]}"></span><b>${t.name}</b><small>${t.blurb || ''}</small><i class="fact">${factFor(t.id).t}</i><em>${Math.round(t.length || 0)} m lap${(window.TR_INFO || {})[t.id] && window.TR_INFO[t.id].real ? ` · real streets ${(window.TR_INFO[t.id].real / 1000).toFixed(1)} km, compressed` : ''}${trial ? '' : best ? ` · best ${fmtTime(best.race)}${best.lap ? ` · lap ${fmtTime(best.lap)}` : ''}${CLASSES[best.cls] ? ` (${CLASSES[best.cls].name})` : ''}` : ''}</em>${trial ? `<span class="tt">${tt ? `${medalChip(tt.medal)} <span>Best ${fmtTime(tt.race)}${tt.lap ? ` · lap ${fmtTime(tt.lap)}` : ''}</span>` : '<span>No time set yet</span>'}${mt ? `<span class="tgt">Gold ${fmtTime(mt.gold)} · Silver ${fmtTime(mt.silver)} · Bronze ${fmtTime(mt.bronze)}</span>` : ''}</span>` : ''}</button>`; }).join('')}</div>
+      <div class="card-row">${list.map((t, i) => { const best = bestFor(app.save, t.id, cid), tt = (app.save.trial || {})[t.id], mt = medalTimes(t.id); return `<button type="button" class="ccard postcard" data-act="course" data-id="${t.id}" ${i === 0 ? 'autofocus' : ''}><span class="pc-pic" aria-hidden="true" style="--a:${(SKY[t.id] || SKY['hill-wheatley'])[0]};--b:${(SKY[t.id] || SKY['hill-wheatley'])[1]}"></span><b>${t.name}</b><small>${t.blurb || ''}</small><i class="fact">${factFor(t.id).t}</i><em>${Math.round(t.length || 0)} m lap${(window.TR_INFO || {})[t.id] && window.TR_INFO[t.id].real ? ` · real streets ${(window.TR_INFO[t.id].real / 1000).toFixed(1)} km, compressed` : ''}${trial ? '' : best ? ` · best ${fmtTime(best.race)}${best.lap ? ` · lap ${fmtTime(best.lap)}` : ''}${CLASSES[best.cls] ? ` (${CLASSES[best.cls].name})` : ''}` : ` · no ${CLASSES[cid].name} time yet`}</em>${trial ? `<span class="tt">${tt ? `${medalChip(tt.medal)} <span>Best ${fmtTime(tt.race)}${tt.lap ? ` · lap ${fmtTime(tt.lap)}` : ''}</span>` : '<span>No time set yet</span>'}${mt ? `<span class="tgt">Gold ${fmtTime(mt.gold)} · Silver ${fmtTime(mt.silver)} · Bronze ${fmtTime(mt.bronze)}</span>` : ''}</span>` : ''}</button>`; }).join('')}</div>
       <nav class="menu row">${btn('back', 'Back', 'data-back')}</nav>
-    </div>`,
+    </div>`; },
   standings: (app, { rows, round, rounds, cupName, final }) => `
     <div class="panel results standings" role="dialog" aria-label="Cup standings">
       <canvas data-pixel="${final ? 'FINAL STANDINGS' : 'STANDINGS'}" data-scale="5"></canvas>

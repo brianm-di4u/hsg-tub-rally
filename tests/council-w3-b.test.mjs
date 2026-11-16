@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { Track } from '../src/js/sim/track.js';
 import { stepRace, DT } from '../src/js/sim/race.js';
 import { makeHeat, TASK_LIMIT } from '../src/js/sim/rules-real.js';
-import { createSaveWriter, DEFAULT_SAVE } from '../src/js/save.js';
+import { createSaveWriter, DEFAULT_SAVE, bestFor } from '../src/js/save.js';
 import { LANDMARK_NAMES, BATTLE_GOAL } from '../src/js/data/facts.js';
 import { spillHint } from '../src/js/ui/hud.js';
 
@@ -48,7 +48,7 @@ export const tests = [
       t.equal(f.stored().ghosts['bathhouse-row'].tag, 'g145', 'a slower run leaves it alone');
       tt(144, G(144));
       t.equal(f.stored().ghosts['bathhouse-row'].tag, 'g144', 'a faster Time Trial run replaces it');
-      t.equal(f.stored().best['bathhouse-row'].race, 140, 'and the course best is still the Quick Race time');
+      t.equal(bestFor(f.stored(), 'bathhouse-row', 'soak').race, 140, 'and the course best is still the Quick Race time');
     },
   },
   {
