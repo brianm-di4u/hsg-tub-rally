@@ -148,7 +148,7 @@ function itemIconUrl(id) {
   return iconCache[id];
 }
 const itemsHelp = () => `<section><h3>Items and tickets</h3>
-          <p class="help-lead">Drive through a soap bubble to pick up an item, then press the item button to use it.</p>
+          <p class="help-lead">Drive through a soap bubble to pick up an item, then press the item button to use it. The further back you are, the stronger the item a bubble gives.</p>
           <ul class="item-list">${Object.entries(ITEMS).map(([id, it]) => `<li><img alt="" width="28" height="28" src="${itemIconUrl(id)}"><span><b>${it.name}</b> ${it.tip}</span></li>`).join('')}</ul>
           <p class="help-lead">Collect bath tickets. Drive through a judge's lane with three for a head start.</p></section>`;
 

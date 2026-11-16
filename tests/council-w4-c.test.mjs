@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { createSaveWriter, DEFAULT_SAVE, bestFor, bestEntries } from '../src/js/save.js';
 import { TEAMS } from '../src/js/data/teams.js';
+import { ODDS } from '../src/js/sim/items.js';
 
 const SHOTS = '../_council/hsg-tub-rally/wave-4/shots';
 const KEY = 'hsg-tub-rally-v1';
@@ -237,6 +238,24 @@ export const tests = [
       } else {
         t.expect(pip >= 13 && tk >= 12, 'desktop keeps its sizes: ' + pip + ', ' + tk);
       }
+    },
+  },
+
+  // ---------------------------------------------------------------- S3-17
+  {
+    name: 'council W4C S3-17: How to Play says that trailing tubs draw stronger items, and the odds really do shift that way',
+    viewports: ['desktop', 'mobile'],
+    async run(t) {
+      await t.waitIdle(8000);
+      await t.game('scene', 'help'); await t.waitFrames(3);
+      const lead = await t.page.evaluate(() => [...document.querySelectorAll('.item-list')].map((l) => l.previousElementSibling.textContent).join(' '));
+      t.expect(/The further back you are, the stronger the item a bubble gives./.test(lead), 'the help lead: ' + lead);
+      await t.page.evaluate(() => document.querySelector('.item-list').scrollIntoView({ block: 'center' })); await t.waitFrames(2);
+      await shot(t, 'S3-17', 'help-items');
+      await t.checkLayout({ allowScrollY: true });
+      // the sentence is true: the share of catch-up items grows from first place to last, and the leader draws none of them
+      const catchUp = ODDS.map((row) => { const tot = Object.values(row).reduce((a, b) => a + b, 0); return ['jet3', 'hose', 'bubble'].reduce((a, k) => a + (row[k] || 0), 0) / tot; });
+      t.expect(catchUp[0] === 0 && catchUp.every((v, i) => i === 0 || v >= catchUp[i - 1]) && catchUp[7] > 0.5, 'catch-up share by place: ' + catchUp.map((v) => v.toFixed(2)));
     },
   },
 ];
