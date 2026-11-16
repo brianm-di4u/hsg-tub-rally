@@ -284,7 +284,7 @@ export const tests = [
       await t.waitFrames(5);
       const rows = await t.page.evaluate(() => [...document.querySelectorAll('.settings .set-row > span')].map((e) => e.textContent));
       t.expect(rows.includes('Sound') && rows.includes('Music') && rows.includes('Ambience'), 'rows: ' + rows);
-      const small = await t.page.evaluate(() => [...document.querySelectorAll('.settings button')].map((b) => { const r = b.getBoundingClientRect(); return { h: r.height, w: r.width, t: b.textContent }; }).filter((b) => b.h < 40 || b.w < 40));
+      const small = await t.page.evaluate(() => [...document.querySelectorAll('.settings button')].filter((b) => b.getClientRects().length > 0 /* C4-15: the Touch layout row is not on screen without touch controls */).map((b) => { const r = b.getBoundingClientRect(); return { h: r.height, w: r.width, t: b.textContent }; }).filter((b) => b.h < 40 || b.w < 40));
       t.expect(small.length === 0, 'touch targets under 40 px: ' + JSON.stringify(small));
       await t.checkLayout({ allowScrollY: true });
       fs.mkdirSync(SHOTS, { recursive: true });

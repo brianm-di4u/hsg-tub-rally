@@ -295,7 +295,7 @@ export const tests = [
       await shot(t, 'S2-06-settings');
       await t.checkLayout({ allowScrollY: true });
       // touch targets
-      const small = await t.page.evaluate(() => [...document.querySelectorAll('.settings .chip, .settings .mbtn')].filter((b) => b.getBoundingClientRect().height < 40).map((b) => b.textContent));
+      const small = await t.page.evaluate(() => [...document.querySelectorAll('.settings .chip, .settings .mbtn')].filter((b) => b.getClientRects().length > 0 /* C4-15: the Touch layout row is not on screen without touch controls */ && b.getBoundingClientRect().height < 40).map((b) => b.textContent));
       t.expect(small.length === 0, 'every chip is at least 40 px tall: ' + small.join(', '));
       // HUD size
       const sel = (k, v) => t.page.locator(`button[data-k="${k}"][data-v="${v}"]`);
