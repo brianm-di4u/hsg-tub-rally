@@ -105,9 +105,10 @@ export function stepItems(race, track, inputs, dt) {
   for (const b of S.bubbles) {
     if (!b.on) { b.t -= dt; if (b.t <= 0) b.on = true; continue; }
     for (const k of karts) {
-      if (k.state === 'rescue' || !near(k, b, 1.9)) continue;
+      // S1-10: a tub that already holds an item drives through; the bubble stays for the next one
+      if (k.state === 'rescue' || k.held || !near(k, b, 1.9)) continue;
       b.on = false; b.t = BUBBLE_RESPAWN;
-      if (!k.held) { k.held = rollItem(rng, k.place || 8); k.heldN = ITEMS[k.held].uses || 1; k.events.push({ type: 'pickup', item: k.held }); }
+      k.held = rollItem(rng, k.place || 8); k.heldN = ITEMS[k.held].uses || 1; k.events.push({ type: 'pickup', item: k.held });
       break;
     }
   }
