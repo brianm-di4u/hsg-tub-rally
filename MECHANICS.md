@@ -44,7 +44,7 @@ State timers on the kart: `circle` 1.4 s (no push, speed bleeds), `swap` 0.55 s 
 (then respawn on the racing line behind the last safe point). Dropped items return when the timer ends.
 
 ## Items (M2)
-Soap-bubble pickup rows respawn 4 s after collection. Odds table by place (front gets defensive items, back
+Soap-bubble pickup rows respawn 1.6 s after collection (`BUBBLE_RESPAWN`). A tub that already holds an item drives through a bubble and leaves it for the next tub. Odds table by place (front gets defensive items, back
 gets catch-up items). Projectiles are simulated in `sim/items.js` against the same track surface; homing uses the
 racing line; hits call `fumble()`. Loofah shield absorbs one hit per loofah.
 

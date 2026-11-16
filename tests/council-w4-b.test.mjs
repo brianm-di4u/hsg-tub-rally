@@ -305,3 +305,27 @@ tests.push({
     t.equal(page.appleCapable, 0, 'and no standalone-app tag');
   },
 });
+
+// ---------------------------------------------------------------- S3-24
+import { DEFAULT_SAVE } from '../src/js/save.js';
+tests.push({
+  name: 'council W4B S3-24: MECHANICS.md and PRD.md state the bubble respawn and the touch auto-push default the code has',
+  node: true,
+  run() {
+    const read = (f) => fs.readFileSync(new URL('../' + f, import.meta.url), 'utf8');
+    const items = read('src/js/sim/items.js');
+    const respawn = +items.match(/const BUBBLE_RESPAWN = ([0-9.]+)/)[1];
+    const mech = read('MECHANICS.md').replace(/\s+/g, ' ');
+    assert.ok(mech.includes(`respawn ${respawn} s after collection`), 'MECHANICS.md gives the respawn the code has (' + respawn + ' s)');
+    assert.ok(!/respawn 4 s/.test(mech), 'and not the old 4 s');
+    // what the code does: new profile on a touch device on, everyone else off
+    assert.equal(DEFAULT_SAVE().settings.autoPush, false, 'no touch: off');
+    try {
+      Object.defineProperty(globalThis, 'window', { value: { matchMedia: () => ({ matches: true }) }, configurable: true });
+      assert.equal(DEFAULT_SAVE().settings.autoPush, true, 'a new profile on a touch device: on');
+    } finally { delete globalThis.window; }
+    const prd = read('PRD.md').replace(/\s+/g, ' ');
+    assert.ok(/auto-push is on by default only for a new profile on a touch device/.test(prd), 'PRD.md says so');
+    assert.ok(!/auto-push default on touch;/.test(prd), 'and not the old blanket line');
+  },
+});

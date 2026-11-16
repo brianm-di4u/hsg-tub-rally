@@ -69,7 +69,7 @@ every cue uses shape + label (item icons, patterned water gauge, item pips with 
 cuts camera shake, FOV kick and flashes; HUD scale setting; captions for call-outs via an aria-live region.
 
 ## 9. Mobile and touch
-Portrait and landscape; left-half drag steering, Push/Brake/Hop/Item buttons ≥ 64 px; auto-push default on touch;
+Portrait and landscape; left-half drag steering, Push/Brake/Hop/Item buttons ≥ 64 px; auto-push is on by default only for a new profile on a touch device (a stored save keeps its own choice, and it is off elsewhere), and it holds off through READY and takes over at SCRUB!;
 HUD rearranged in portrait; phones default to Low detail and Authentic resolution.
 
 ## 10. Performance budgets
