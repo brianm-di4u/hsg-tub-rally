@@ -244,7 +244,7 @@ export const tests = [
       t.equal(s.screen, 'results', 'still on the results');
       t.equal(s.race.seed, before.race.seed, 'and no race was started again');
       // once the screen has been up a while, a fresh press and release works as it always did
-      await t.page.waitForFunction(() => { window.__t0 ||= performance.now(); return performance.now() - window.__t0 > 800; }, null, { timeout: 8000 });
+      await t.page.waitForFunction(() => window.__game.getState().screenMs > 800, null, { timeout: 8000 });
       await t.page.keyboard.down('Space'); await t.page.keyboard.up('Space');
       await t.page.waitForFunction(() => window.__game.getState().screen !== 'results', null, { timeout: 8000 });
       t.expect((await t.state()).screen !== 'results', 'a later single press and release presses the focused button');
@@ -267,7 +267,7 @@ export const tests = [
       });
       t.equal(early.screen, 'title', 'the title is up');
       t.expect(early.down && early.up, 'Space keys straight after it appears are cancelled: ' + JSON.stringify(early));
-      await t.page.waitForFunction(() => { window.__t1 ||= performance.now(); return performance.now() - window.__t1 > 800; }, null, { timeout: 8000 });
+      await t.page.waitForFunction(() => window.__game.getState().screenMs > 800, null, { timeout: 8000 });
       const late = await t.page.evaluate(() => {
         const down = new KeyboardEvent('keydown', { code: 'Space', key: ' ', cancelable: true, bubbles: true });
         const up = new KeyboardEvent('keyup', { code: 'Space', key: ' ', cancelable: true, bubbles: true });
@@ -277,7 +277,7 @@ export const tests = [
       t.expect(!late.down && !late.up, 'and Space keys after the first half second are left to the focused button: ' + JSON.stringify(late));
       // a screen that redraws itself (a chip pressed in Settings) does not start the half second again
       await t.game('scene', 'settings'); await t.waitFrames(2);
-      await t.page.waitForFunction(() => { window.__t2 ||= performance.now(); return performance.now() - window.__t2 > 800; }, null, { timeout: 8000 });
+      await t.page.waitForFunction(() => window.__game.getState().screenMs > 800, null, { timeout: 8000 });
       const redraw = await t.page.evaluate(() => {
         window.__game.act('menu', 'set', { k: 'hudScale', v: '1' });
         const down = new KeyboardEvent('keydown', { code: 'Space', key: ' ', cancelable: true, bubbles: true });

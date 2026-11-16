@@ -132,13 +132,17 @@ export const tests = [
     name: 'council D P-N03: Space presses the focused button in menus, and is still Hop in a race',
     viewports: ['desktop'],
     async run(t) {
+      // C4-09: a Space in the first half second of a new screen is held back, so each press waits for the screen to be that old
+      const aged = () => t.page.waitForFunction(() => window.__game.getState().screenMs > 650, null, { timeout: 4000 });
       await freshProfile(t);
       await t.game('scene', 'title'); await t.waitFrames(3);
       await t.page.focus('[data-act="settings"]');
+      await aged();
       await t.page.keyboard.press('Space');
       await t.page.waitForFunction(() => document.body.dataset.screen === 'settings', null, { timeout: 4000 });
       // a settings chip toggles with Space as it does with Enter
       const chip = await t.page.evaluate(() => { const c = document.querySelector('.panel.settings button.chip[aria-pressed="false"]'); c.focus(); return { act: c.dataset.act, k: c.dataset.k || '', v: c.dataset.v }; });
+      await aged();
       await t.page.keyboard.press('Space');
       await t.page.waitForFunction((c) => { const e = Array.from(document.querySelectorAll('.panel.settings button.chip')).find((x) => x.dataset.act === c.act && (x.dataset.k || '') === c.k && x.dataset.v === c.v); return e && e.getAttribute('aria-pressed') === 'true'; }, chip, { timeout: 4000 }).catch(() => t.fail('Space did not press the focused chip ' + JSON.stringify(chip)));
       // the event is left alone with a menu open, and taken as Hop in a race
@@ -154,6 +158,7 @@ export const tests = [
       // the pause menu: Space presses Resume
       await t.page.keyboard.press('Escape');
       await t.page.waitForFunction(() => document.body.dataset.screen === 'pause', null, { timeout: 4000 });
+      await aged();
       await t.page.keyboard.press('Space');
       await t.page.waitForFunction(() => !document.body.dataset.screen, null, { timeout: 4000 });
     },
