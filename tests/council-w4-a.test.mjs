@@ -258,6 +258,10 @@ export const tests = [
     viewports: ['desktop'],
     async run(t) {
       await t.waitIdle(8000);
+      // The first key of a visit starts the audio, which can take longer than the half second: do that first, with a
+      // key that is not Space, so the timing below does not depend on how slow the start-up is.
+      await t.page.keyboard.press('Shift');
+      await t.page.waitForFunction(() => window.__game.getState().audio.ctx === 'running', null, { timeout: 8000 });
       await t.game('scene', 'settings'); await t.waitFrames(2);
       // In one page call, so the half second cannot pass between the screen and the key: whether the browser's own
       // key handling is stopped (a cancelled Space key does not press the focused button).
