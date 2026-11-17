@@ -110,7 +110,7 @@ export const tests = [
 
   // ---------------------------------------------------------------- S3-10
   {
-    name: 'council W4C S3-10: the standings show the gap to the leader and what winning the cup takes',
+    name: 'council W4C S3-10: the standings show the gap to the leader and what it takes to catch them',
     viewports: ['desktop', 'mobile'],
     async run(t) {
       await t.waitIdle(8000);
@@ -122,7 +122,7 @@ export const tests = [
       t.expect((await text(t, '.panel.standings thead th')).includes('Gap'), 'the column is named');
       const body = await text(t, '.panel.standings p');
       const leader = TEAMS.find((x) => x.id === IDS[0]).name;
-      t.expect(body.includes('To win the cup, outscore ' + leader + ' by more than 12 points over the last 2 races.'), 'the line for the cup: ' + body);
+      t.expect(body.includes('To catch ' + leader + ', outscore them by more than 12 points over the last 2 races.'), 'the line for the cup: ' + body);
       await shot(t, 'S3-10', 'standings');
       await t.checkLayout({ allowScrollY: true });
       await show(rows.map((r, i) => ({ ...r, human: i === 1 })), 3, 4); await t.waitFrames(2);

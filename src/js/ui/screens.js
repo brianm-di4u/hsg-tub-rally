@@ -167,8 +167,8 @@ function cupStanding(rows, round, rounds) {
   if (me < 0 || !left) return '';
   const state = me === 0 ? (rows[1] ? `You lead by ${pts(rows[0].points - rows[1].points)}.` : 'You lead.') : `You are ${pts(rows[0].points - rows[me].points)} behind the leader.`;
   const podium = me > 2 && rows[2] ? ` Third place has ${rows[2].points}.` : '';
-  // S3-10: what winning the cup takes from here (a tie on points goes to the tickets, so it has to be more than the gap)
-  const win = me > 0 ? ` To win the cup, outscore ${TEAM_BY_ID[rows[0].team].name} by more than ${pts(rows[0].points - rows[me].points)} over the last ${left === 1 ? 'race' : left + ' races'}.` : '';
+  // S3-10: what winning the cup takes from here (a tie on points goes to the tickets, so it has to be more than the gap; it is the gap to the leader, and a team further back must also pass those between)
+  const win = me > 0 ? ` To catch ${TEAM_BY_ID[rows[0].team].name}, outscore them by more than ${pts(rows[0].points - rows[me].points)} over the last ${left === 1 ? 'race' : left + ' races'}.` : '';
   return `<p class="clean-note" role="status">${state}${podium}${win} ${left} ${left === 1 ? 'race' : 'races'} to go: the top three win a Faucet trophy.</p>`;
 }
 
