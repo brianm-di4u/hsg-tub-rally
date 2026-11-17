@@ -220,8 +220,8 @@ export const tests = [
       await t.game('newGame', { mode: 'quick', track: 'bathhouse-row', count: 8, paused: true, team: 'engine-six', classId: 'soak', seed: 5 });
       await t.waitFrames(3);
       await t.game('setState', { kart: { tickets: 3 } }); await t.waitFrames(3);
-      // the size a label is painted at: its own font size times the scale its HUD block is drawn with
-      const painted = (sel, block) => t.page.evaluate(([s, b]) => { const e = document.querySelector(s), box = document.querySelector(b); const k = box.getBoundingClientRect().width / box.offsetWidth; return +(parseFloat(getComputedStyle(e).fontSize) * k).toFixed(2); }, [sel, block]);
+      // the size a label is painted at: its own font size times the scale its HUD block is drawn with (the block's transform, exact; the old width ratio read 13.98 once Jost made the block a fractional width)
+      const painted = (sel, block) => t.page.evaluate(([s, b]) => { const e = document.querySelector(s), box = document.querySelector(b); const k = new DOMMatrix(getComputedStyle(box).transform).a; return +(parseFloat(getComputedStyle(e).fontSize) * k).toFixed(2); }, [sel, block]);
       const pip = await painted('.hud-pips .pip em', '.hud-bl'), tk = await painted('.hud-item .tk-l', '.hud-item');
       if (t.viewport === 'mobile') {
         t.expect(pip >= 14, 'pip label painted at ' + pip + ' px');
