@@ -26,7 +26,7 @@ export class Governor {
     this.climbed = false; this.locked = false; this.last = null; this.beginRace();
   }
   // a new race starts counting from nothing
-  beginRace() { this.windows = 0; this.worst = 0; this.cpu = 0; this.sealed = false; }
+  beginRace() { this.wasRacing = false; this.windows = 0; this.worst = 0; this.cpu = 0; this.sealed = false; }
   // the race is over: keep what it measured for the next scene to read
   endRace() { if (!this.sealed) { this.sealed = true; this.last = { windows: this.windows, worst: this.worst, cpu: this.cpu }; } }
   // Between races only: the tier to build the next scene at, or null. One step at a time, never above the tier the
@@ -40,14 +40,18 @@ export class Governor {
     this.tier = ORDER[at + 1]; this.climbed = true; this.slow = 0;
     return this.tier;
   }
-  // returns a new tier name when it decides to step down, else null
-  frame(dt, active, cpuMs = 0) {
+  // returns a new tier name when it decides to step down, else null. The racing flag is false through the countdown: those
+  // frames still count towards a step down, but not towards the windows a climb needs (K-06), and the stretch that
+  // was running when the race began is dropped so no window mixes the two.
+  frame(dt, active, cpuMs = 0, racing = true) {
     if (!this.auto || !active || dt > 0.2 || dt <= 0) return null;
+    if (racing && !this.wasRacing) { this.acc = 0; this.n = 0; }
+    this.wasRacing = racing;
     this.acc += dt; this.n++;
     if (this.acc < 2) return null;
     const avg = this.acc / this.n;
     this.acc = 0; this.n = 0;
-    this.windows++; this.worst = Math.max(this.worst, avg); this.cpu = Math.max(this.cpu, cpuMs || 0);
+    if (racing) { this.windows++; this.worst = Math.max(this.worst, avg); this.cpu = Math.max(this.cpu, cpuMs || 0); }
     this.slow = avg > 0.024 ? this.slow + 1 : 0;
     if (this.slow >= 2 && this.tier !== 'low') {
       this.tier = this.tier === 'high' ? 'medium' : 'low';

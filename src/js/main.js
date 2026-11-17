@@ -1007,7 +1007,7 @@ function frameStep(t) {
     drawRace(r, alpha, dt);
     skipPrompt();
     audioFrame(r, dt, !App.paused && !App.testPaused && !(App.resumeT > 0));
-    const down = App.governor.frame(dt, !App.paused && !App.testPaused, App.cpuMs);
+    const down = App.governor.frame(dt, !App.paused && !App.testPaused, App.cpuMs, r.phase !== 'countdown');
     if (r.phase === 'done') App.governor.endRace();
     if (down) stepTierDown(down);
   } else {

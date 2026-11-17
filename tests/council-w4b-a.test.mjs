@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { DEFAULT_SAVE } from '../src/js/save.js';
 import { TEAMS } from '../src/js/data/teams.js';
+import { Governor, CLIMB } from '../src/js/gfx/tiers.js';
 
 const KEY = 'hsg-tub-rally-v1', CUP = 'hsg-tub-rally-cup-v1';
 const SHOTS = '../_council/hsg-tub-rally/wave-4b/shots';
@@ -101,5 +102,62 @@ tests.push({
       }
       await t.checkLayout({ allowScrollY: true });
     }
+  },
+});
+
+// ---------------------------------------------------------------- K-06
+tests.push({
+  name: 'council W4B K-06: the countdown\'s frames do not count towards the windows a quality climb needs, and still count towards a step down',
+  node: true,
+  run() {
+    const g = new Governor('medium', true);
+    g.tier = 'low'; g.beginRace();
+    // 16 s of countdown (at a smooth 60 frames a second), then 2 s of racing
+    for (let i = 0; i < 16 * 60; i++) g.frame(1 / 60, true, 1, false);
+    for (let i = 0; i < 2 * 60; i++) g.frame(1 / 60, true, 1, true);
+    g.endRace();
+    assert.ok(g.last.windows <= 1, 'the countdown added no windows: ' + JSON.stringify(g.last));
+    assert.equal(g.climb(true), null, 'a race that is mostly countdown does not qualify');
+    // the same race with 16 s of racing does
+    g.beginRace();
+    for (let i = 0; i < 4 * 60; i++) g.frame(1 / 60, true, 1, false);
+    for (let i = 0; i < CLIMB.windows * 2 * 60 + 30; i++) g.frame(1 / 60, true, 1, true);
+    g.endRace();
+    assert.ok(g.last.windows >= CLIMB.windows, 'racing frames are counted: ' + JSON.stringify(g.last));
+    assert.equal(g.climb(true), 'medium', 'a full race after a short countdown qualifies');
+    // a slow countdown does not spoil the record of a smooth race
+    const h = new Governor('medium', true); h.tier = 'low'; h.beginRace();
+    for (let i = 0; i < 3 * 30; i++) h.frame(1 / 30, true, 9, false);
+    for (let i = 0; i < CLIMB.windows * 2 * 60 + 30; i++) h.frame(1 / 60, true, 1, true);
+    h.endRace();
+    assert.ok(h.last.worst < CLIMB.slowest && h.last.cpu <= CLIMB.cpuMs, 'the slow countdown is not in the record: ' + JSON.stringify(h.last));
+    // slow frames in the countdown still step the tier down, as before
+    const d = new Governor('medium', true); d.beginRace();
+    let drop = null; for (let i = 0; i < 6 * 30; i++) drop = d.frame(1 / 30, true, 1, false) || drop;
+    assert.equal(drop, 'low', 'a slow countdown still steps down');
+  },
+});
+
+tests.push({
+  name: 'council W4B K-06: in the game, the governor counts no window while the READY countdown runs',
+  viewports: ['desktop'],
+  async run(t) {
+    await t.waitIdle(8000);
+    await t.game('setState', { settings: { quality: 'auto' } });
+    await t.game('newGame', { track: 'bathhouse-row', team: 'engine-six', laps: 1, seed: 4 });
+    const seen = await t.page.evaluate(() => new Promise((res, rej) => {
+      const A = window.TR_APP.App; let max = 0, frames = 0, tries = 0;
+      const f = () => {
+        const ph = window.__game.getState().race.phase;
+        if (ph === 'countdown') { max = Math.max(max, A.governor.windows); frames++; }
+        else return res({ max, frames, phase: ph });
+        if (++tries > 3000) return rej(new Error('the countdown never ended'));
+        requestAnimationFrame(f);
+      };
+      f();
+    }));
+    t.expect(seen.frames > 0, 'the countdown was watched: ' + JSON.stringify(seen));
+    t.equal(seen.max, 0, 'no window was counted during the countdown');
+    t.equal(seen.phase, 'race', 'and the race then started');
   },
 });
