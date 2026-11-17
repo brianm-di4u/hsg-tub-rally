@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { DEFAULT_SAVE } from '../src/js/save.js';
+import { TEAMS } from '../src/js/data/teams.js';
 
 const KEY = 'hsg-tub-rally-v1', CUP = 'hsg-tub-rally-cup-v1';
 const SHOTS = '../_council/hsg-tub-rally/wave-4b/shots';
@@ -64,5 +65,41 @@ tests.push({
     t.expect(!!facts, 'the line with Visit Hot Springs, Stueart Pennington, the town and 2006 is still there');
     await t.checkLayout({ allowScrollY: true });
     await shot(t, 'K-03', 'credits');
+  },
+});
+
+// ---------------------------------------------------------------- K-04
+// the room between the last line of the team text and the top of the studs on the pinned buttons, with the panel scrolled to the end
+const clearance = (t, id) => t.page.evaluate(async (tid) => {
+  document.querySelector('.tcard[data-id="' + tid + '"]').click();
+  await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  const p = document.querySelector('.panel.teams'), info = p.querySelector('.team-info'), btn = p.querySelector(':scope > .menu.row .mbtn');
+  p.scrollTop = p.scrollHeight;
+  const last = [...info.querySelectorAll('p, h3, .stat-note')].reduce((m, e) => Math.max(m, e.getBoundingClientRect().bottom), 0);
+  const stud = parseFloat(getComputedStyle(btn, '::before').height) || 0;
+  return { gap: Math.round((btn.getBoundingClientRect().top - stud - last) * 10) / 10, scrolls: p.scrollHeight > p.clientHeight + 1, locked: /unlock/i.test(info.textContent) };
+}, id);
+const MIN_GAP = 8; // px of clear space between the caption's last line and the top of the studs
+tests.push({
+  name: 'council W4B K-04: the last line of the team text clears the studs of the pinned buttons by 8 px, for an open and a locked team, on a phone and a desktop',
+  viewports: ['desktop', 'mobile'],
+  async run(t) {
+    await t.waitIdle(8000);
+    const sv = DEFAULT_SAVE(); sv.settings.seenIntro = true;
+    await t.page.evaluate(([k, v]) => localStorage.setItem(k, JSON.stringify(v)), [KEY, sv]);
+    await t.reload(); await t.waitIdle(8000);
+    await t.game('scene', 'title'); await t.waitFrames(2);
+    await t.game('act', 'menu', 'quick'); await t.waitFrames(3);
+    const open = TEAMS.find((x) => x.unlocked).id, lock = TEAMS.find((x) => !x.unlocked).id;
+    const sizes = t.viewport === 'mobile' ? [[390, 844], [360, 640], [844, 390], [667, 375]] : [[1280, 800]];
+    for (const [w, h] of sizes) {
+      await t.page.setViewportSize({ width: w, height: h }); await t.waitFrames(3);
+      for (const [what, id] of [['open', open], ['locked', lock]]) {
+        const c = await clearance(t, id);
+        t.expect(c.gap >= MIN_GAP, w + 'x' + h + ' ' + what + ': ' + c.gap + ' px clear of the studs');
+        if (w === 390 || w === 844 || w === 1280) await shot(t, 'K-04', what + '-' + w);
+      }
+      await t.checkLayout({ allowScrollY: true });
+    }
   },
 });

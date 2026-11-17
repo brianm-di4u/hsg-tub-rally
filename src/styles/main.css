@@ -199,6 +199,8 @@ body:not(.touch-on) .set-row.touch-only { display: none; }
 .stat span { width: 78px; }
 .stat i { flex: 1; height: 12px; border: 2px solid var(--ink); border-radius: 6px; background: rgba(0,0,0,0.35); overflow: hidden; }
 .stat-note { margin: 6px 0 0; font: 600 12px var(--font-ui); opacity: 0.85; }
+/* K-04: room under the caption, so its last line stays clear of the studs on the pinned buttons */
+.team-info { padding-bottom: 8px; }
 .stat b { display: block; height: 100%; background: linear-gradient(90deg, var(--gold), #FFE7A8); }
 .card-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; width: 100%; }
 .ccard { display: flex; flex-direction: column; gap: 6px; padding: 14px; min-height: 120px; border-radius: 14px; border: 3px solid var(--ink); background: linear-gradient(180deg, var(--lake) 0%, var(--lake-deep) 100%); color: #fff; text-align: left; cursor: pointer; font: 600 14px/1.35 var(--font-ui); }
