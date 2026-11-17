@@ -47,3 +47,22 @@ export const tests = [
     },
   },
 ];
+
+// ---------------------------------------------------------------- K-03
+tests.push({
+  name: 'council W4B K-03: no two Credits lines open with the same words, the owner\'s notice is untouched, and the older facts are kept',
+  viewports: ['desktop', 'mobile'],
+  async run(t) {
+    await t.waitIdle(8000);
+    await t.game('scene', 'title'); await t.waitFrames(2);
+    await t.game('act', 'menu', 'credits'); await t.waitFrames(3);
+    const lis = await t.page.evaluate(() => [...document.querySelectorAll('.panel.help li')].map((l) => l.textContent));
+    const opens = lis.map((l) => l.split(/\s+/).slice(0, 4).join(' ').toLowerCase());
+    t.equal(new Set(opens).size, opens.length, 'every line opens differently: ' + JSON.stringify(opens));
+    t.expect(lis.includes('Inspired by the World Championship Running of the Tubs, held each June on Central Avenue. Fictional teams; not affiliated with the event or any business shown.'), 'the owner\'s notice, word for word');
+    const facts = lis.find((l) => /Visit Hot Springs/.test(l) && /Stueart Pennington/.test(l) && /Hot Springs, Arkansas/.test(l) && /2006/.test(l));
+    t.expect(!!facts, 'the line with Visit Hot Springs, Stueart Pennington, the town and 2006 is still there');
+    await t.checkLayout({ allowScrollY: true });
+    await shot(t, 'K-03', 'credits');
+  },
+});
