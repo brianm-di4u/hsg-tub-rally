@@ -543,7 +543,7 @@ function showSaveStatus() {
     App.newerScreen = App.screens.cur;
   }
   const p = document.createElement('p');
-  p.className = 'sub'; p.dataset.saveStatus = ''; p.setAttribute('role', 'status');
+  p.className = 'sub long'; p.dataset.saveStatus = ''; p.setAttribute('role', 'status');
   p.textContent = App.saveError;
   if (App.saveProblem === 'damaged') {
     const b = document.createElement('button');

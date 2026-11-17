@@ -283,7 +283,7 @@ const TEMPLATES = {
   help: (app) => `
 <div class="panel help" role="dialog" aria-label="How to play">
 <canvas data-pixel="HOW TO PLAY" data-scale="5"></canvas>
-<p class="sub">Goal: cross the line first, with 10 gallons or more. Slide through turns for steam boosts.</p>
+<p class="sub long">Goal: cross the line first, with 10 gallons or more. Slide through turns for steam boosts.</p>
 <div class="help-cols">
 ${driveHelp(app.helpAll, app.save.settings.lefty)}
 <section><h3>The start</h3><ul>
@@ -350,7 +350,7 @@ ${rivalsHelp()}
   replaceCup: (app, { id, keptName, done, of, newName }) => `
     <div class="panel replace" role="alertdialog" aria-label="Start a new cup?" aria-describedby="rc-msg">
       <canvas data-pixel="NEW CUP?" data-scale="5"></canvas>
-      <p class="sub" id="rc-msg">Your ${keptName} is waiting after race ${done} of ${of}. Starting ${keptName === newName ? 'it again' : 'the ' + newName} replaces it.</p>
+      <p class="sub long" id="rc-msg">Your ${keptName} is waiting after race ${done} of ${of}. Starting ${keptName === newName ? 'it again' : 'the ' + newName} replaces it.</p>
       <nav class="menu row">${btn('back', 'Keep my cup', 'autofocus data-back')}${btn('cupNew', 'Start new cup', `data-id="${id}"`)}</nav>
     </div>`,
   courses: (app, { list, trial }) => { const cid = CLASSES[app.flow && app.flow.classId] ? app.flow.classId : CLASSES[app.save.lastClass] ? app.save.lastClass : 'soak'; return `
@@ -403,7 +403,7 @@ ${rivalsHelp()}
   rowResult: (app, { results, title, msg, next }) => `
     <div class="panel results" role="dialog" aria-label="Heat result">
       <canvas data-pixel="${title}" data-scale="5"></canvas>
-      <p class="sub">${msg}</p>
+      <p class="sub long">${msg}</p>
       <table class="rtable"><thead><tr><th>#</th><th>Team</th><th>Time</th><th>Water</th><th>Items</th><th></th></tr></thead><tbody>
       ${results.map((r) => `<tr class="${r.human ? 'me' : ''}"><td>${r.dq ? '–' : r.place}</td><td><span class="sw" style="background:${TEAM_BY_ID[r.team].colors.tub}"></span>${TEAM_BY_ID[r.team].name}${r.human ? ' (you)' : ''}</td><td>${r.time != null ? fmtTime(r.time) : '–'}</td><td>${r.gal.toFixed(0)} gal</td><td>${r.items}/4</td><td>${r.dq ? `<b class="dq">DQ: ${r.dq}</b>` : ''}</td></tr>`).join('')}
       </tbody></table>

@@ -619,7 +619,7 @@ body.clock-frozen *, body.clock-frozen *::before, body.clock-frozen *::after { t
    says 600 and nothing is a synthesised bold. Small print and long paragraphs keep the system stack. */
 .mbtn, .chip, .tcard b, .ccard b, .help-cols h3, .set-row > span, .sub, .rtable, .hud-time, .pip, .hud-warn, .hud-par, .hud-call,
 .hud-task .t-name, .hud-skip, .hud-item .tickets, .tb, .t-pause { font-family: "Jost", var(--font-ui); font-weight: 600; }
-.mbtn .cls-how { font-family: var(--font-ui); font-weight: 700; }
+.mbtn .cls-how, .sub.long { font-family: var(--font-ui); font-weight: 700; }
 /* the title's one line of notice: set like the tagline, not in a box (the full notice is on Credits) */
 .title-note { margin: 0; max-width: 560px; text-align: center; font: 700 14px/1.35 var(--font-ui); color: #fff; text-shadow: -1px -1px 0 var(--ink), 1px -1px 0 var(--ink), -1px 1px 0 var(--ink), 1px 1px 0 var(--ink); text-wrap: balance; }
 @media (max-height: 500px) and (min-aspect-ratio: 1/1) { .title-note { flex-basis: 100%; font-size: 12px; max-width: 90vw; } }
