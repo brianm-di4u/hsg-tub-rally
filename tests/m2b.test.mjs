@@ -87,10 +87,10 @@ tests.push({
   },
   async run(t) {
     await t.waitIdle(8000);
-    await t.game('newGame', { seed: 9 });
+    // stepped by the tick, not by the clock: the same ticks on every run, and the wait is for the speed itself
+    await t.game('newGame', { seed: 9, paused: true });
     await t.game('act', 'skipCountdown');
-    await t.page.waitForTimeout(1500);
-    const s = await t.state();
+    const s = await t.stepUntil((st) => st.race.karts[st.race.player].vf > 3, { max: 600, label: 'the tub pushed to a speed above 3' });
     const k = s.race.karts[s.race.player];
     t.expect(k.vf > 3, `gamepad A pushes the tub (vf ${k.vf})`);
   },
