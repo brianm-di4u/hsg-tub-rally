@@ -12,8 +12,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const GAME = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-// Benchmark screenshots (git-ignored): the workspace's shared reference/benchmarks/racing/, else benchmarks/ here.
-const BENCH = [path.resolve(GAME, '..', '..', 'reference', 'benchmarks', 'racing'), BENCH].find((d) => fs.existsSync(d)) || BENCH;
+// Shared workspace material (reference/, research/): $HSG_WORKSPACE, else this repo's grandparent (the workspace root when
+// the repo sits in <workspace>/repos/).
+const WORKSPACE = process.env.HSG_WORKSPACE || path.resolve(GAME, '..', '..');
+// Benchmark screenshots (git-ignored): <workspace>/reference/benchmarks/racing/, else benchmarks/ here.
+const LOCAL_BENCH = path.join(GAME, 'benchmarks');
+const BENCH = [path.join(WORKSPACE, 'reference', 'benchmarks', 'racing'), LOCAL_BENCH].find((d) => fs.existsSync(d)) || LOCAL_BENCH;
 const REL = 'repos/hsg-tub-rally';
 const args = process.argv.slice(2);
 const N = +args.find((a) => /^\d+$/.test(a));

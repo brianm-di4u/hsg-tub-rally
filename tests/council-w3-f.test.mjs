@@ -5,7 +5,7 @@ import { DEFAULT_SAVE } from '../src/js/save.js';
 import { CLASSES, TEAMS } from '../src/js/data/teams.js';
 import { ChaseCam, CROWD_LIFT } from '../src/js/gfx/camera.js';
 
-const SHOTS = '../_council/hsg-tub-rally/wave-3/shots';
+const SHOTS = 'screenshots/council/wave-3/shots';
 const KEY = 'hsg-tub-rally-v1';
 const shot = async (t, id, what) => { await t.shot(`w3f-${id}-${what}`); fs.mkdirSync(SHOTS, { recursive: true }); await t.page.screenshot({ path: `${SHOTS}/${id}-${what}-${t.viewport === 'mobile' ? 'mobile' : 'desktop'}.png` }); };
 const setSave = (t, s) => t.page.evaluate(([k, v]) => localStorage.setItem(k, JSON.stringify(v)), [KEY, s]);

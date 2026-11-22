@@ -6,7 +6,7 @@ import { createSaveWriter, DEFAULT_SAVE, bestFor, bestEntries } from '../src/js/
 import { TEAMS } from '../src/js/data/teams.js';
 import { ODDS } from '../src/js/sim/items.js';
 
-const SHOTS = '../_council/hsg-tub-rally/wave-4/shots';
+const SHOTS = 'screenshots/council/wave-4/shots';
 const KEY = 'hsg-tub-rally-v1';
 const shot = async (t, id, what) => { fs.mkdirSync(SHOTS, { recursive: true }); await t.page.screenshot({ path: `${SHOTS}/${id}-${what}-${t.viewport === 'mobile' ? 'mobile' : 'desktop'}.png` }); };
 const setSave = (t, s) => t.page.evaluate(([k, v]) => localStorage.setItem(k, JSON.stringify(v)), [KEY, s]);

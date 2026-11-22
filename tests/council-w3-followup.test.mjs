@@ -9,7 +9,7 @@ import '../assets/teach.js';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TEACH = globalThis.TR_TEACH;
 const KEY = 'hsg-tub-rally-v1';
-const SHOTS = '../_council/hsg-tub-rally/wave-3/shots';
+const SHOTS = 'screenshots/council/wave-3/shots';
 const shot = async (t, id, what) => { await t.shot(`w3fu-${id}-${what}`); fs.mkdirSync(SHOTS, { recursive: true }); await t.page.screenshot({ path: `${SHOTS}/${id}-${what}-${t.viewport === 'mobile' ? 'mobile' : 'desktop'}.png` }); };
 const helpText = (t) => t.page.evaluate(() => document.querySelector('.panel.help')?.innerText || '');
 

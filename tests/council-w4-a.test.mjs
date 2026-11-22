@@ -8,7 +8,7 @@ import { Track } from '../src/js/sim/track.js';
 import { makeRace, stepRace, DT } from '../src/js/sim/race.js';
 
 const KEY = 'hsg-tub-rally-v1', CUP = 'hsg-tub-rally-cup-v1';
-const SHOTS = '../_council/hsg-tub-rally/wave-4/shots';
+const SHOTS = 'screenshots/council/wave-4/shots';
 const shot = async (t, id, what) => { fs.mkdirSync(SHOTS, { recursive: true }); await t.page.screenshot({ path: `${SHOTS}/${id}-${what}-${t.viewport === 'mobile' ? 'mobile' : 'desktop'}.png` }); };
 // a valid v1 save, written as a newer build would: a higher version and a field this build has never seen
 const newerSave = (v = 2) => JSON.stringify({ ...DEFAULT_SAVE(), v, future: { thing: [1, 2, 3] }, stats: { races: 41, wins: 9, gallonsSpilled: 12.5, bestStreak: 3 } });

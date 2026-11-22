@@ -2,7 +2,7 @@
 // Sound is measured, not heard: audioRender() renders a piece or cue offline at the shipped volume.
 import fs from 'node:fs';
 
-const SHOTS = '../_council/hsg-tub-rally/wave-2/measure';
+const SHOTS = 'screenshots/council/wave-2/measure';
 const render = (t, name, secs, wav, args) => t.page.evaluate(([n, s, w, a]) => window.__game.audioRender(n, s, w, a), [name, secs, !!wav, args || []]);
 const strip = (r) => ({ peak: r.peak, rms: r.rms, peakDb: r.peakDb, rmsDb: r.rmsDb, longestSilence: r.longestSilence, stereo: r.stereo });
 const unlock = async (t) => { await t.waitIdle(8000); await t.page.keyboard.press('Shift'); await t.page.waitForFunction(() => window.__game.getState().audio.ctx === 'running', null, { timeout: 5000 }); };
@@ -34,6 +34,7 @@ export const tests = [
         out[c].peaks = peaks;
         t.expect(peaks.every((x) => x >= lo && x <= hi), `cue ${c} peaks ${peaks.join(', ')} (want ${lo} to ${hi})`);
       }
+      fs.mkdirSync(SHOTS, { recursive: true });
       fs.writeFileSync(`${SHOTS}/cues.json`, JSON.stringify(out, null, 1));
     },
   },
@@ -54,6 +55,7 @@ export const tests = [
         out['mix:' + m] = strip(mix);
         t.expect(mix.peak < 0.95, `${m} with the loudest cues peaks ${mix.peak}`);
       }
+      fs.mkdirSync(SHOTS, { recursive: true });
       fs.writeFileSync(`${SHOTS}/music.json`, JSON.stringify(out, null, 1));
     },
   },
@@ -159,6 +161,7 @@ export const tests = [
       t.expect(track[0][2] <= 270 && track[track.length - 1][2] >= 800, 'tone climbs from ' + track[0][2] + ' to ' + track[track.length - 1][2] + ' Hz');
       const early = centroid(r.wav, 0.5), late = centroid(r.wav, 5.0);
       t.expect(late > early * 1.4, 'spectral centroid rises with the charge: ' + Math.round(early) + ' Hz to ' + Math.round(late) + ' Hz');
+      fs.mkdirSync(SHOTS, { recursive: true });
       fs.writeFileSync(SHOTS + '/slide-loop.json', JSON.stringify({ ...strip(r), centroidStart: Math.round(early), centroidEnd: Math.round(late), toneStart: track[0][2], toneEnd: track[track.length - 1][2] }, null, 1));
       const hot = await render(t, 'cue:charge', 1, false, [2]), warm = await render(t, 'cue:charge', 1, false, [1]);
       t.expect(warm.peak >= 0.2 && hot.peak >= 0.2, 'stage ticks are audible: ' + warm.peak + ', ' + hot.peak);
@@ -213,6 +216,7 @@ export const tests = [
       t.expect(swish[0].balance <= -0.4 && swish[1].balance >= 0.4 && swish.every((x) => x.peak >= 0.15 && x.peak <= 0.45), 'the swish is panned: ' + swish.map((x) => x.balance + ' / ' + x.peak));
       const pc = await render(t, 'cue:bump@0.5', 1.5, false, [10]);
       t.expect(pc.balance > 0.2, 'a panned cue comes from its side: ' + pc.balance);
+      fs.mkdirSync(SHOTS, { recursive: true });
       fs.writeFileSync(SHOTS + '/rivals.json', JSON.stringify({ left: strip(left), right: strip(right), at12: strip(mid), at24: strip(edge), at26: strip(gone), at2: strip(near), swishLeft: strip(swish[0]), swishRight: strip(swish[1]) }, null, 1));
     },
   },
