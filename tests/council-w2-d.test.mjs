@@ -159,7 +159,10 @@ export const tests = [
       await fresh(t);
       // the course card shows the targets and, once there is a run, the medal and best lap
       await t.game('act', 'menu', 'timetrial'); await t.waitFrames(3);
-      await t.game('act', 'menu', 'teamOk'); await t.waitFrames(3);
+      await t.game('act', 'menu', 'teamOk');
+      // the course screen opens once the staff ghosts have loaded (ensurePar), which can take more than a few frames
+      await t.page.waitForFunction(() => window.__game.getState().screen === 'courses', null, { timeout: 15000 }).catch(() => {});
+      await t.waitFrames(3);
       t.equal((await t.state()).screen, 'courses', 'the course screen is up');
       const card = () => t.page.evaluate(() => { const c = document.querySelector('.courses [data-id="bathhouse-row"]'); return c ? c.textContent.replace(/\s+/g, ' ').trim() : ''; });
       let txt = await card();
