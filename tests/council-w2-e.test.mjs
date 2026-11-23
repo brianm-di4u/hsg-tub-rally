@@ -13,7 +13,7 @@ import '../assets/teach.js';
 
 const TEACH = globalThis.TR_TEACH;
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const SHOTS = '../_council/hsg-tub-rally/wave-2/shots';
+const SHOTS = 'screenshots/council/wave-2/shots';
 const KEY = 'hsg-tub-rally-v1';
 const shot = async (t, name) => { await t.shot(name); fs.mkdirSync(SHOTS, { recursive: true }); await t.page.screenshot({ path: `${SHOTS}/${name}-${t.viewport}.png` }); };
 const COURSES = TRACKS.filter((x) => !x.arena && fs.existsSync(path.join(ROOT, 'data', 'tracks', x.id + '.json'))).map((x) => x.id);

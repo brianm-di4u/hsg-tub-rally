@@ -16,8 +16,10 @@ import { fileURLToPath } from 'node:url';
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 // Raw geodata (git-ignored, refetched by tools/geo/fetch.mjs). In the Hot Springs Games workspace it is shared:
 // reference/geo/city/ holds the OSM and GNIS downloads, reference/geo/elevation/ the 3DEP DEM tiles the trivia board
-// also uses. A checkout outside the workspace keeps both in art-src/geo/raw/. HSG_GEO_DIR overrides reference/geo.
-const GEO = process.env.HSG_GEO_DIR || path.resolve(ROOT, '..', '..', 'reference', 'geo');
+// also uses. A checkout outside the workspace keeps both in art-src/geo/raw/. HSG_GEO_DIR overrides reference/geo;
+// HSG_WORKSPACE overrides the workspace root (default: this repo's grandparent).
+export const WORKSPACE = process.env.HSG_WORKSPACE || path.resolve(ROOT, '..', '..');
+const GEO = process.env.HSG_GEO_DIR || path.join(WORKSPACE, 'reference', 'geo');
 const SHARED = fs.existsSync(GEO);
 export const RAW = SHARED ? path.join(GEO, 'city') : path.join(ROOT, 'art-src', 'geo', 'raw');
 export const DEM_DIR = SHARED ? path.join(GEO, 'elevation') : RAW;

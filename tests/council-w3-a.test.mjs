@@ -1,7 +1,7 @@
 // Wave 3, batch A: saves, lifecycle and robustness (S1-08, S2-11, S2-12, S2-25, S2-29, S3-06, S5-15, S6-16, P-N02, S1-05).
 import fs from 'node:fs';
 
-const SHOTS = '../_council/hsg-tub-rally/wave-3/shots';
+const SHOTS = 'screenshots/council/wave-3/shots';
 const KEY = 'hsg-tub-rally-v1';
 const shot = async (t, id, what) => { await t.shot(`w3a-${id}-${what}`); fs.mkdirSync(SHOTS, { recursive: true }); await t.page.screenshot({ path: `${SHOTS}/${id}-${what}-${t.viewport === 'mobile' ? 'mobile' : 'desktop'}.png` }); };
 const startRace = async (t, o = {}) => {

@@ -13,7 +13,7 @@ const withPad = (down = []) => {
   pollGamepads();
   return readIntent();
 };
-const SHOTS = '../_council/hsg-tub-rally/wave-4/shots';
+const SHOTS = 'screenshots/council/wave-4/shots';
 const shot = async (t, id, what) => { fs.mkdirSync(SHOTS, { recursive: true }); await t.page.screenshot({ path: `${SHOTS}/${id}-${what}-${t.viewport === 'mobile' ? 'mobile' : 'desktop'}.png` }); };
 const LB = 4, LT = 6, RT = 7, X = 2, B = 1;
 

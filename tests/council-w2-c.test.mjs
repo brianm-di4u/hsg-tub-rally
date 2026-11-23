@@ -11,7 +11,7 @@ import { createSaveWriter, DEFAULT_SAVE } from '../src/js/save.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DT = 1 / 60;
-const SHOTS = '../_council/hsg-tub-rally/wave-2/shots';
+const SHOTS = 'screenshots/council/wave-2/shots';
 const shot = async (t, name) => { await t.shot(name); fs.mkdirSync(SHOTS, { recursive: true }); await t.page.screenshot({ path: `${SHOTS}/${name}-${t.viewport}.png` }); };
 const track = (id) => new Track(JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'tracks', id + '.json'), 'utf8')));
 
