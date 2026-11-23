@@ -32,6 +32,19 @@ npm test               # Playwright tests (add --gpu for real WebGL, --file-url 
 
 Only `index.html`, `assets/` and `vendor/` ship to the website.
 
+## Paths outside this repo
+
+The game, its build and its tests use files inside this repo. The tools below can also use shared material from the Hot
+Springs Games workspace (`reference/`, `research/`, or a sibling checkout in `repos/`). They find the workspace through the
+`HSG_WORKSPACE` environment variable; when it is unset, the workspace is this repo's grandparent, which is right when the
+repo sits at `<workspace>/repos/<repo>`. When the workspace copy is not there, each tool falls back to a path in this repo or
+skips that step with a message.
+
+- `tools/review-prep.mjs`: benchmark screenshots from `reference/benchmarks/racing/`, else `benchmarks/` here.
+- `tools/geo/*`: raw geodata from `reference/geo/` (`HSG_GEO_DIR` still overrides it), else `art-src/geo/raw/`; `fetch.mjs` copies DEM tiles from `repos/hsg-trivia/art-src/geo/raw/` when they are there.
+- `art-src/blender/scripts/ldraw_ref.py`: the LDraw library from `reference/models/ldraw/` unless `--lib` is given.
+- Council-era tests write their extra captures to `screenshots/council/` (git-ignored).
+
 ## Layout
 | Path | What |
 |---|---|

@@ -15,7 +15,7 @@ import { dateKey, dailyPlan, nextStreak, liveStreak, betterDaily, addDays, DAILY
 
 const PAR = globalThis.TR_PAR;
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const SHOTS = '../_council/hsg-tub-rally/wave-2/shots';
+const SHOTS = 'screenshots/council/wave-2/shots';
 const KEY = 'hsg-tub-rally-v1';
 const shot = async (t, name) => { await t.shot(name); fs.mkdirSync(SHOTS, { recursive: true }); await t.page.screenshot({ path: `${SHOTS}/${name}-${t.viewport}.png` }); };
 const track = (id) => new Track(JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'tracks', id + '.json'), 'utf8')));
@@ -173,6 +173,9 @@ export const tests = [
       let st = await t.state();
       t.expect(st.par && st.par.total === PAR['bathhouse-row'].total && st.par.n > 300, 'the par ghost is loaded');
       t.expect(!st.ghost, 'a new profile has no ghost of its own yet');
+      // setPar() shows the GOLD label at once, but the tile drops its 'empty' look on the HUD's next draw (ui/hud.js update), so wait
+      // for that frame rather than reading straight after newGame (it failed now and then, more often on mobile).
+      await t.page.waitForFunction(() => { const tr = document.querySelector('.hud-tr'); return tr && !tr.classList.contains('empty'); }, null, { polling: 'raf', timeout: 3000 }).catch(() => {});
       const hud = await t.page.evaluate(() => { const e = document.querySelector('.hud-par'); return { hidden: e.hidden, text: e.textContent, tile: document.querySelector('.hud-tr').className }; });
       t.expect(!hud.hidden && hud.text === 'GOLD' && /par/.test(hud.tile) && !/empty/.test(hud.tile), 'the top-right tile names the gold target in place of the position: ' + JSON.stringify(hud));
       await t.game('act', 'skipCountdown');

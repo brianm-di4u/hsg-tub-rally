@@ -1,10 +1,10 @@
 // Wave 2, batch B: sound. S5-02 (longer music with a form, a final-lap lift, a results piece) and S5-04 (ambience).
 // Sound is measured, not heard: audioRender() renders a piece or scene offline at the shipped volume.
-// WAV previews for the owner to listen to are written to _council/hsg-tub-rally/wave-2/measure/wav/.
+// WAV previews for the owner to listen to are written to screenshots/council/wave-2/measure/wav/ (gitignored).
 import fs from 'node:fs';
 
-const OUT = '../_council/hsg-tub-rally/wave-2/measure';
-const SHOTS = '../_council/hsg-tub-rally/wave-2/shots';
+const OUT = 'screenshots/council/wave-2/measure';
+const SHOTS = 'screenshots/council/wave-2/shots';
 const render = (t, name, secs, wav, args) => t.page.evaluate(([n, s, w, a]) => window.__game.audioRender(n, s, w, a), [name, secs, !!wav, args || []]);
 const strip = (r) => ({ peak: r.peak, rms: r.rms, peakDb: r.peakDb, rmsDb: r.rmsDb, longestSilence: r.longestSilence, stereo: r.stereo, built: r.built });
 const unlock = async (t) => { await t.waitIdle(8000); await t.page.keyboard.press('Shift'); await t.page.waitForFunction(() => window.__game.getState().audio.ctx === 'running', null, { timeout: 5000 }); };
@@ -34,6 +34,7 @@ export const tests = [
         t.expect(r.built.distinctBars >= 6, `${m} has ${r.built.distinctBars} distinct bars`);
         t.expect(r.built.pitches >= 6, `${m} uses ${r.built.pitches} pitches`);
       }
+      fs.mkdirSync(OUT, { recursive: true });
       fs.writeFileSync(`${OUT}/music-w2b.json`, JSON.stringify(out, null, 1));
     },
   },
@@ -55,6 +56,7 @@ export const tests = [
         out[m].mix = strip(mix);
         t.expect(mix.peak < 0.95, `${m} with the town crowd and the loudest cues peaks ${mix.peak}`);
       }
+      fs.mkdirSync(OUT, { recursive: true });
       fs.writeFileSync(`${OUT}/music-final-lap-w2b.json`, JSON.stringify(out, null, 1));
     },
   },
@@ -95,6 +97,7 @@ export const tests = [
         const quiet = out[a + '@0'], loud = out[a + '@1'];
         if (a !== 'plaza') t.expect(loud.rms >= quiet.rms, `${a} is louder at full speed (${loud.rmsDb}) than standing (${quiet.rmsDb})`);
       }
+      fs.mkdirSync(OUT, { recursive: true });
       fs.writeFileSync(`${OUT}/ambience-w2b.json`, JSON.stringify(out, null, 1));
     },
   },

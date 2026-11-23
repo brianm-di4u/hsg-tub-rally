@@ -8,7 +8,7 @@ import { Track } from '../src/js/sim/track.js';
 import { makeRace, stepRace, DT } from '../src/js/sim/race.js';
 
 const KEY = 'hsg-tub-rally-v1', CUP = 'hsg-tub-rally-cup-v1';
-const SHOTS = '../_council/hsg-tub-rally/wave-4/shots';
+const SHOTS = 'screenshots/council/wave-4/shots';
 const shot = async (t, id, what) => { fs.mkdirSync(SHOTS, { recursive: true }); await t.page.screenshot({ path: `${SHOTS}/${id}-${what}-${t.viewport === 'mobile' ? 'mobile' : 'desktop'}.png` }); };
 // a valid v1 save, written as a newer build would: a higher version and a field this build has never seen
 const newerSave = (v = 2) => JSON.stringify({ ...DEFAULT_SAVE(), v, future: { thing: [1, 2, 3] }, stats: { races: 41, wins: 9, gallonsSpilled: 12.5, bestStreak: 3 } });
@@ -405,7 +405,11 @@ export const tests = [
         // the arrow keys never land on the hidden chips: walk the whole screen
         const seen = new Set();
         await t.page.evaluate(() => document.querySelector('.panel.settings button').focus());
-        for (let i = 0; i < 60; i++) { await t.page.keyboard.press('ArrowDown'); seen.add(await t.page.evaluate(() => { const a = document.activeElement; return a.dataset.k ? a.dataset.k + '=' + a.dataset.v : a.dataset.act || a.textContent; })); }
+        // The menu takes one step a frame (ui/screens.js nav(), fed by a flag the keydown sets), and a scripted press is far quicker than a
+        // frame, so several presses used to merge into one step. Wait for each press to move the focus before the next.
+        const focusKey = () => t.page.evaluate(() => { const a = document.activeElement; return a ? (a.dataset.k || '') + '=' + (a.dataset.v || a.dataset.act || a.textContent) : ''; });
+        const pressDown = async () => { const was = await focusKey(); await t.page.keyboard.press('ArrowDown'); await t.page.waitForFunction((w) => { const a = document.activeElement; return (a ? (a.dataset.k || '') + '=' + (a.dataset.v || a.dataset.act || a.textContent) : '') !== w; }, was, { polling: 'raf', timeout: 2000 }).catch(() => {}); };
+        for (let i = 0; i < 60; i++) { await pressDown(); seen.add(await t.page.evaluate(() => { const a = document.activeElement; return a.dataset.k ? a.dataset.k + '=' + a.dataset.v : a.dataset.act || a.textContent; })); }
         t.expect(seen.size > 10 && ![...seen].some((k) => k.startsWith('lefty')), 'the arrow keys visit every visible button and skip the hidden row: ' + seen.size);
         await t.checkLayout({ allowScrollY: true });
         await shot(t, 'C4-15', 'settings-no-touch');

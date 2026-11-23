@@ -1,0 +1,42 @@
+[
+  {
+    "test": "council A S5-20: Warm and Hot ticks and the landing thud",
+    "why": "drives a real power-slide on fixed timings that a shared runner overruns"
+  },
+  {
+    "test": "council F S4-02: the finale code touches no saved data and keeps the draw-call and frame budgets",
+    "why": "measures frame task time on the runner"
+  },
+  {
+    "test": "council A S1-08: pausing again during the hold",
+    "why": "times the resume hold on the wall clock"
+  },
+  {
+    "test": "council B S2-03: Water Fight states its goal",
+    "why": "checks the banner a second into the match on the wall clock"
+  },
+  {
+    "test": "council E S1-14: a chevron shows on the edge a threat comes from",
+    "why": "screenshots time out while the runner renders the race"
+  },
+  {
+    "test": "council E S5-06: the trophy chimes when the cup opens something new",
+    "why": "the runner's browser closes under load mid-test"
+  },
+  {
+    "test": "council F S6-07: a menu under Reduced motion is drawn at most ten times a second",
+    "why": "measures the menu frame throttle against wall-clock time"
+  },
+  {
+    "test": "council W4A C4-11: the cue total keeps counting after the 24-entry log is full",
+    "why": "waits for the still-menu throttle to hold frames back, which depends on the frame rate"
+  },
+  {
+    "test": "council F S1-22: at the back of the grid the real camera is higher than on open road",
+    "why": "the grid and camera settle depend on frames simulated in a fixed wall-clock window"
+  },
+  {
+    "test": "m5 frame cost racing",
+    "why": "a frame-time budget (ms), which measures the runner"
+  }
+]

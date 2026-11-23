@@ -13,19 +13,19 @@
 //     (request pattern copied from repos/hsg-theme-park/tools/geo/fetch.mjs)
 //   USGS GNIS (Geographic Names) landform and hydrographic points, carto.nationalmap.gov geonames MapServer (public domain)
 //   dem-downtown.tif and dem-region.tif, fetched 2026-10-28 by hsg-trivia (same 3DEP service): shared in the workspace's
-//   reference/geo/elevation/, copied from ../hsg-trivia/art-src/geo/raw/ outside it
+//   reference/geo/elevation/, copied from <workspace>/repos/hsg-trivia/art-src/geo/raw/ outside it
 //
 // Be a good API citizen: one request at a time, a descriptive User-Agent, backoff on 429/504, then the mirror.
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { RAW, DEM_DIR, ROOT, rawPath, readTiff, M_PER_DEG_LAT, M_PER_DEG_LON } from './geo-lib.mjs';
+import { RAW, DEM_DIR, ROOT, WORKSPACE, rawPath, readTiff, M_PER_DEG_LAT, M_PER_DEG_LON } from './geo-lib.mjs';
 
 const UA = 'HotSpringsGames-TubRally/0.1 (open-source game; contact via github.com/brianm-di4u)';
 const OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
 const DEM_SERVICE = 'https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer/exportImage';
 const GNIS_SERVICE = 'https://carto.nationalmap.gov/arcgis/rest/services/geonames/MapServer';
-const TRIVIA_RAW = path.resolve(ROOT, '..', 'hsg-trivia', 'art-src', 'geo', 'raw');
+const TRIVIA_RAW = path.join(WORKSPACE, 'repos', 'hsg-trivia', 'art-src', 'geo', 'raw');
 
 const args = process.argv.slice(2);
 const FORCE = args.includes('--force');

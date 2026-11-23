@@ -6,7 +6,7 @@ import { TEAMS } from '../src/js/data/teams.js';
 import { Governor, CLIMB } from '../src/js/gfx/tiers.js';
 
 const KEY = 'hsg-tub-rally-v1', CUP = 'hsg-tub-rally-cup-v1';
-const SHOTS = '../_council/hsg-tub-rally/wave-4b/shots';
+const SHOTS = 'screenshots/council/wave-4b/shots';
 const shot = async (t, id, what) => { fs.mkdirSync(SHOTS, { recursive: true }); await t.page.screenshot({ path: `${SHOTS}/${id}-${what}-${t.viewport === 'mobile' ? 'mobile' : 'desktop'}.png` }); };
 const fam = (t, sel) => t.page.evaluate((q) => { const e = document.querySelector(q); return e ? getComputedStyle(e).fontFamily : null; }, sel);
 

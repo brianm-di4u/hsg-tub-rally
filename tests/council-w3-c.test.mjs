@@ -12,7 +12,7 @@ import { TEAMS, kartStats } from '../src/js/data/teams.js';
 import { DEFAULT_SAVE } from '../src/js/save.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const SHOTS = '../_council/hsg-tub-rally/wave-3/shots';
+const SHOTS = 'screenshots/council/wave-3/shots';
 const KEY = 'hsg-tub-rally-v1';
 const shot = async (t, id, what) => { await t.shot(`w3c-${id}-${what}`); fs.mkdirSync(SHOTS, { recursive: true }); await t.page.screenshot({ path: `${SHOTS}/${id}-${what}-${t.viewport === 'mobile' ? 'mobile' : 'desktop'}.png` }); };
 const track = (id) => new Track(JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'tracks', id + '.json'), 'utf8')));

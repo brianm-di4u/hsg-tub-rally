@@ -18,7 +18,8 @@ Reader
 
 Run from the game folder:
   blender -b --factory-startup --python art-src/blender/scripts/ldraw_ref.py -- \
-      [--lib <path to the LDraw library>] [--samples 256]   (default: ../../reference/models/ldraw)
+      [--lib <path to the LDraw library>] [--samples 256]
+  (default --lib: $HSG_WORKSPACE/reference/models/ldraw; HSG_WORKSPACE defaults to the game folder's grandparent)
 Writes art-src/blender/renders/goldmaster/ldraw_*.png and ldraw_parts.json (licence lines per part).
 """
 import bpy
@@ -43,7 +44,8 @@ def arg(name, default=None):
     return ARGV[ARGV.index(name) + 1] if name in ARGV else default
 
 
-LIB = os.path.abspath(os.path.join(GAME, arg('--lib', '../../reference/models/ldraw')))
+WORKSPACE = os.environ.get('HSG_WORKSPACE') or os.path.normpath(os.path.join(GAME, '..', '..'))
+LIB = os.path.abspath(os.path.join(GAME, arg('--lib', os.path.join(WORKSPACE, 'reference', 'models', 'ldraw'))))
 SAMPLES = int(arg('--samples', '256'))
 OUT = os.path.join(RENDER_DIR, 'goldmaster')
 TO_BLENDER = Matrix(((1, 0, 0, 0), (0, 0, 1, 0), (0, -1, 0, 0), (0, 0, 0, 1))) @ Matrix.Scale(LDU, 4)

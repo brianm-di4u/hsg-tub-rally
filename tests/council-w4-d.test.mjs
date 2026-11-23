@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import { FACTS } from '../src/js/data/facts.js';
 import { TEAMS, DIVISIONS } from '../src/js/data/teams.js';
 
-const SHOTS = '../_council/hsg-tub-rally/wave-4/shots';
+const SHOTS = 'screenshots/council/wave-4/shots';
 const shot = async (t, id, what) => { fs.mkdirSync(SHOTS, { recursive: true }); await t.page.screenshot({ path: `${SHOTS}/${id}-${what}-${t.viewport === 'mobile' ? 'mobile' : 'desktop'}.png` }); };
 const toCourses = async (t) => {
   await t.game('scene', 'title'); await t.waitFrames(3);

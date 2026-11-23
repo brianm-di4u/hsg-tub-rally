@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const SHOTS = '../_council/hsg-tub-rally/wave-2/shots';
+const SHOTS = 'screenshots/council/wave-2/shots';
 const KEY = 'hsg-tub-rally-v1';
 const shot = async (t, name, opt) => { await t.shot(name, opt); fs.mkdirSync(SHOTS, { recursive: true }); await t.page.screenshot({ path: `${SHOTS}/${name}-${t.viewport}.png` }); };
 const FIN = () => window.TR_FINALE.state();
