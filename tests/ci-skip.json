@@ -33,7 +33,7 @@
   },
   {
     "test": "council F S1-22: at the back of the grid the real camera is higher than on open road",
-    "why": "the grid and camera settle depend on frames simulated in a fixed wall-clock window"
+    "why": "failed on the runner (camera peak 3.00 m against 2.90 m on open road, 0.5 m wanted); the cause is not confirmed"
   },
   {
     "test": "m5 frame cost racing",
