@@ -1,0 +1,26 @@
+[
+  {
+    "test": "council A S5-20: Warm and Hot ticks and the landing thud",
+    "why": "drives a real power-slide on fixed timings that a shared runner overruns"
+  },
+  {
+    "test": "council F S4-02: the finale code touches no saved data and keeps the draw-call and frame budgets",
+    "why": "measures frame task time on the runner"
+  },
+  {
+    "test": "council A S1-08: pausing again during the hold",
+    "why": "times the resume hold on the wall clock"
+  },
+  {
+    "test": "council B S2-03: Water Fight states its goal",
+    "why": "checks the banner a second into the match on the wall clock"
+  },
+  {
+    "test": "council E S1-14: a chevron shows on the edge a threat comes from",
+    "why": "screenshots time out while the runner renders the race"
+  },
+  {
+    "test": "council E S5-06: the trophy chimes when the cup opens something new",
+    "why": "the runner's browser closes under load mid-test"
+  }
+]
