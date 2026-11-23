@@ -405,7 +405,11 @@ export const tests = [
         // the arrow keys never land on the hidden chips: walk the whole screen
         const seen = new Set();
         await t.page.evaluate(() => document.querySelector('.panel.settings button').focus());
-        for (let i = 0; i < 60; i++) { await t.page.keyboard.press('ArrowDown'); seen.add(await t.page.evaluate(() => { const a = document.activeElement; return a.dataset.k ? a.dataset.k + '=' + a.dataset.v : a.dataset.act || a.textContent; })); }
+        // The menu takes one step a frame (ui/screens.js nav(), fed by a flag the keydown sets), and a scripted press is far quicker than a
+        // frame, so several presses used to merge into one step. Wait for each press to move the focus before the next.
+        const focusKey = () => t.page.evaluate(() => { const a = document.activeElement; return a ? (a.dataset.k || '') + '=' + (a.dataset.v || a.dataset.act || a.textContent) : ''; });
+        const pressDown = async () => { const was = await focusKey(); await t.page.keyboard.press('ArrowDown'); await t.page.waitForFunction((w) => { const a = document.activeElement; return (a ? (a.dataset.k || '') + '=' + (a.dataset.v || a.dataset.act || a.textContent) : '') !== w; }, was, { polling: 'raf', timeout: 2000 }).catch(() => {}); };
+        for (let i = 0; i < 60; i++) { await pressDown(); seen.add(await t.page.evaluate(() => { const a = document.activeElement; return a.dataset.k ? a.dataset.k + '=' + a.dataset.v : a.dataset.act || a.textContent; })); }
         t.expect(seen.size > 10 && ![...seen].some((k) => k.startsWith('lefty')), 'the arrow keys visit every visible button and skip the hidden row: ' + seen.size);
         await t.checkLayout({ allowScrollY: true });
         await shot(t, 'C4-15', 'settings-no-touch');
